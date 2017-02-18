@@ -3,6 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<style type="text/css" media="all">
+		a {color:#000}
+		label {cursor:pointer}
 		body {
 			background:#fff;
 			-webkit-user-select: none;
@@ -41,7 +43,7 @@
 			border-top:1px solid #ddd;
 			background:#fff;
 			position:fixed;
-			height:12em;
+			height:15em;
 			bottom:0;
 			width:calc(100% - 19em - 1px);
 			transition:.15s;
@@ -49,14 +51,14 @@
 		#bottom .list {
 			overflow-y:auto;
 			width:100%;
-			height:9.5em;
+			height:12.5em;
 			margin-top:2px}
 		#bottom > .line {
 			border-bottom:1px #ddd solid;
 			height:2em}
 		#bottom .nothide {display:none}
 		
-		.b img, .b svg {
+		.b img, .b svg, .b input {
 			display:inline-block;
 			height:1em;
 			width:1em;
@@ -71,6 +73,9 @@
 			float:left;
 			border:1px solid #ddd;
 			padding:0 8px;}
+		.b.i {
+			float:none;
+			display:inline-block;}
 		#top .b:not(:first-child), #bottom .line .b:not(:first-child):not(:last-child) {border-left:none}
 		#top .b, #bottom .line .b{
 			border-top:none;
@@ -197,7 +202,7 @@
 			width:1.8em;
 			}
 		
-		body.night, body.night #top, body.night #side, body.night #bottom, body.night .b {
+		body.night, body.night #top, body.night #side, body.night #bottom, body.night .b, body.night a {
 			background:#000;
 			color:#eee}
 		body.night * {border-color: #333 !important;}
@@ -210,9 +215,9 @@
 			color:#8f8}
 		body.night .b:not(.na) path {fill:#eee}
 		body.night .b.red, body.night .b.red path{
-			background: #800;
-			color: #f99;
-			fill: #f99}
+			background: #400;
+			color: #f88;
+			fill: #f88}
 		body.night #windows .w{background:#000}
 		body.night #windows .h{
 			background:#016; 
@@ -220,12 +225,14 @@
 		body.night #windows .close {
 			background:#d00; 
 			color:#300}	
-		.night_nothide{display:none}
-		body.night .night_nothide{display:inline}
+		.night_nothide{display:none !important}
+		body.night .night_nothide{display:inline !important}
 		body.night .night_hide{display:none}
 		
+		.sizes {text-align:center}
 		
-		.labelHidden .b b {display:none}
+		
+		.labelHidden .b b {display:none !important}
 		
 		.bottomHidden #bottom {height:1.95em}
 		.bottomHidden #bottom .nothide {display:inline}
@@ -254,7 +261,7 @@
 		}
 		
 		function exapi() {
-			this.settings = {},
+			this.settings = {color:[]},
 			this.windows = {},
 			this.changeNight = function(ch) {
 				if (ch) this.settings.nightMode = !this.settings.nightMode;
@@ -290,7 +297,27 @@
 				}
 				document.getElementById("pad"+(n+1)).style.display = "block";
 				document.getElementById("side").getElementsByClassName("table")[0].getElementsByClassName("b")[n].classList.add("sel");
+				if (n == 0) this.actualBrush = this.brush;
+				else this.actualBrush = -1;
 			}
+			
+			this.changeBottomPad = function (n) {
+				for (var i=0; i<2; i++) {
+					document.getElementById("bpad"+(i+1)).style.display = "none";
+					document.getElementById("bottom").getElementsByClassName("line")[0].getElementsByClassName("b")[i].classList.remove("sel");
+				}
+				document.getElementById("bpad"+(n+1)).style.display = "block";
+				document.getElementById("bottom").getElementsByClassName("line")[0].getElementsByClassName("b")[n].classList.add("sel");
+			}
+			
+			this.selectBrush = function (n) {
+				for (var i=0; i<6; i++) {
+					document.getElementById("brush"+i).classList.remove("sel");
+				}
+				document.getElementById("brush"+n).classList.add("sel");
+				this.brush = n;
+			}
+			
 			
 			
 			this.callPopup2 = function(arg) {
@@ -360,7 +387,14 @@
 				this.settings.nightMode = false;
 				this.settings.fullscreenMode = false;
 				this.settings.topFontSize = 1.4;
+				this.settings.dontShowAlerts = false;
+				this.settings.color = new Array('#bb0000','#bbbb00','#00bbbb','#00bb00','#bb00bb');
 				localStorage["hasSettings"] = true;
+				
+				this.changeLabels();
+				this.topFontSize();
+				this.changeNight(false);
+				this.changeFullscreen(false);
 			}
 			
 			this.loadSettings = function() {
@@ -383,8 +417,9 @@
 				size = parseInt(allStrings ? 3 + ((allStrings.length*16)/(8*1024)) : 0);
 				document.getElementById("settings").getElementsByClassName("sizes")[0].innerHTML = size+" KB / 5120 KB";
 				document.getElementById("settings").getElementsByClassName("linebar")[0].style.background = 
-				this.settings.nightMode ? "linear-gradient(to right, #800 0% , #800 "+size*100/5120+"%, #080 "+size*100/5120+"%, #080 100%)" : "linear-gradient(to right, #faa 0% , #faa "+size*100/5120+"%, #afa "+size*100/5120+"%, #afa 100%)";
-				
+				this.settings.nightMode ? "linear-gradient(to right, #500 0% , #500 "+size*100/5120+"%, #050 "+size*100/5120+"%, #050 100%)" : "linear-gradient(to right, #faa 0% , #faa "+size*100/5120+"%, #afa "+size*100/5120+"%, #afa 100%)";
+				var i;
+				for (i=0; i<5; i++) document.getElementById("settings").getElementsByClassName("color")[i].value = this.settings.color[i];
 				
 				document.getElementById("st_labels").checked = this.settings.showLabel;
 				document.getElementById("st_topfontsize").value = this.settings.topFontSize;
@@ -395,6 +430,8 @@
 				this.settings.topFontSize = parseFloat(document.getElementById("st_topfontsize").value);
 				if (this.settings.topFontSize < 0.8) this.settings.topFontSize=0.8;
 				if (this.settings.topFontSize > 1.8) this.settings.topFontSize=1.8;
+				var i;
+				for (i=0; i<5; i++) this.settings.color[i] = document.getElementById("settings").getElementsByClassName("color")[i].value;
 				this.changeLabels();
 				this.topFontSize();
 			}
@@ -422,9 +459,24 @@
 				this.changeNight(false);
 				this.changeFullscreen(false);
 				this.changeSidePad(0);
+				this.changeBottomPad(0);
+				this.selectBrush(1);
 				this.popUp = "popUp";
 				
-				setTimeout(this.closePopup,500);
+				if (window.location.hostname == "") this.location = "local";
+				else if (window.location.hostname == "stsyn.github.io") this.location = "nightly";
+				else if (window.location.hostname == "vtizi.ugatu.su") this.location = "stable";
+				else this.location = "unknown";
+				
+				if (this.location == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,500);
+				else {
+					var tt = "";
+					if (this.location == "unknown") tt = 'Вы используете версию из неизвестного источника! Настоятельно рекомендуется использовать стабильную версию на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
+					else if (this.location == "local") tt = 'Вы используете сохраненную локальную версию. Актуальную стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
+					else if (this.location == "nightly") tt = 'Вы используете самую свежую промежуточную бета-версию. В ней могут содержаться ошибки и недоделанные возможности! В случае обнаружения ошибок и предложений убедительная просьба связаться с разрабочиками! Стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
+					
+					this.callPopup2({header:'Внимание!',content:tt,size:2,windowsize:'sm',buttons:[{functions:'api.settings.dontShowAlerts=true;api.closePopup();api.saveSettings()',name:'Больше не показывать'},{functions:'api.closePopup()',name:'Закрыть'}]});
+				}
 			}
 		}
 		
@@ -448,12 +500,13 @@
 		<svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M48,12C16,12,0,48.166,0,48.166S16,84,48,84s48-36,48-36S80,12,48,12z M48,76C26.854,76,13.503,56.118,9.003,48.148C13.5,40.102,26.854,20,48,20c21.15,0,34.502,19.998,38.998,28C82.494,56.016,69.145,76,48,76z M48,32c-8.836,0-16,7.164-16,16c0,8.837,7.164,16,16,16c8.837,0,16-7.163,16-16C64,39.164,56.837,32,48,32z M48,56c-4.411,0-8-3.589-8-8s3.589-8,8-8s8,3.589,8,8S52.411,56,48,56z"/><path d="M48,12C16,12,0,48.166,0,48.166S16,84,48,84s48-36,48-36S80,12,48,12z M48,76C26.854,76,13.503,56.118,9.003,48.148C13.5,40.102,26.854,20,48,20c21.15,0,34.502,19.998,38.998,28C82.494,56.016,69.145,76,48,76z M48,32c-8.836,0-16,7.164-16,16c0,8.837,7.164,16,16,16c8.837,0,16-7.163,16-16C64,39.164,56.837,32,48,32z M48,56c-4.411,0-8-3.589-8-8s3.589-8,8-8s8,3.589,8,8S52.411,56,48,56z"/></svg><b>Полноэкранный</b>
 		</span>
 		<span class="b" onclick="api.changeNight(true)">
-			<svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M40.124,16.98C40.042,17.979,40,18.986,40,20c0,19.852,16.148,36,36,36c1.014,0,2.021-0.041,3.02-0.124C75.501,69.725,62.928,80,48,80c-17.645,0-32-14.355-32-32C16,33.072,26.275,20.499,40.124,16.98 M48,8C25.909,8,8,25.909,8,48c0,22.092,17.909,40,40,40c22.092,0,40-17.908,40-40c0-0.893-0.04-1.775-0.098-2.654C84.29,47.045,80.257,48,76,48c-15.464,0-28-12.536-28-28c0-4.257,0.955-8.29,2.654-11.902C49.775,8.04,48.893,8,48,8L48,8z"/></svg><b class="night_hide">Ночь</b><b class="night_nothide">День</b></span>
-		<span class="b" onclick="api.callPopup2({header:'FCMBuilder2',content:'Курсовой проект Бельского С.М.<br>Версия 0.0.0 pre-alpha',size:0,windowsize:'sm'})"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M12,28h72c2.209,0,4-1.791,4-4s-1.791-4-4-4H12c-2.209,0-4,1.791-4,4S9.791,28,12,28z M84,44H12c-2.209,0-4,1.791-4,4s1.791,4,4,4h72c2.209,0,4-1.791,4-4S86.209,44,84,44z M84,68H12c-2.209,0-4,1.791-4,4s1.791,4,4,4h72c2.209,0,4-1.791,4-4S86.209,68,84,68z"/></svg><b>Информация</b></span>
+			<svg width="96px" height="96px" viewBox="0 0 96 96" class="night_hide"><path d="M40.124,16.98C40.042,17.979,40,18.986,40,20c0,19.852,16.148,36,36,36c1.014,0,2.021-0.041,3.02-0.124C75.501,69.725,62.928,80,48,80c-17.645,0-32-14.355-32-32C16,33.072,26.275,20.499,40.124,16.98 M48,8C25.909,8,8,25.909,8,48c0,22.092,17.909,40,40,40c22.092,0,40-17.908,40-40c0-0.893-0.04-1.775-0.098-2.654C84.29,47.045,80.257,48,76,48c-15.464,0-28-12.536-28-28c0-4.257,0.955-8.29,2.654-11.902C49.775,8.04,48.893,8,48,8L48,8z"/></svg><b class="night_hide">Ночь</b>
+			<svg width="96px" height="96px" viewBox="0 0 96 96" class="night_nothide"><path d="M52,4v8c0,2.209-1.791,4-4,4s-4-1.791-4-4V4c0-2.209,1.791-4,4-4S52,1.791,52,4z M48,80c-2.209,0-4,1.791-4,4v8c0,2.209,1.791,4,4,4s4-1.791,4-4v-8C52,81.791,50.209,80,48,80zM14.059,14.059c-1.562,1.562-1.562,4.095,0,5.657l5.657,5.657c1.562,1.562,4.095,1.562,5.657,0c1.562-1.562,1.562-4.096,0-5.657l-5.657-5.657C18.153,12.497,15.621,12.497,14.059,14.059z M70.627,70.627c-1.562,1.562-1.562,4.096,0,5.657l5.657,5.657c1.562,1.562,4.095,1.562,5.657,0c1.562-1.562,1.562-4.095,0-5.657l-5.657-5.657C74.722,69.065,72.189,69.065,70.627,70.627z M0,48c0,2.209,1.791,4,4,4h8c2.209,0,4-1.791,4-4s-1.791-4-4-4H4C1.791,44,0,45.791,0,48z M80,48c0,2.209,1.791,4,4,4h8c2.209,0,4-1.791,4-4s-1.791-4-4-4h-8C81.791,44,80,45.791,80,48z M14.059,81.941c1.562,1.562,4.095,1.562,5.657,0l5.656-5.657c1.562-1.562,1.562-4.095,0-5.657c-1.562-1.562-4.094-1.562-5.656,0l-5.657,5.657C12.497,77.847,12.497,80.379,14.059,81.941z M70.627,25.373c1.562,1.562,4.095,1.562,5.657,0l5.657-5.657c1.562-1.562,1.562-4.095,0-5.657c-1.562-1.562-4.095-1.562-5.657,0l-5.657,5.657C69.065,21.277,69.065,23.811,70.627,25.373z M72,48c0,13.255-10.745,24-24,24S24,61.255,24,48s10.745-24,24-24S72,34.745,72,48z M64,48c0-8.837-7.163-16-16-16s-16,7.163-16,16s7.163,16,16,16S64,56.837,64,48z"/></svg><b class="night_nothide">День</b></span>
+		<span class="b" onclick="api.callPopup2({header:'FCMBuilder2',content:'Курсовой проект Бельского С.М.<br>Версия 0.0.0 pre-alpha ('+api.location+')',size:0,windowsize:'sm'})"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M12,28h72c2.209,0,4-1.791,4-4s-1.791-4-4-4H12c-2.209,0-4,1.791-4,4S9.791,28,12,28z M84,44H12c-2.209,0-4,1.791-4,4s1.791,4,4,4h72c2.209,0,4-1.791,4-4S86.209,44,84,44z M84,68H12c-2.209,0-4,1.791-4,4s1.791,4,4,4h72c2.209,0,4-1.791,4-4S86.209,68,84,68z"/></svg><b>Информация</b></span>
 	</div>
 	<div id="side">
 		<div class="table ps"><div class="t3"><div class="t2">
-			<span class="t"><span class="b fs" onclick="api.changeSidePad(0)">Построение</span></span>
+			<span class="t"><span class="b fs" onclick="api.changeSidePad(0)">Проект</span></span>
 			<span class="t"><span class="b fs" onclick="api.changeSidePad(1)">Рисование</span></span>
 			<span class="t"><span class="b fs" onclick="api.changeSidePad(2)">Анализ</span></span>
 		</div></div></div>
@@ -461,20 +514,20 @@
 		<div id="pad1" class="pad">
 		
 			<div class="table line"><div class="t3"><div class="t2 line">
-				<span class="t de l">Концепты</span>
+				<span class="t de l">Факторы</span>
 				<span class="t"><div class="table r"><div class="t3"><div class="t2">
-					<span class="t"><span class="b fs">ДФ</span></span>
-					<span class="t"><span class="b fs">ПФ</span></span>
-					<span class="t"><span class="b fs">ЦФ</span></span>
-					<span class="t"><span class="b fs">УФ</span></span>
+					<span class="t"><span class="b fs" id="brush1" onclick="api.selectBrush(1)" title="Дестабилизирующий фактор">ДФ</span></span>
+					<span class="t"><span class="b fs" id="brush2" onclick="api.selectBrush(2)" title="Промежуточный фактор">ПФ</span></span>
+					<span class="t"><span class="b fs" id="brush3" onclick="api.selectBrush(3)" title="Целевой фактор">ЦФ</span></span>
+					<span class="t"><span class="b fs" id="brush4" onclick="api.selectBrush(4)" title="Управляющий фактор">УФ</span></span>
+					<span class="t"><span class="b fs" id="brush5" onclick="api.selectBrush(5)" title="Негативный фактор">НФ</span></span>
 				</div></div></div></span>
 			</div>
 			
 			<div class="t2 line">
 				<span class="t de l">Связи</span>
 				<span class="t"><div class="table r"><div class="t3"><div class="t2">
-					<span class="t"><span class="b fs">Установка</span></span>
-					<span class="t"><span class="b fs na">Список</span></span>
+					<span class="t"><span class="b fs" id="brush0" onclick="api.selectBrush(0)">Установка</span></span>
 				</div></div></div></span>
 			</div></div></div>
 		</div>
@@ -489,12 +542,18 @@
 	
 	<div id="bottom">
 		<div class="line">
-			<span class="b">Узлы</span><span class="b">Связи</span><span class="b" style="float:right" onclick="api.showHideBottom()">
-				<span class="hide"><b>Скрыть</b></span>
-				<span class="nothide"><b>Показать</b></span>
+			<span class="b" onclick="api.changeBottomPad(0)">Узлы</span><span class="b" onclick="api.changeBottomPad(1)">Связи</span><span class="b" style="float:right" onclick="api.showHideBottom()">
+				<span class="hide"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M44,12v62.344L22.828,53.172c-1.562-1.562-4.094-1.562-5.656,0c-1.562,1.562-1.562,4.095,0,5.657l28,28	c1.562,1.562,4.095,1.562,5.656,0l28-28C79.609,58.048,80,57.024,80,56c0-1.023-0.391-2.047-1.172-2.828c-1.562-1.562-4.095-1.562-5.656,0L52,74.344V12c0-2.208-1.791-4-4-4S44,9.791,44,12z"/></svg><b>Скрыть</b></span>
+				<span class="nothide"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M52,83.999V21.655l21.172,21.172c1.562,1.562,4.094,1.562,5.656,0c1.562-1.562,1.562-4.095,0-5.657l-28-28c-1.562-1.562-4.095-1.562-5.656,0l-28,28C16.391,37.951,16,38.974,16,39.999c0,1.023,0.391,2.047,1.172,2.828 c1.562,1.562,4.095,1.562,5.656,0L44,21.655v62.344c0,2.209,1.791,4,4,4S52,86.208,52,83.999z"/></svg><b>Показать</b></span>
 			</span>
 		</div>
 		<div class="list">
+			<div id="bpad1" class="pad">
+				Вкладка узлов
+			</div>
+			<div id="bpad2" class="pad">
+				Вкладка связей
+			</div>
 		</div>
 	</div>
 	
@@ -519,16 +578,29 @@
 				</div>
 				<div class="close" onclick="api.closeWindow('settings')">X</div>
 				<div class="cc btns" style="text-align:center">
-					<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Интерфейс</div>
-					<div class="line"><input type="checkbox" id="st_labels"> Подписи у иконок</div>
-					<div class="line">Размер шрифта верхнего меню <input type="text" class="b" id="st_topfontsize" style="float:none;display:inline-block;width:4em"></div>
-					
-					<div class="line">
-						<div class="linebar" style="height:1.5em; line-height:1.5em;"><div class="sizes" style="font-size:70%"></div></div>
-					</div><div class="table r"><div class="t3"><div class="t2">
-						<span class="t"><span class="b fs red" onclick="api.loadDefault();api.putSettings()">Установить умолчания</span></span>
-						<span class="t"><span class="b fs red" onclick="api.callPopup2({header:'Сброс данных',content:'Внимание, абсолютно все сохраненные данные будут потеряны! Текущая сессия не будет завершена. Экспортированные данные не будут потеряны.',size:2,windowsize:'m',buttons:[{functions:'api.resetData();api.closePopup()',red:true,name:'Продолжить'},{functions:'api.closePopup()',name:'Отмена'}]})">Очистить хранилище</span></span>
-					</div></div></div>
+					<div class="pad" style="display:block">
+						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Интерфейс</div>
+						<label class="b i" style="font-weight:normal"><div class="line"><input type="checkbox" id="st_labels"> Подписи у иконок</div></label>
+						<div class="line">Размер шрифта верхнего меню (0.8 - 1.8) <input type="text" class="b i" id="st_topfontsize" style="width:1.5em">em</div>
+					</div>
+					<div class="pad" style="display:block">
+						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Цвета элементов</div>
+						<div class="table r"><div class="t3">
+							<div class="t2"><span class="t de">Дестабилизирующий фактор</span><span class="t"><input class="b i fs color" type="color" style="min-width:140px"></span></div>
+							<div class="t2"><span class="t de">Промежуточный фактор</span><span class="t"><input class="b i fs color" type="color"></span></div>
+							<div class="t2"><span class="t de">Целевой фактор</span><span class="t"><input class="b i fs color" type="color"></span></div>
+							<div class="t2"><span class="t de">Управляющий фактор</span><span class="t"><input class="b i fs color" type="color"></span></div>
+							<div class="t2"><span class="t de">Негативный фактор</span><span class="t"><input class="b i fs color" type="color"></span></div>
+						</div></div>
+					</div>
+					<div class="pad" style="display:block">
+						<div class="line">
+							<div class="linebar" style="height:1.5em; line-height:1.5em;" title="Максимальный размер является приблизительным, и может отличаться в большую сторону в зависимости от браузера."><div class="sizes" style="font-size:70%"></div></div>
+						</div><div class="table r"><div class="t3"><div class="t2">
+							<span class="t"><span class="b fs red" onclick="api.loadDefault();api.putSettings()">Установить умолчания</span></span>
+							<span class="t"><span class="b fs red" onclick="api.callPopup2({header:'Сброс данных',content:'Внимание, абсолютно все сохраненные данные будут потеряны! Текущая сессия не будет завершена. Экспортированные данные не будут потеряны.',size:2,windowsize:'m',buttons:[{functions:'api.resetData();api.closePopup()',red:true,name:'Продолжить'},{functions:'api.closePopup()',name:'Отмена'}]})">Очистить хранилище</span></span>
+						</div></div></div>
+					</div>
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
 					<span class="t"><span class="b fs" onclick="api.closeWindow('settings')">Отмена</span></span>
