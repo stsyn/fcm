@@ -189,7 +189,7 @@ width:100%;}
 #windows .cc{
 	height:calc(100% - 1.5em - 42px);
 	margin:12px;
-	overflow-y:auto;}
+	overflow-y:auto}
 #windows .cc.btns{height:calc(100% - 3.3em - 42px)}
 #windows .bt{padding:5px}
 #windows .h {
@@ -199,8 +199,7 @@ width:100%;}
 	cursor:move;
 	text-align:center;
 	background:#f0f5ff;
-	color:#68a;
-	}
+	color:#68a}
 #windows .close {
 	font-size:150%;
 	font-weight:bold;
@@ -211,10 +210,12 @@ width:100%;}
 	position:absolute;
 	top:0;
 	right:0;
-	width:1.8em;
-	}
+	width:1.8em}
 
-body.night, body.night #top, body.night #side, body.night #bottom, body.night .b, body.night a, body.night #windows .w.ifr iframe {
+body.night #windows .w.ifr iframe {
+	filter:invert(100%);
+	-webkit-filter:invert(100%)}
+body.night, body.night #top, body.night #side, body.night #bottom, body.night .b, body.night a {
 	background:#000;
 	color:#eee}
 body.night * {border-color: #333 !important;}
