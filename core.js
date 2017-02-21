@@ -11,6 +11,7 @@ function checkWindowPos(id) {
 function exapi() {
 	this.settings = {color:[]},
 	this.windows = {},
+	this.version = {g:"0.0.0", s:"pre-alpha", b:1}
 	this.changeNight = function(ch) {
 		if (ch) this.settings.nightMode = !this.settings.nightMode;
 		var e = document.getElementsByTagName("body")[0].classList;
@@ -253,7 +254,7 @@ function exapi() {
 		
 		
 		windows.changelog = {header:'Список изменений',content:'<iframe src="//stsyn.github.io/fcm/changelog/'+this.location+'.txt"></iframe>',size:0,windowsize:'ifr'};
-		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М.<br>Версия 0.0.0 pre-alpha ('+api.location+')',size:(this.location == "local"?0:1),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'}],windowsize:'sm'};
+		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.location == "local"?0:1),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'}],windowsize:'sm'};
 	}
 }
 
