@@ -149,7 +149,7 @@ function exapi() {
 	this.loadDefault = function() {
 		this.settings.showLabel = true;
 		this.settings.palette = true;
-		this.settings.nightMode = false;
+		this.settings.nightMode = (this.location == "nightly");
 		this.settings.fullscreenMode = false;
 		this.settings.topFontSize = 1.4;
 		this.settings.dontShowAlerts = false;
@@ -217,6 +217,11 @@ function exapi() {
 	}
 	
 	this.init = function(fatal) {
+		if (window.location.hostname == "") this.location = "local";
+		else if (window.location.hostname == "stsyn.github.io") this.location = "nightly";
+		else if (window.location.hostname == "vtizi.ugatu.su") this.location = "stable";
+		else this.location = "unknown";
+		
 		if (fatal) {
 			document.getElementsByTagName("body")[0].addEventListener("mousemove", function() {
 				mX = event.clientX;
@@ -235,11 +240,6 @@ function exapi() {
 		this.changeBottomPad(0);
 		this.selectBrush(-1);
 		this.popUp = "popUp";
-		
-		if (window.location.hostname == "") this.location = "local";
-		else if (window.location.hostname == "stsyn.github.io") this.location = "nightly";
-		else if (window.location.hostname == "vtizi.ugatu.su") this.location = "stable";
-		else this.location = "unknown";
 		
 		if (this.location == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,500);
 		else {
