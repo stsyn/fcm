@@ -9,32 +9,17 @@ function checkWindowPos(id) {
 }
 
 function exapi() {
-	this.settings = {color:[]},
-	this.windows = {},
-	this.version = {g:"0.0.0", s:"pre-alpha", b:1}
-	this.changeNight = function(ch) {
-		if (ch) this.settings.nightMode = !this.settings.nightMode;
-		var e = document.getElementsByTagName("body")[0].classList;
-		if (e.contains("night") != this.settings.nightMode) e.toggle("night");
-		this.saveSettings();
-	}
+	this.settings = {color:[]};
+	this.windows = {};
+	this.mouse = {};
+	this.mouse.onclick = [];
+	this.version = {g:"0.0.0", s:"pre-alpha", b:2};
 	
-	this.changeFullscreen = function(ch) {
-		if (ch) this.settings.fullscreenMode = !this.settings.fullscreenMode;
+	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
+		if (change) this.settings[variable] = !this.settings[variable];
 		var e = document.getElementsByTagName("body")[0].classList;
-		if (e.contains("fullscreen") != this.settings.fullscreenMode) e.toggle("fullscreen");
-		this.saveSettings();
-	}
-	
-	this.changeLabels = function() {
-		var e = document.getElementsByTagName("body")[0].classList;
-		if (e.contains("labelHidden") == this.settings.showLabel) e.toggle("labelHidden");
-	}
-	
-	this.showHideBottom = function(ac) {
-		if (ac === undefined) document.getElementsByTagName("body")[0].classList.toggle("bottomHidden");
-		else if (!ac) document.getElementsByTagName("body")[0].classList.add("bottomHidden");
-		else document.getElementsByTagName("body")[0].classList.remove("bottomHidden");
+		if (e.contains(id) != (this.settings[variable] != reverse)) e.toggle(id);
+		if (rewrite) this.saveSettings();
 	}
 	
 	this.topFontSize = function() {
@@ -151,16 +136,20 @@ function exapi() {
 		this.settings.showLabel = true;
 		this.settings.palette = true;
 		this.settings.nightMode = (this.location == "nightly");
+		this.settings.debug = (this.location == "nightly");
 		this.settings.fullscreenMode = false;
+		this.settings.bottomHidden = false;
 		this.settings.topFontSize = 1.4;
 		this.settings.dontShowAlerts = false;
 		this.settings.color = new Array('#bb0000','#bbbb00','#00bbbb','#00bb00','#bb00bb');
 		localStorage["hasSettings"] = true;
 		
-		this.changeLabels();
+		this.styleSwitch('labelHidden','showLabel',false,false,true);
 		this.topFontSize();
-		this.changeNight(false);
-		this.changeFullscreen(false);
+		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
+		this.styleSwitch('night','nightMode',false,false,false);
+		this.styleSwitch('debugEnabled','debug',false,false,false);
+		this.styleSwitch('fullscreen','fullscreenMode',false,false,false);
 	}
 	
 	this.loadSettings = function() {
@@ -191,6 +180,7 @@ function exapi() {
 		}
 		
 		document.getElementById("st_labels").checked = this.settings.showLabel;
+		document.getElementById("st_debug").checked = this.settings.debug;
 		document.getElementById("st_topfontsize").value = this.settings.topFontSize;
 		
 		this.colorMode(this.settings.palette);
@@ -198,6 +188,7 @@ function exapi() {
 	
 	this.getSettings = function() {
 		this.settings.showLabel = document.getElementById("st_labels").checked;
+		this.settings.debug = document.getElementById("st_debug").checked;
 		this.settings.topFontSize = parseFloat(document.getElementById("st_topfontsize").value);
 		if (this.settings.topFontSize < 0.8) this.settings.topFontSize=0.8;
 		if (this.settings.topFontSize > 1.8) this.settings.topFontSize=1.8;
@@ -206,7 +197,9 @@ function exapi() {
 			if (this.settings.palette) this.settings.color[i] = document.getElementById("settings").getElementsByClassName("color")[i].value;
 			else this.settings.color[i] = document.getElementById("settings").getElementsByClassName("color2")[i].value;
 		}
-		this.changeLabels();
+		
+		this.styleSwitch('labelHidden','showLabel',false,false,true);
+		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.topFontSize();
 	}
 	
@@ -217,26 +210,54 @@ function exapi() {
 		this.init(false);
 	}
 	
+	this.mouseListener = function(e) {
+		var cc = document.getElementById("c").getBoundingClientRect();
+		api.mouse.X = parseInt(e.clientX-cc.left);
+		api.mouse.Y = parseInt(e.clientY-cc.top);
+		api.mouse.button = e.which;
+		document.getElementById("debug_mouseInfo").innerHTML = api.mouse.X+':'+api.mouse.Y+' ['+api.mouse.button+']';
+	}
+	
+	this.mouseClickListener = function() {
+		for (var i=0; i<api.mouse.onclick.length; i++) api.mouse.onclick[i]();
+	}
+	
 	this.init = function(fatal) {
 		if (window.location.hostname == "") this.location = "local";
 		else if (window.location.hostname == "stsyn.github.io") this.location = "nightly";
 		else if (window.location.hostname == "vtizi.ugatu.su") this.location = "stable";
 		else this.location = "unknown";
 		
+		this.mouse.pressed = false;
+		this.mouse.click = false;
+		
 		if (fatal) {
 			document.getElementsByTagName("body")[0].addEventListener("mousemove", function() {
 				mX = event.clientX;
 				mY = event.clientY;
+				
+				api.mouseListener(event);
+			});
+			document.getElementsByTagName("body")[0].addEventListener("mousedown", function() {
+				api.mouseListener(event);
+			});
+			document.getElementsByTagName("body")[0].addEventListener("mouseup", function() {
+				api.mouseListener(event);
+			});
+			document.getElementsByTagName("body")[0].addEventListener("click", function() {
+				api.mouseClickListener();
 			});
 		
 			if (localStorage["hasSettings"] === undefined) this.loadDefault();
 			else this.loadSettings();
 		}
 		
-		this.changeLabels();
+		this.styleSwitch('labelHidden','showLabel',false,false,true);
 		this.topFontSize();
-		this.changeNight(false);
-		this.changeFullscreen(false);
+		this.styleSwitch('night','nightMode',false,false,false);
+		this.styleSwitch('fullscreen','fullscreenMode',false,false,false);
+		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
+		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.changeSidePad(0);
 		this.changeBottomPad(0);
 		this.selectBrush(-1);
