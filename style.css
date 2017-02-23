@@ -1,46 +1,41 @@
 a {color:#000}
 label {cursor:pointer}
+html {height:100%}
 body {
+	height:100%;
+	margin:0;
 	background:#fff;
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	font-family: Open Sans, sans-serif;
 	font-size:16px}
 #top {
+	
 	background:#fff;
 	transition:.15s;
-	height:2rem;
+	height:1.6em;
 	width:100%;
-	position:fixed;
-	top:0;
-	left:0;
+	z-index:1;
+	position:relative;
 	border-bottom:1px #ddd solid;
 	font-size:1.4em}
-#side {
-	transition:.15s;
-	background:#fff;
-	width:19em;
-	height:calc(100% - 2rem - 1px);
-	top:calc(2rem + 1px);
-	position:fixed;
-	border-left:1px #ddd solid;
-	right:0}
 #c {
 	transition:.15s;
 	cursor:crosshair;
 	background:#ccc;
+	float:left;
 	position:fixed;
-	top:calc(1.96em + 1px);
 	left:0;
-	height:calc(100% - 3.86em - 2px);
-	width:calc(100% - 19em - 1px)}
+	top:0;
+	height:100%;
+	width:100%}
 #bottom { 
 	border-top:1px solid #ddd;
 	background:#fff;
 	position:fixed;
 	height:15em;
 	bottom:0;
-	width:calc(100% - 19em - 1px);
+	width:100%;
 	transition:.15s;
 	left:0}
 #bottom .list {
@@ -50,7 +45,7 @@ body {
 	margin-top:2px}
 #bottom > .line {
 	border-bottom:1px #ddd solid;
-	height:2em}
+	height:1.6em}
 #bottom .nothide {display:none}
 
 .b img, .b svg, .b input {
@@ -67,7 +62,7 @@ body {
 	display:block;
 	float:left;
 	border:1px solid #ddd;
-	padding:0 8px;}
+	padding:0 .25em;}
 .b.i {
 	float:none;
 	display:inline-block;}
@@ -75,7 +70,7 @@ body {
 #top .b, #bottom .line .b{
 	border-top:none;
 	border-bottom:none;
-	line-height:2rem}
+	line-height:1.6em}
 .b:not(.na):not(.sel):hover {background:#def}
 .b:not(.na):not(.sel):active {background:#8ad}
 .b.sel, .b.sel path {
@@ -87,7 +82,7 @@ body {
 	color:#888;
 	cursor:default}
 .b.na path{fill:#888}
-.b.fs{width:calc(100% - 18px)}
+.b.fs{width:calc(100% - .5em - 2px)}
 .b b {
 	padding-left:0.2em;
 	vertical-align:baseline;}
@@ -95,7 +90,9 @@ body {
 	background: #fdd;
 	color: #e11;
 	fill: #e11;}
-input[type="text"].b {cursor:text}
+input[type="text"].b {
+	cursor:text;
+	font-size:100%}
 	
 .table{
 	display:inline-block;
@@ -111,8 +108,7 @@ input[type="text"].b {cursor:text}
 width:100%;}
 
 .pad {
-	width:calc(100% - 12px);
-	margin:2px;
+	width:calc(100% - 8px);
 	padding:3px;
 	display:none;
 	border:1px solid #eee;}
@@ -125,7 +121,7 @@ width:100%;}
 .ps {width:100%}
 .line{
 	width:100%;
-	margin-bottom:8px}
+	margin-bottom:.25em}
 .line:last-child{margin-bottom:0}
 .line .t{padding-top:3px}
 
@@ -181,16 +177,21 @@ width:100%;}
 	left:calc(50vw - 300px);
 	height:300px;
 	top:calc(50vh - 150px)}
+#windows .w.side {
+	width:22em;
+	left:calc(50vw - 11em);
+	height:50vh;
+	top:25vh}
 #windows .w.tall {
 	width:500px;
 	left:calc(50vw - 250px);
 	height:60vh;
 	top:20vh}
 #windows .cc{
-	height:calc(100% - 1.5em - 42px);
-	margin:12px;
+	height:calc(100% - 2.5em - 18px);
+	margin:.5em;
 	overflow-y:auto}
-#windows .cc.btns{height:calc(100% - 3.3em - 42px)}
+#windows .cc.btns{height:calc(100% - 4.3em - 18px)}
 #windows .bt{padding:5px}
 #windows .h {
 	width:100%;
@@ -249,19 +250,10 @@ body.debugEnabled .debug {display:block}
 
 .labelHidden .b b {display:none !important}
 
-.bottomHidden #bottom {height:1.95em}
+.bottomHidden #bottom {height:1.75em}
 .bottomHidden #bottom .nothide {display:inline}
 .bottomHidden #bottom .hide {display:none}
 
 .b.i.color {display:none}
 .palette .b.i.color {display:inline}
 .palette .b.i.color2 {display:none}
-
-.fullscreen > #side {
-	right: -294px}
-.fullscreen > #side:hover {
-	right:0}
-.fullscreen #c, .fullscreen #bottom {
-	width:calc(100% - 11px)}
-.fullscreen > #side:hover + #bottom {
-	width:calc(100% - 19em - 1px)}

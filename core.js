@@ -13,7 +13,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.0", s:"pre-alpha", b:2};
+	this.version = {g:"0.0.0", s:"pre-alpha", b:3};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -24,6 +24,10 @@ function exapi() {
 	
 	this.topFontSize = function() {
 		document.getElementById("top").style.fontSize = this.settings.topFontSize+"em";
+	}
+	
+	this.glFontSize = function() {
+		document.getElementsByTagName("body")[0].style.fontSize = this.settings.glFontSize+"%";
 	}
 	
 	this.changeSidePad = function (n) {
@@ -88,33 +92,51 @@ function exapi() {
 	}
 	
 	this.initWindowMove = function() {
-		t=true;
-		tx = event.clientX-parseInt(document.getElementById(tid).getElementsByClassName("h")[0].getBoundingClientRect().left);
-		ty = event.clientY-parseInt(document.getElementById(tid).getElementsByClassName("h")[0].getBoundingClientRect().top);
-		checkWindowPos(tid);
+		t=this.parentNode.parentNode.id;
+		tx = event.clientX-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().left);
+		ty = event.clientY-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().top);
+		checkWindowPos(t);
 	}
 	
 	this.callWindow = function(id,arg1,arg2,arg3) {
-		if (this.windows[id]) return;
+		t = false;
+		tx = 0;
+		ty = 0;
+		if (this.windows[id]) 
+		{	
+			document.getElementById(id).getElementsByClassName("w")[0].style.marginTop = "0";
+			document.getElementById(id).getElementsByClassName("w")[0].style.marginLeft = "0";
+			
+			if (id =="side") {
+				document.getElementById("side").getElementsByClassName("w")[0].style.marginLeft = "calc(50vw - 11em)";
+				document.getElementById("side").getElementsByClassName("w")[0].style.marginTop = "-20vh";
+			}
+			return;
+		}
 		this.windows[id] = true;
 		if (id == "settings") {
 			document.getElementById("settings").classList.toggle("d");
 			this.loadSettings();
 			this.putSettings();
 		}
+		else if (id == "side") {
+			document.getElementById("side").classList.toggle("d");
+		}
 		else {
 			this.windows[id] = undefined;
 			return;
 		}
-		tx = 0;
-		ty = 0;
 		tid = id;
 		document.getElementById(id).getElementsByClassName("w")[0].style.marginTop = "0";
 		document.getElementById(id).getElementsByClassName("w")[0].style.marginLeft = "0";
+		if (id =="side") {
+			document.getElementById("side").getElementsByClassName("w")[0].style.marginLeft = "calc(50vw - 11em)";
+			document.getElementById("side").getElementsByClassName("w")[0].style.marginTop = "-20vh";
+		}
 		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousedown", this.initWindowMove);
 		
 		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousemove", function() {
-			if (!t) return;
+			if (t != this.parentNode.parentNode.id) return;
 			var el = document.getElementById(id).getElementsByClassName("w")[0];
 			
 			el.style.marginTop = "calc(-50vh + "+(event.clientY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
@@ -137,9 +159,9 @@ function exapi() {
 		this.settings.palette = true;
 		this.settings.nightMode = (this.location == "nightly");
 		this.settings.debug = (this.location == "nightly");
-		this.settings.fullscreenMode = false;
 		this.settings.bottomHidden = false;
 		this.settings.topFontSize = 1.4;
+		this.settings.glFontSize = 100;
 		this.settings.dontShowAlerts = false;
 		this.settings.color = new Array('#bb0000','#bbbb00','#00bbbb','#00bb00','#bb00bb');
 		localStorage["hasSettings"] = true;
@@ -149,7 +171,6 @@ function exapi() {
 		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
 		this.styleSwitch('night','nightMode',false,false,false);
 		this.styleSwitch('debugEnabled','debug',false,false,false);
-		this.styleSwitch('fullscreen','fullscreenMode',false,false,false);
 	}
 	
 	this.loadSettings = function() {
@@ -182,6 +203,7 @@ function exapi() {
 		document.getElementById("st_labels").checked = this.settings.showLabel;
 		document.getElementById("st_debug").checked = this.settings.debug;
 		document.getElementById("st_topfontsize").value = this.settings.topFontSize;
+		document.getElementById("st_glfontsize").value = this.settings.glFontSize;
 		
 		this.colorMode(this.settings.palette);
 	}
@@ -190,8 +212,11 @@ function exapi() {
 		this.settings.showLabel = document.getElementById("st_labels").checked;
 		this.settings.debug = document.getElementById("st_debug").checked;
 		this.settings.topFontSize = parseFloat(document.getElementById("st_topfontsize").value);
+		this.settings.glFontSize = parseInt(document.getElementById("st_glfontsize").value);
 		if (this.settings.topFontSize < 0.8) this.settings.topFontSize=0.8;
 		if (this.settings.topFontSize > 1.8) this.settings.topFontSize=1.8;
+		if (this.settings.glFontSize < 50) this.settings.glFontSize=50;
+		if (this.settings.glFontSize > 200) this.settings.glFontSize=200;
 		var i;
 		for (i=0; i<5; i++) {
 			if (this.settings.palette) this.settings.color[i] = document.getElementById("settings").getElementsByClassName("color")[i].value;
@@ -201,6 +226,7 @@ function exapi() {
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
 		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.topFontSize();
+		this.glFontSize();
 	}
 	
 	this.resetData = function() {
@@ -245,6 +271,9 @@ function exapi() {
 				api.mouseListener(event);
 			});
 			document.getElementsByTagName("body")[0].addEventListener("click", function() {
+				t=false;
+			});
+			document.getElementById("c").addEventListener("click", function() {
 				api.mouseClickListener();
 			});
 		
@@ -254,14 +283,16 @@ function exapi() {
 		
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
 		this.topFontSize();
+		this.glFontSize();
 		this.styleSwitch('night','nightMode',false,false,false);
-		this.styleSwitch('fullscreen','fullscreenMode',false,false,false);
 		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
 		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.changeSidePad(0);
 		this.changeBottomPad(0);
 		this.selectBrush(-1);
 		this.popUp = "popUp";
+		
+		this.callWindow('side');
 		
 		if (this.location == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,500);
 		else {
