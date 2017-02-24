@@ -164,6 +164,10 @@ function exapi() {
 		this.settings.glFontSize = 100;
 		this.settings.dontShowAlerts = false;
 		this.settings.color = new Array('#bb0000','#bbbb00','#00bbbb','#00bb00','#bb00bb');
+		
+		this.settings.chInterval = 33;
+		this.settings.canvasSize = 100;
+		
 		localStorage["hasSettings"] = true;
 		
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
@@ -171,6 +175,15 @@ function exapi() {
 		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
 		this.styleSwitch('night','nightMode',false,false,false);
 		this.styleSwitch('debugEnabled','debug',false,false,false);
+		
+		this.forceRedraw = true;
+	}
+	
+	this.fixSettings = function () {
+		if (this.settings.chInterval === undefined) this.settings.chInterval = 33;
+		if (this.settings.canvasSize === undefined) this.settings.canvasSize = 100;
+		this.saveSettings();
+		this.loadSettings();
 	}
 	
 	this.loadSettings = function() {
@@ -205,6 +218,9 @@ function exapi() {
 		document.getElementById("st_topfontsize").value = this.settings.topFontSize;
 		document.getElementById("st_glfontsize").value = this.settings.glFontSize;
 		
+		document.getElementById("st_debugInterval").value = this.settings.chInterval;
+		document.getElementById("st_debugCanvasSize").value = this.settings.canvasSize;
+		
 		this.colorMode(this.settings.palette);
 	}
 	
@@ -213,6 +229,10 @@ function exapi() {
 		this.settings.debug = document.getElementById("st_debug").checked;
 		this.settings.topFontSize = parseFloat(document.getElementById("st_topfontsize").value);
 		this.settings.glFontSize = parseInt(document.getElementById("st_glfontsize").value);
+		
+		this.settings.chInterval = parseInt(document.getElementById("st_debugInterval").value);
+		this.settings.canvasSize = parseInt(document.getElementById("st_debugCanvasSize").value);
+		
 		if (this.settings.topFontSize < 0.8) this.settings.topFontSize=0.8;
 		if (this.settings.topFontSize > 1.8) this.settings.topFontSize=1.8;
 		if (this.settings.glFontSize < 50) this.settings.glFontSize=50;
@@ -227,6 +247,8 @@ function exapi() {
 		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.topFontSize();
 		this.glFontSize();
+		
+		this.forceRedraw = true;
 	}
 	
 	this.resetData = function() {
@@ -236,12 +258,19 @@ function exapi() {
 		this.init(false);
 	}
 	
-	this.mouseListener = function(e) {
+	this.mouseListener = function(e, ec) {
 		var cc = document.getElementById("c").getBoundingClientRect();
 		api.mouse.X = parseInt(e.clientX-cc.left);
 		api.mouse.Y = parseInt(e.clientY-cc.top);
-		api.mouse.button = e.which;
+		if (ec || e.which == 0) api.mouse.button = e.which;
 		document.getElementById("debug_mouseInfo").innerHTML = api.mouse.X+':'+api.mouse.Y+' ['+api.mouse.button+']';
+		document.getElementById("debug_viewport").innerHTML = camera.x+':'+camera.y+' x'+1/camera.z;
+	}
+	
+	this.mouseWheelListener = function(e) {
+		if (e.deltaY < 0 && camera.z<256) camera.z*=2;
+		if (e.deltaY > 0 && camera.z>0.0625) camera.z/=2;
+		if (e.deltaY != 0) api.forceRedraw = true;
 	}
 	
 	this.mouseClickListener = function() {
@@ -262,23 +291,30 @@ function exapi() {
 				mX = event.clientX;
 				mY = event.clientY;
 				
-				api.mouseListener(event);
+				api.mouseListener(event, false);
 			});
-			document.getElementsByTagName("body")[0].addEventListener("mousedown", function() {
-				api.mouseListener(event);
+			document.getElementById("c").addEventListener("mousedown", function() {
+				api.mouseListener(event, true);
 			});
-			document.getElementsByTagName("body")[0].addEventListener("mouseup", function() {
-				api.mouseListener(event);
+			document.getElementById("c").addEventListener("mouseup", function() {
+				api.mouseListener(event, true);
 			});
 			document.getElementsByTagName("body")[0].addEventListener("click", function() {
 				t=false;
+			});
+			document.getElementById("c").addEventListener("wheel", function() {
+				api.mouseWheelListener(event);
 			});
 			document.getElementById("c").addEventListener("click", function() {
 				api.mouseClickListener();
 			});
 		
+		
 			if (localStorage["hasSettings"] === undefined) this.loadDefault();
-			else this.loadSettings();
+			else {
+				this.loadSettings();
+				this.fixSettings();
+			}
 		}
 		
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
@@ -293,6 +329,8 @@ function exapi() {
 		this.popUp = "popUp";
 		
 		this.callWindow('side');
+		this.forceRedraw = true;
+		appInit();
 		
 		if (this.location == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,500);
 		else {
