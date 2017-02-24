@@ -1,5 +1,6 @@
 var tx, ty, t, tid, mX, mY;
 var windows = {};
+var resetFunctions= ['resetProject();resetViewport();api.closePopup()'];
 	
 function checkWindowPos(id) {
 	var el = document.getElementById(id).getElementsByClassName("w")[0];
@@ -349,6 +350,7 @@ function exapi() {
 		
 		windows.changelog = {header:'Список изменений',content:'<iframe src="//stsyn.github.io/fcm/changelog/'+this.location+'.txt"></iframe>',size:0,windowsize:'ifr'};
 		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.location == "local"?0:1),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'}],windowsize:'sm'};
+		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 	}
 }
 

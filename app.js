@@ -1,8 +1,23 @@
-var project = {};
+var project = {settings:{}};
 var camera = {};
-var colorScheme = [{bg:"#fff",line:"#ccc",coord:"#f88"},{bg:"#001",line:"#033",coord:"#600"}];
+var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88"},{bg:"#001",line:"#033",coord:"#600"}];
 var ctx;
 var doMoving = {};
+
+function resetProject() {
+	project.factors = [];
+	project.connections = [];
+	project.cfactors = [];
+	project.settings.strict = true;
+	project.settings.terms = [];
+	api.forceRedraw = true;
+}
+
+function resetViewport() {
+	camera.x=0;
+	camera.y=0;
+	camera.z=0.5;
+}
 
 function appRedraw() {
 	ctx.canvas.width  = window.innerWidth * api.settings.canvasSize / 100;
@@ -86,9 +101,7 @@ function appMain() {
 
 function appInit() {
 	doMoving.fact = false;
-	camera.x = 0;
-	camera.y = 0;
-	camera.z = 0.5;
+	resetViewport();
 	ctx = document.getElementById("c").getContext('2d');
 	setTimeout(appMain, api.settings.chInterval);
 }
