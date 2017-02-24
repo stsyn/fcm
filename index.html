@@ -97,7 +97,7 @@
 						<div class="line">
 							<div class="linebar" style="height:1.5em; line-height:1.5em;" title="Максимальный размер является приблизительным, и, в зависимости от браузера, может отличаться в большую сторону."><div class="sizes" style="font-size:70%"></div></div>
 						</div><div class="table r"><div class="t3"><div class="t2">
-							<span class="t"><span class="b fs red" onclick="api.loadDefault();api.putSettings()">Установить умолчания</span></span>
+							<span class="t"><span class="b fs red" onclick="api.loadDefault();api.putSettings();api.saveSettings()">Установить умолчания</span></span>
 							<span class="t"><span class="b fs red" onclick="api.callPopup2({header:'Сброс данных',content:'Внимание, абсолютно все сохраненные данные будут потеряны! Текущая сессия не будет завершена. Экспортированные данные не будут потеряны.',size:2,windowsize:'m',buttons:[{functions:'api.resetData();api.closePopup()',red:true,name:'Продолжить'},{functions:'api.closePopup()',name:'Отмена'}]})">Очистить хранилище</span></span>
 						</div></div></div>
 					</div>

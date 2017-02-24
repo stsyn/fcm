@@ -14,7 +14,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.0", s:"pre-alpha", b:7};
+	this.version = {g:"0.0.0", s:"pre-alpha", b:8};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -96,7 +96,6 @@ function exapi() {
 		t=this.parentNode.parentNode.id;
 		tx = e.clientX-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().left);
 		ty = e.clientY-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().top);
-		console.log(tx,ty);
 		checkWindowPos(t);
 	}
 	
@@ -175,9 +174,10 @@ function exapi() {
 		
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
 		this.topFontSize();
+		this.glFontSize();
+		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
 		this.styleSwitch('night','nightMode',false,false,false);
-		this.styleSwitch('debugEnabled','debug',false,false,false);
 		
 		this.forceRedraw = true;
 	}
@@ -257,6 +257,7 @@ function exapi() {
 	this.resetData = function() {
 		localStorage.clear();
 		this.loadDefault();
+		this.saveSettings();
 		this.putSettings();
 		this.init(false);
 	}
@@ -314,7 +315,10 @@ function exapi() {
 			});
 		
 		
-			if (localStorage["hasSettings"] === undefined) this.loadDefault();
+			if (localStorage["hasSettings"] != "true") {
+				this.loadDefault();
+				this.saveSettings();
+			}
 			else {
 				this.loadSettings();
 				this.fixSettings();
