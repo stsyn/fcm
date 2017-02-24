@@ -63,7 +63,7 @@ function appRedraw() {
 }
 
 function appMain() {
-	if (api.mouse.button == 1) {
+	if (api.mouse.button == 1 || api.mouse.button == 4) {
 		if (!doMoving.fact) {
 			doMoving.fact = true;
 			doMoving.act = false;
