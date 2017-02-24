@@ -13,7 +13,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.0", s:"pre-alpha", b:4};
+	this.version = {g:"0.0.0", s:"pre-alpha", b:5};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -91,10 +91,11 @@ function exapi() {
 		document.getElementById("popUp").classList.remove("d");
 	}
 	
-	this.initWindowMove = function() {
+	this.initWindowMove = function(e) {
 		t=this.parentNode.parentNode.id;
-		tx = event.clientX-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().left);
-		ty = event.clientY-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().top);
+		tx = e.clientX-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().left);
+		ty = e.clientY-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().top);
+		console.log(tx,ty);
 		checkWindowPos(t);
 	}
 	
@@ -135,9 +136,10 @@ function exapi() {
 		}
 		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousedown", this.initWindowMove);
 		
-		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousemove", function() {
+		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousemove", function(event) {
 			if (t != this.parentNode.parentNode.id) return;
 			var el = document.getElementById(id).getElementsByClassName("w")[0];
+			
 			
 			el.style.marginTop = "calc(-50vh + "+(event.clientY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
 			el.style.marginLeft = "calc(-50vw + "+(event.clientX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";
@@ -262,15 +264,16 @@ function exapi() {
 		var cc = document.getElementById("c").getBoundingClientRect();
 		api.mouse.X = parseInt(e.clientX-cc.left);
 		api.mouse.Y = parseInt(e.clientY-cc.top);
-		if (ec || e.which == 0) api.mouse.button = e.which;
+		if (ec || (e.which == 0)) api.mouse.button = e.buttons;
 		document.getElementById("debug_mouseInfo").innerHTML = api.mouse.X+':'+api.mouse.Y+' ['+api.mouse.button+']';
-		document.getElementById("debug_viewport").innerHTML = camera.x+':'+camera.y+' x'+1/camera.z;
+		document.getElementById("debug_viewport").innerHTML = camera.x+':'+camera.y+' '+100/camera.z+'%';
 	}
 	
 	this.mouseWheelListener = function(e) {
 		if (e.deltaY < 0 && camera.z<256) camera.z*=2;
 		if (e.deltaY > 0 && camera.z>0.0625) camera.z/=2;
 		if (e.deltaY != 0) api.forceRedraw = true;
+		document.getElementById("debug_viewport").innerHTML = camera.x+':'+camera.y+' '+100/camera.z+'%';
 	}
 	
 	this.mouseClickListener = function() {
@@ -287,22 +290,22 @@ function exapi() {
 		this.mouse.click = false;
 		
 		if (fatal) {
-			document.getElementsByTagName("body")[0].addEventListener("mousemove", function() {
+			document.getElementsByTagName("body")[0].addEventListener("mousemove", function(event) {
 				mX = event.clientX;
 				mY = event.clientY;
 				
 				api.mouseListener(event, false);
 			});
-			document.getElementById("c").addEventListener("mousedown", function() {
+			document.getElementById("c").addEventListener("mousedown", function(event) {
 				api.mouseListener(event, true);
 			});
-			document.getElementById("c").addEventListener("mouseup", function() {
+			document.getElementById("c").addEventListener("mouseup", function(event) {
 				api.mouseListener(event, true);
 			});
 			document.getElementsByTagName("body")[0].addEventListener("click", function() {
 				t=false;
 			});
-			document.getElementById("c").addEventListener("wheel", function() {
+			document.getElementById("c").addEventListener("wheel", function(event) {
 				api.mouseWheelListener(event);
 			});
 			document.getElementById("c").addEventListener("click", function() {
@@ -330,6 +333,7 @@ function exapi() {
 		
 		this.callWindow('side');
 		this.forceRedraw = true;
+		api.mouse.button = 0;
 		appInit();
 		
 		if (this.location == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,500);
