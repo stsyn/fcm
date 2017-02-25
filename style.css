@@ -225,10 +225,11 @@ body.night #c {background: #012}
 body.night .b.na {color:#888}
 body.night .b:not(.na):not(.sel):hover {background:#046}
 body.night .b:not(.na):not(.sel):active {background:#8ad}
-body.night .b.sel {
+body.night .b.sel, body.night .b.sel path{
 	background:#040;
+	fill:#8f8;
 	color:#8f8}
-body.night .b:not(.na) path {fill:#eee}
+body.night .b:not(.na):not(.sel) path {fill:#eee}
 body.night .red{color: #f88;}
 body.night .b.red, body.night .b.red path{
 	background: #400;
