@@ -1,29 +1,18 @@
 var project = {settings:{},elements:[]};
 var camera = {};
 var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#000"},{bg:"#001",line:"#033",coord:"#600",connections:"#4bb"}];
-var ctx;
+var ctx, zoomprop;
 var doMoving = {};
-//
-//
-// Моя часть переменных
+
+
 var NumberOfBonds = 0;
 var BondsDrawingArrayFirst = {};
 var BondsDrawingArraySecond = {};
-var ActiveElement;
-var MousePositionX=100;
-var MousePositionY=100;
 
-
-//Конец моей части переменных
-//
-//
 
 function resetProject() {
-	project.factors = [];
-	project.connections = [];
-	project.cfactors = [];
+	project = {settings:{},elements:[]};
 	project.settings.strict = true;
-	project.settings.terms = [];
 	api.forceRedraw = true;
 }
 
@@ -58,11 +47,16 @@ function translateCoordsReverseNZY(i) {
 }
 
 function appDrawElements(el) {
+	var size = 20;
+	if (camera.z>1) size = 10;
+	if (camera.z>3) size = 8;
+	if (camera.z>6) size = 5;
+	if (camera.z>16) size = 3;
 	for (var i=0; i<el.length; i++) {
 		if (el[i] === undefined) continue;
 		ctx.fillStyle = api.settings.color[el[i].type-1];
 		ctx.beginPath();
-		ctx.arc(translateCoordsX(el[i].X),translateCoordsY(el[i].Y), 25, 0,6.28);
+		ctx.arc(translateCoordsX(el[i].X),translateCoordsY(el[i].Y), size, 0,6.28);
 		ctx.closePath();
 		ctx.fill();
 	}
@@ -87,7 +81,10 @@ function appRedraw() {
 	var y = ymax/2 - camera.y/camera.z;
 	
 	var d = 1/camera.z;
-	for (var i=1; d<40; i*=5) d = i/camera.z;
+	for (zoomprop=1; d<40; zoomprop*=3) d = zoomprop/camera.z;
+	zoomprop/=3;
+	if (Math.round(zoomprop/2) == zoomprop/2) zoomprop/=2;
+	if (!api.settings.showGrid) zoomprop = 1;
 	
 	if (api.settings.showGrid) {
 		ctx.beginPath();
@@ -164,11 +161,16 @@ function appInit() {
 
 
 function AddElement(MouseX,MouseY) {
-	var i;
+	var i, x=Math.round(parseInt(MouseX)/zoomprop)*zoomprop, y=Math.round(parseInt(MouseY)/zoomprop)*zoomprop;
+	
+	for (i=0; i<project.elements.length; i++) {
+		if (project.elements[i] === undefined) continue;
+		if (x == project.elements[i].X && y == project.elements[i].Y) return;
+	}
 	for (i=0;1;i++) if (project.elements[i] === undefined) break;
 	project.elements[i] = {};
-	project.elements[i].X = MouseX;
-	project.elements[i].Y = MouseY;
+	project.elements[i].X = x;
+	project.elements[i].Y = y;
 	project.elements[i].type = api.brush;
 	api.forceRedraw = true;
 }
@@ -204,7 +206,7 @@ function AddAndDrawBond(FirstElement,SecondElement) {
 }	
 
 function FindTheClosest(MouseX,MouseY,Type) {
-	var Range = 25;
+	var Range = 20;
 	var TheClosest;
 	var Aux1=1.0;
 	var Aux2=1.0;

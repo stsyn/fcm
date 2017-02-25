@@ -14,7 +14,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.1", s:"pre-alpha", b:10};
+	this.version = {g:"0.0.1", s:"pre-alpha", b:11};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -285,7 +285,7 @@ function exapi() {
 	
 	this.mouseWheelListener = function(e) {
 		if (e.deltaY > 0 && camera.z<50) camera.z*=1.25;
-		if (e.deltaY < 0 && camera.z>0.0625) camera.z/=1.25;
+		if (e.deltaY < 0 && camera.z>0.125) camera.z/=1.25;
 		if (e.deltaY != 0) api.forceRedraw = true;
 		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
 	}
