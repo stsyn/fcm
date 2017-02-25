@@ -14,7 +14,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.0", s:"pre-alpha", b:9};
+	this.version = {g:"0.0.1", s:"pre-alpha", b:10};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -280,17 +280,19 @@ function exapi() {
 		api.mouse.Y = parseInt(e.clientY-cc.top);
 		if (ec || (e.which == 0)) api.mouse.button = e.buttons;
 		document.getElementById("debug_mouseInfo").innerHTML = api.mouse.X+':'+api.mouse.Y+' ['+api.mouse.button+']';
-		document.getElementById("debug_viewport").innerHTML = camera.x+':'+camera.y+' '+100/camera.z+'%';
+		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
 	}
 	
 	this.mouseWheelListener = function(e) {
-		if (e.deltaY < 0 && camera.z<256) camera.z*=2;
-		if (e.deltaY > 0 && camera.z>0.0625) camera.z/=2;
+		if (e.deltaY > 0 && camera.z<50) camera.z*=1.25;
+		if (e.deltaY < 0 && camera.z>0.0625) camera.z/=1.25;
 		if (e.deltaY != 0) api.forceRedraw = true;
-		document.getElementById("debug_viewport").innerHTML = camera.x+':'+camera.y+' '+100/camera.z+'%';
+		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
 	}
 	
-	this.mouseClickListener = function() {
+	this.mouseClickListener = function(e) {
+		if (doMoving.act) return;
+		if (e.which == 2) return;
 		for (var i=0; i<api.mouse.onclick.length; i++) api.mouse.onclick[i]();
 	}
 	
@@ -322,8 +324,8 @@ function exapi() {
 			document.getElementById("c").addEventListener("wheel", function(event) {
 				api.mouseWheelListener(event);
 			});
-			document.getElementById("c").addEventListener("click", function() {
-				api.mouseClickListener();
+			document.getElementById("c").addEventListener("click", function(event) {
+				api.mouseClickListener(event);
 			});
 		
 		
@@ -365,7 +367,7 @@ function exapi() {
 		
 		
 		windows.changelog = {header:'Список изменений',content:'<iframe src="//stsyn.github.io/fcm/changelog/'+this.location+'.txt"></iframe>',size:0,windowsize:'ifr'};
-		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.location == "local"?0:1),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'}],windowsize:'sm'};
+		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М. и Нафикова Д.И.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.location == "local"?0:1),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 	}
 }

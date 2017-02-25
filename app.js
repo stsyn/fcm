@@ -1,14 +1,11 @@
-var project = {settings:{}};
+var project = {settings:{},elements:[]};
 var camera = {};
-var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88"},{bg:"#001",line:"#033",coord:"#600"}];
+var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#000"},{bg:"#001",line:"#033",coord:"#600",connections:"#4bb"}];
 var ctx;
 var doMoving = {};
 //
 //
 // Моя часть переменных
-var NumberOfElements = 0;
-var MainDrawingArrayPositionX = {};
-var MainDrawingArrayPositionY = {};
 var NumberOfBonds = 0;
 var BondsDrawingArrayFirst = {};
 var BondsDrawingArraySecond = {};
@@ -36,6 +33,42 @@ function resetViewport() {
 	camera.z=0.5;
 }
 
+function translateCoordsX(i) {
+	return (i-camera.x)/camera.z+ctx.canvas.width/2;
+}
+
+function translateCoordsY(i) {
+	return (i-camera.y)/camera.z+ctx.canvas.height/2;
+}
+
+function translateCoordsReverseX(i) {
+	return (i-ctx.canvas.width/2)*camera.z+camera.x;
+}
+
+function translateCoordsReverseY(i) {
+	return (i-ctx.canvas.height/2)*camera.z+camera.y;
+}
+
+function translateCoordsReverseNZX(i) {
+	return (i-ctx.canvas.width/2)+camera.x;
+}
+
+function translateCoordsReverseNZY(i) {
+	return (i-ctx.canvas.height/2)+camera.y;
+}
+
+function appDrawElements(el) {
+	for (var i=0; i<el.length; i++) {
+		if (el[i] === undefined) continue;
+		ctx.fillStyle = api.settings.color[el[i].type-1];
+		ctx.beginPath();
+		ctx.arc(translateCoordsX(el[i].X),translateCoordsY(el[i].Y), 25, 0,6.28);
+		ctx.closePath();
+		ctx.fill();
+	}
+}
+
+
 function appRedraw() {
 	ctx.canvas.width  = window.innerWidth * api.settings.canvasSize / 100;
 	ctx.canvas.height = window.innerHeight * api.settings.canvasSize / 100;
@@ -53,27 +86,29 @@ function appRedraw() {
 	var x = xmax/2 - camera.x/camera.z;
 	var y = ymax/2 - camera.y/camera.z;
 	
-	ctx.beginPath();
 	var d = 1/camera.z;
 	for (var i=1; d<40; i*=5) d = i/camera.z;
 	
-	for (var tx=x; tx>0; tx-=d) {
-		ctx.moveTo (tx,0);
-		ctx.lineTo (tx,ymax);
+	if (api.settings.showGrid) {
+		ctx.beginPath();
+		for (var tx=x; tx>0; tx-=d) {
+			ctx.moveTo (tx,0);
+			ctx.lineTo (tx,ymax);
+		}
+		for (var tx=x; tx<xmax; tx+=d) {
+			ctx.moveTo (tx,0);
+			ctx.lineTo (tx,ymax);
+		}
+		for (var ty=y; ty>0; ty-=d) {
+			ctx.moveTo (0,ty);
+			ctx.lineTo (xmax,ty);
+		}
+		for (var ty=y; ty<ymax; ty+=d) {
+			ctx.moveTo (0,ty);
+			ctx.lineTo (xmax,ty);
+		}
+		ctx.stroke();
 	}
-	for (var tx=x; tx<xmax; tx+=d) {
-		ctx.moveTo (tx,0);
-		ctx.lineTo (tx,ymax);
-	}
-	for (var ty=y; ty>0; ty-=d) {
-		ctx.moveTo (0,ty);
-		ctx.lineTo (xmax,ty);
-	}
-	for (var ty=y; ty<ymax; ty+=d) {
-		ctx.moveTo (0,ty);
-		ctx.lineTo (xmax,ty);
-	}
-	ctx.stroke();
 	
 	ctx.strokeStyle = colorScheme[mode].coord;
 	ctx.lineWidth = 3;
@@ -83,13 +118,16 @@ function appRedraw() {
 	if (y < 60) y = 60;
 	if (y > ymax-60) y = ymax-60;
 	
+	if (api.settings.redGrid) {
+		ctx.beginPath();
+		ctx.moveTo (x,0);
+		ctx.lineTo (x,ymax);
+		ctx.moveTo (0,y);
+		ctx.lineTo (xmax,y);
+		ctx.stroke();
+	}
 	
-	ctx.beginPath();
-	ctx.moveTo (x,0);
-	ctx.lineTo (x,ymax);
-	ctx.moveTo (0,y);
-	ctx.lineTo (xmax,y);
-	ctx.stroke();
+	appDrawElements(project.elements);
 	
 	api.forceRedraw = false;
 }
@@ -125,88 +163,62 @@ function appInit() {
 }
 
 
-//
-//
-// Моя часть программы
-function InitilazeDrawing()
-{
-	ctx.fillStyle = "black";
-	ctx.fillRect(0,0,example.width, example.height);
+function AddElement(MouseX,MouseY) {
+	var i;
+	for (i=0;1;i++) if (project.elements[i] === undefined) break;
+	project.elements[i] = {};
+	project.elements[i].X = MouseX;
+	project.elements[i].Y = MouseY;
+	project.elements[i].type = api.brush;
+	api.forceRedraw = true;
 }
 
-function DrawElement(ActualElement)
- {
-	ctx.fillStyle= "orange";
-    ctx.fillRect(MainDrawingArrayPositionX[ActualElement], MainDrawingArrayPositionY[ActualElement], 50, 50);	
+function MoveElement(ActualElement,NewX,NewY) {
+	project.elements[ActualElement].X=NewX;
+	project.elements[ActualElement].Y=NewY;
 }
-function AddElement(MouseX,MouseY)
-{
-	NumberOfElements=NumberOfElements+1;
-	MainDrawingArrayPositionX[NumberOfElements] = MouseX;
-	MainDrawingArrayPositionY[NumberOfElements] = MouseY;
-}
-function AddAndDraw(MouseX,MouseY)
-{
-	AddElement(MouseX,MouseY);
-	DrawElement(NumberOfElements);
-}
-function ReDrawAll()
-{
-    var key=0;
-	InitilazeDrawing();
-	for (key=1; key<=NumberOfBonds;key++)
-        DrawBond(BondsDrawingArrayFirst[key],BondsDrawingArraySecond[key]);	
-	for (key=1; key<=NumberOfElements;key++)
-		DrawElement(key);
 
-}
-function MoveElement(ActualElement,NewX,NewY)
-{
-	MainDrawingArrayPositionX[ActualElement]=NewX;
-	MainDrawingArrayPositionY[ActualElement]=NewY;
-}
-function DrawBond(ActualBond)
-{
+function DrawBond(ActualBond) {
     var Adj1=0;
 	var Adj2=0;
-	if (MainDrawingArrayPositionX[BondsDrawingArrayFirst[ActualBond]]!=MainDrawingArrayPositionX[BondsDrawingArraySecond[ActualBond]]) Adj2=3
-	 else Adj1=3;	
+	if (project.elements[BondsDrawingArrayFirst[ActualBond]].X!=project.elements[BondsDrawingArraySecond[ActualBond]].X) Adj2=3
+		else Adj1=3;	
 	ctx.beginPath();
 	ctx.fillStyle="blue";
-	ctx.moveTo(MainDrawingArrayPositionX[BondsDrawingArrayFirst[ActualBond]],MainDrawingArrayPositionY[BondsDrawingArrayFirst[ActualBond]]);
-	ctx.lineTo(MainDrawingArrayPositionX[BondsDrawingArrayFirst[ActualBond]]+Adj1,MainDrawingArrayPositionY[BondsDrawingArrayFirst[ActualBond]]+Adj2);
-	ctx.lineTo(MainDrawingArrayPositionX[BondsDrawingArraySecond[ActualBond]]+Adj1,MainDrawingArrayPositionY[BondsDrawingArraySecond[ActualBond]]+Adj2);
-	ctx.lineTo(MainDrawingArrayPositionX[BondsDrawingArraySecond[ActualBond]],MainDrawingArrayPositionY[BondsDrawingArraySecond[ActualBond]]);
+	ctx.moveTo(project.elements[BondsDrawingArrayFirst[ActualBond]].X,project.elements[BondsDrawingArrayFirst[ActualBond]].Y);
+	ctx.lineTo(project.elements[BondsDrawingArrayFirst[ActualBond]].X+Adj1,project.elements[BondsDrawingArrayFirst[ActualBond]].Y+Adj2);
+	ctx.lineTo(project.elements[BondsDrawingArrayFirst[ActualBond]].X+Adj1,project.elements[BondsDrawingArrayFirst[ActualBond]].Y+Adj2);
+	ctx.lineTo(project.elements[BondsDrawingArrayFirst[ActualBond]].X,project.elements[BondsDrawingArrayFirst[ActualBond]].Y);
 	ctx.closePath();
 	ctx.fill();
 }
-function AddBond(FirstElement,SecondElement)
-{
+function AddBond(FirstElement,SecondElement) {
 	NumberOfBonds=NumberOfBonds+1;
 	BondsDrawingArrayFirst[NumberOfBonds]=FirstElement;
 	BondsDrawingArraySecond[NumberOfBonds]=SecondElement;
 }
-function AddAndDrawBond(FirstElement,SecondElement)
-{
+
+function AddAndDrawBond(FirstElement,SecondElement) {
 	AddBond(FirstElement,SecondElement);
 	DrawBond(NumberOfBonds);
 }	
-function FindTheClosest(MouseX,MouseY,Type)
-{
-	var Range = 99999999;
-	var TheClosest = 1;
+
+function FindTheClosest(MouseX,MouseY,Type) {
+	var Range = 25;
+	var TheClosest;
 	var Aux1=1.0;
 	var Aux2=1.0;
 	var Aux3=1.0;
 	if (Type=="Element")
 	{
-		for (var key=1; key<=NumberOfElements;key++)
+		for (var key=0; key<project.elements.length;key++)
 		{
-			Aux1=(MainDrawingArrayPositionX[key]-MouseX)*(MainDrawingArrayPositionX[key]-MouseX);
-			Aux2=(MainDrawingArrayPositionY[key]-MouseY)*(MainDrawingArrayPositionY[key]-MouseY);
+			if (project.elements[key] === undefined) continue;
+			Aux1=(project.elements[key].X-MouseX)*(project.elements[key].X-MouseX);
+			Aux2=(project.elements[key].Y-MouseY)*(project.elements[key].Y-MouseY);
 			Aux3=Math.sqrt(Aux1+Aux2);
-			Aux3=Math.sqrt(Aux1+Aux2);
-			if (Aux3<Range)
+			console.log (Aux3);
+			if (Aux3<Range*camera.z)
 			{
 				Range=Aux3;
 				TheClosest=key;
@@ -218,32 +230,33 @@ function FindTheClosest(MouseX,MouseY,Type)
 }
 function RemoveElement(ActualElement)
 {
-  var Aux1=0;
-  var key;
-  Aux1=MainDrawingArrayPositionX[NumberOfElements];
-  MainDrawingArrayPositionX[NumberOfElements]=MainDrawingArrayPositionX[ActualElement];
-  MainDrawingArrayPositionX[ActualElement]=Aux1;
-  Aux1=MainDrawingArrayPositionY[NumberOfElements];
-  MainDrawingArrayPositionY[NumberOfElements]=MainDrawingArrayPositionY[ActualElement];
-  MainDrawingArrayPositionY[ActualElement]=Aux1;
-   for (key=1; key<=NumberOfBonds; key++)
-  {
-    if (BondsDrawingArrayFirst[key]==NumberOfElements) BondsDrawingArrayFirst[key]=ActualElement;
-	if (BondsDrawingArraySecond[key]==NumberOfElements) BondsDrawingArraySecond[key]=ActualElement;
-	//if (BondsDrawingArrayFirst[key]==ActualElement) RemoveBond();
-	//if (BondsDrawingArraySecond[key]==ActualElement) RemoveBond();
-	
-  }
-  NumberOfElements=NumberOfElements-1;
+	delete project.elements[ActualElement];
+	/*
+	var Aux1=0;
+	var key;
+	Aux1=project.elements[project.elements.length-1].X;
+	project.elements[project.elements.length-1].X=project.elements[ActualElement].X;
+	project.elements[ActualElement].X=Aux1;
+	Aux1=project.elements[project.elements.length-1].Y;
+	project.elements[project.elements.length-1].Y=project.elements[ActualElement].Y;
+	project.elements[ActualElement].Y=Aux1;
+	for (key=1; key<=NumberOfBonds; key++) {
+		if (BondsDrawingArrayFirst[key]==project.elements.length-1) BondsDrawingArrayFirst[key]=ActualElement;
+		if (BondsDrawingArraySecond[key]==project.elements.length-1) BondsDrawingArraySecond[key]=ActualElement;
+		//if (BondsDrawingArrayFirst[key]==ActualElement) RemoveBond();
+		//if (BondsDrawingArraySecond[key]==ActualElement) RemoveBond();
+		
+	}
+	project.elements.length=project.elements.length-1;
+	*/
+	api.forceRedraw = true;
 }
 
 function DrawRemoveSelector()
 {
-  if (api.brush<=-1) AddAndDraw(api.mouse.X,api.mouse.Y);
-  else RemoveElement(FindTheClosest(api.mouse.X,api.mouse.Y,"Element"));
+	if (api.brush>0) AddElement(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y));
+	else {
+		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element");
+		if (el !== undefined) RemoveElement(el);
+	}
 }
-
-
-// Конец моей части программы
-//
-//
