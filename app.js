@@ -3,6 +3,23 @@ var camera = {};
 var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88"},{bg:"#001",line:"#033",coord:"#600"}];
 var ctx;
 var doMoving = {};
+//
+//
+// Моя часть переменных
+var NumberOfElements = 0;
+var MainDrawingArrayPositionX = {};
+var MainDrawingArrayPositionY = {};
+var NumberOfBonds = 0;
+var BondsDrawingArrayFirst = {};
+var BondsDrawingArraySecond = {};
+var ActiveElement;
+var MousePositionX=100;
+var MousePositionY=100;
+
+
+//Конец моей части переменных
+//
+//
 
 function resetProject() {
 	project.factors = [];
@@ -104,4 +121,129 @@ function appInit() {
 	resetViewport();
 	ctx = document.getElementById("c").getContext('2d');
 	setTimeout(appMain, api.settings.chInterval);
+    api.mouse.onclick[0] = DrawRemoveSelector;
 }
+
+
+//
+//
+// Моя часть программы
+function InitilazeDrawing()
+{
+	ctx.fillStyle = "black";
+	ctx.fillRect(0,0,example.width, example.height);
+}
+
+function DrawElement(ActualElement)
+ {
+	ctx.fillStyle= "orange";
+    ctx.fillRect(MainDrawingArrayPositionX[ActualElement], MainDrawingArrayPositionY[ActualElement], 50, 50);	
+}
+function AddElement(MouseX,MouseY)
+{
+	NumberOfElements=NumberOfElements+1;
+	MainDrawingArrayPositionX[NumberOfElements] = MouseX;
+	MainDrawingArrayPositionY[NumberOfElements] = MouseY;
+}
+function AddAndDraw(MouseX,MouseY)
+{
+	AddElement(MouseX,MouseY);
+	DrawElement(NumberOfElements);
+}
+function ReDrawAll()
+{
+    var key=0;
+	InitilazeDrawing();
+	for (key=1; key<=NumberOfBonds;key++)
+        DrawBond(BondsDrawingArrayFirst[key],BondsDrawingArraySecond[key]);	
+	for (key=1; key<=NumberOfElements;key++)
+		DrawElement(key);
+
+}
+function MoveElement(ActualElement,NewX,NewY)
+{
+	MainDrawingArrayPositionX[ActualElement]=NewX;
+	MainDrawingArrayPositionY[ActualElement]=NewY;
+}
+function DrawBond(ActualBond)
+{
+    var Adj1=0;
+	var Adj2=0;
+	if (MainDrawingArrayPositionX[BondsDrawingArrayFirst[ActualBond]]!=MainDrawingArrayPositionX[BondsDrawingArraySecond[ActualBond]]) Adj2=3
+	 else Adj1=3;	
+	ctx.beginPath();
+	ctx.fillStyle="blue";
+	ctx.moveTo(MainDrawingArrayPositionX[BondsDrawingArrayFirst[ActualBond]],MainDrawingArrayPositionY[BondsDrawingArrayFirst[ActualBond]]);
+	ctx.lineTo(MainDrawingArrayPositionX[BondsDrawingArrayFirst[ActualBond]]+Adj1,MainDrawingArrayPositionY[BondsDrawingArrayFirst[ActualBond]]+Adj2);
+	ctx.lineTo(MainDrawingArrayPositionX[BondsDrawingArraySecond[ActualBond]]+Adj1,MainDrawingArrayPositionY[BondsDrawingArraySecond[ActualBond]]+Adj2);
+	ctx.lineTo(MainDrawingArrayPositionX[BondsDrawingArraySecond[ActualBond]],MainDrawingArrayPositionY[BondsDrawingArraySecond[ActualBond]]);
+	ctx.closePath();
+	ctx.fill();
+}
+function AddBond(FirstElement,SecondElement)
+{
+	NumberOfBonds=NumberOfBonds+1;
+	BondsDrawingArrayFirst[NumberOfBonds]=FirstElement;
+	BondsDrawingArraySecond[NumberOfBonds]=SecondElement;
+}
+function AddAndDrawBond(FirstElement,SecondElement)
+{
+	AddBond(FirstElement,SecondElement);
+	DrawBond(NumberOfBonds);
+}	
+function FindTheClosest(MouseX,MouseY,Type)
+{
+	var Range = 99999999;
+	var TheClosest = 1;
+	var Aux1=1.0;
+	var Aux2=1.0;
+	var Aux3=1.0;
+	if (Type=="Element")
+	{
+		for (var key=1; key<=NumberOfElements;key++)
+		{
+			Aux1=(MainDrawingArrayPositionX[key]-MouseX)*(MainDrawingArrayPositionX[key]-MouseX);
+			Aux2=(MainDrawingArrayPositionY[key]-MouseY)*(MainDrawingArrayPositionY[key]-MouseY);
+			Aux3=Math.sqrt(Aux1+Aux2);
+			Aux3=Math.sqrt(Aux1+Aux2);
+			if (Aux3<Range)
+			{
+				Range=Aux3;
+				TheClosest=key;
+			}
+		}
+	}
+	return TheClosest;
+	
+}
+function RemoveElement(ActualElement)
+{
+  var Aux1=0;
+  var key;
+  Aux1=MainDrawingArrayPositionX[NumberOfElements];
+  MainDrawingArrayPositionX[NumberOfElements]=MainDrawingArrayPositionX[ActualElement];
+  MainDrawingArrayPositionX[ActualElement]=Aux1;
+  Aux1=MainDrawingArrayPositionY[NumberOfElements];
+  MainDrawingArrayPositionY[NumberOfElements]=MainDrawingArrayPositionY[ActualElement];
+  MainDrawingArrayPositionY[ActualElement]=Aux1;
+   for (key=1; key<=NumberOfBonds; key++)
+  {
+    if (BondsDrawingArrayFirst[key]==NumberOfElements) BondsDrawingArrayFirst[key]=ActualElement;
+	if (BondsDrawingArraySecond[key]==NumberOfElements) BondsDrawingArraySecond[key]=ActualElement;
+	//if (BondsDrawingArrayFirst[key]==ActualElement) RemoveBond();
+	//if (BondsDrawingArraySecond[key]==ActualElement) RemoveBond();
+	
+  }
+  NumberOfElements=NumberOfElements-1;
+}
+
+function DrawRemoveSelector()
+{
+  if (api.brush<=-1) AddAndDraw(api.mouse.X,api.mouse.Y);
+  else RemoveElement(FindTheClosest(api.mouse.X,api.mouse.Y,"Element"));
+}
+
+
+// Конец моей части программы
+//
+//
