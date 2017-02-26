@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.1", s:"pre-alpha", b:12};
+	this.version = {g:"0.0.1", s:"pre-alpha", b:13};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -340,6 +340,7 @@ function exapi() {
 				(e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) * (e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) +
 				(e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY) * (e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY));
 			camera.z = api.mouse.stZoom * (t / api.mouse.stPinch);
+		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'% '+t+'/'+api.mouse.stPinch;
 		}
 	}
 	
@@ -354,6 +355,7 @@ function exapi() {
 			document.getElementById("debug_mouseInfo").innerHTML = api.mouse.X+':'+api.mouse.Y+' ['+api.mouse.button+']';
 			document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
 		}
+		return false;
 	}
 	
 	this.switchElemState = function(e) {
