@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.1", s:"pre-alpha", b:16};
+	this.version = {g:"0.0.1", s:"pre-alpha", b:17};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -280,8 +280,8 @@ function exapi() {
 		this.settings.canvasSize = parseInt(document.getElementById("st_debugCanvasSize").value);
 		
 		if (this.settings.topFontSize < 0.8) this.settings.topFontSize=0.8;
-		if (this.settings.topFontSize > 1.8) this.settings.topFontSize=1.8;
-		if (this.settings.glFontSize < 50) this.settings.glFontSize=50;
+		if (this.settings.topFontSize > 2.5) this.settings.topFontSize=2.5;
+		if (this.settings.glFontSize < 25) this.settings.glFontSize=25;
 		if (this.settings.glFontSize > 200) this.settings.glFontSize=200;
 		var i;
 		for (i=0; i<5; i++) {
@@ -342,6 +342,7 @@ function exapi() {
 			camera.z = api.mouse.stZoom * (api.mouse.stPinch / t);
 		}
 		api.forceRedraw = true;
+		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
 	}
 	
 	this.touchListener = function(e, ec) {
