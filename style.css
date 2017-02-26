@@ -150,8 +150,8 @@ width:100%;}
 #windows .content {min-height:calc(100% - 36px - 3em)}
 #windows > div.pu {z-index:6}
 #windows .w.ifr {
-	width:600px;
-	left:calc(50vw - 300px);
+	width:60vw;
+	left:20vw;
 	height:70vh;
 	top:15vh}
 #windows .w.ifr .header, #windows .w.ifr .bt {display:none}
@@ -166,30 +166,30 @@ width:100%;}
 	border:none;
 	width:100%}
 #windows .w.sm {
-	width:400px;
-	left:calc(50vw - 200px);
-	height:300px;
-	top:calc(50vh - 150px)}
+	width:40vw;
+	left:30vw;
+	height:40vh;
+	top:20vh}
 #windows .w.m {
-	width:600px;
-	left:calc(50vw - 300px);
+	width:60vw;
+	left:20vw;
 	height:50vh;
 	top:25vh}
 #windows .w.wd {
-	width:600px;
-	left:calc(50vw - 300px);
-	height:300px;
-	top:calc(50vh - 150px)}
+	width:80vw;
+	left:10vw;
+	height:40vh;
+	top:30vh}
 #windows .w.side {
 	width:22em;
 	left:calc(50vw - 11em);
 	height:50vh;
 	top:25vh}
 #windows .w.tall {
-	width:500px;
-	left:calc(50vw - 250px);
-	height:60vh;
-	top:20vh}
+	width:50vw;
+	left:25vw;
+	height:70vh;
+	top:15vh}
 #windows .cc{
 	height:calc(100% - 2.5em - 18px);
 	margin:.5em;
