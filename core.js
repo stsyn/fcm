@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.1", s:"pre-alpha", b:14};
+	this.version = {g:"0.0.1", s:"pre-alpha", b:15};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -339,9 +339,9 @@ function exapi() {
 			var t = Math.sqrt(
 				(e.changedTouches[0].pageX - e.changedTouches[1].pageX) * (e.changedTouches[0].pageX - e.changedTouches[1].pageX) +
 				(e.changedTouches[0].pageY - e.changedTouches[1].pageY) * (e.changedTouches[1].pageY - e.changedTouches[1].pageY));
-			camera.z = api.mouse.stZoom * (t / api.mouse.stPinch);
-		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'% '+t+'/'+api.mouse.stPinch;
+			camera.z = api.mouse.stZoom * (api.mouse.stPinch / t);
 		}
+		api.forceRedraw = true;
 	}
 	
 	this.touchListener = function(e, ec) {
