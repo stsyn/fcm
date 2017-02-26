@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.1", s:"pre-alpha", b:13};
+	this.version = {g:"0.0.1", s:"pre-alpha", b:14};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -330,15 +330,15 @@ function exapi() {
 	this.pinchListener = function(e) {
 		if (!api.mouse.pinching) {
 			api.mouse.stPinch = Math.sqrt(
-				(e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) * (e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) +
-				(e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY) * (e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY));
+				(e.changedTouches[0].pageX - e.changedTouches[1].pageX) * (e.changedTouches[0].pageX - e.changedTouches[1].pageX) +
+				(e.changedTouches[0].pageY - e.changedTouches[1].pageY) * (e.changedTouches[1].pageY - e.changedTouches[1].pageY));
 			api.mouse.stZoom = camera.z;
 			api.mouse.pinching = true;
 		}
 		else {
 			var t = Math.sqrt(
-				(e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) * (e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) +
-				(e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY) * (e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY));
+				(e.changedTouches[0].pageX - e.changedTouches[1].pageX) * (e.changedTouches[0].pageX - e.changedTouches[1].pageX) +
+				(e.changedTouches[0].pageY - e.changedTouches[1].pageY) * (e.changedTouches[1].pageY - e.changedTouches[1].pageY));
 			camera.z = api.mouse.stZoom * (t / api.mouse.stPinch);
 		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'% '+t+'/'+api.mouse.stPinch;
 		}
