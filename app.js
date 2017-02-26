@@ -47,11 +47,11 @@ function translateCoordsReverseNZY(i) {
 }
 
 function appDrawElements(el) {
-	var size = 20;
-	if (camera.z>1) size = 10;
-	if (camera.z>3) size = 8;
-	if (camera.z>6) size = 5;
-	if (camera.z>16) size = 3;
+	var size = api.settings.elemSize;
+	if (camera.z>1) size = api.settings.elemSize/2;
+	if (camera.z>3) size = api.settings.elemSize/3;
+	if (camera.z>6) size = api.settings.elemSize/4;
+	if (camera.z>16) size = api.settings.elemSize/7;
 	for (var i=0; i<el.length; i++) {
 		if (el[i] === undefined) continue;
 		ctx.fillStyle = api.settings.color[el[i].type-1];
@@ -81,9 +81,9 @@ function appRedraw() {
 	var y = ymax/2 - camera.y/camera.z;
 	
 	var d = 1/camera.z;
-	for (zoomprop=1; d<40; zoomprop*=3) d = zoomprop/camera.z;
+	for (zoomprop=1; d<api.settings.elemSize; zoomprop*=3) d = zoomprop/camera.z;
 	zoomprop/=3;
-	if (Math.round(zoomprop/2) == zoomprop/2) zoomprop/=2;
+	if (zoomprop>20) zoomprop=(zoomprop/2);
 	if (!api.settings.showGrid) zoomprop = 1;
 	
 	if (api.settings.showGrid) {
@@ -161,7 +161,7 @@ function appInit() {
 
 
 function AddElement(MouseX,MouseY) {
-	var i, x=Math.round(parseInt(MouseX)/zoomprop)*zoomprop, y=Math.round(parseInt(MouseY)/zoomprop)*zoomprop;
+	var i, x=parseInt(Math.round(parseInt(MouseX)/zoomprop)*zoomprop), y=parseInt(Math.round(parseInt(MouseY)/zoomprop)*zoomprop);
 	
 	for (i=0; i<project.elements.length; i++) {
 		if (project.elements[i] === undefined) continue;
@@ -219,7 +219,6 @@ function FindTheClosest(MouseX,MouseY,Type) {
 			Aux1=(project.elements[key].X-MouseX)*(project.elements[key].X-MouseX);
 			Aux2=(project.elements[key].Y-MouseY)*(project.elements[key].Y-MouseY);
 			Aux3=Math.sqrt(Aux1+Aux2);
-			console.log (Aux3);
 			if (Aux3<Range*camera.z)
 			{
 				Range=Aux3;
