@@ -10,11 +10,12 @@ function checkWindowPos(id) {
 }
 
 function exapi() {
+	this.updated = false;
 	this.settings = {color:[]};
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.1", s:"pre-alpha", b:11};
+	this.version = {g:"0.0.1", s:"pre-alpha", b:12};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -99,6 +100,13 @@ function exapi() {
 		checkWindowPos(t);
 	}
 	
+	this.initWindowMoveTouch = function(e) {
+		t=this.parentNode.parentNode.id;
+		tx = e.changedTouches[0].pageX-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().left);
+		ty = e.changedTouches[0].pageY-parseInt(document.getElementById(t).getElementsByClassName("h")[0].getBoundingClientRect().top);
+		checkWindowPos(t);
+	}
+	
 	this.callWindow = function(id,arg1,arg2,arg3) {
 		t = false;
 		tx = 0;
@@ -136,6 +144,7 @@ function exapi() {
 			document.getElementById("side").getElementsByClassName("w")[0].style.marginLeft = "calc(50vw - 11em)";
 			document.getElementById("side").getElementsByClassName("w")[0].style.marginTop = "-20vh";
 		}
+		
 		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousedown", this.initWindowMove);
 		
 		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousemove", function(event) {
@@ -148,6 +157,20 @@ function exapi() {
 		});
 		
 		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mouseup", function() {
+			t=false;
+		});
+		
+		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchstart", this.initWindowMoveTouch);
+		
+		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchmove", function(event) {
+			if (t != this.parentNode.parentNode.id) return;
+			var el = document.getElementById(id).getElementsByClassName("w")[0];
+			
+			el.style.marginTop = "calc(-50vh + "+(event.changedTouches[0].pageY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
+			el.style.marginLeft = "calc(-50vw + "+(event.changedTouches[0].pageX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";
+		});
+		
+		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchend", function() {
 			t=false;
 		});
 	}
@@ -176,6 +199,9 @@ function exapi() {
 		this.settings.chInterval = 33;
 		this.settings.canvasSize = 100;
 		
+		if (this.location == "nightly") this.settings.lastVersion = this.version.b;
+		else this.settings.lastVersion = this.version.g+'['+this.version.b+'] '+this.version.s;
+		
 		localStorage["hasSettings"] = true;
 		
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
@@ -199,6 +225,11 @@ function exapi() {
 	
 	this.loadSettings = function() {
 		this.settings = JSON.parse(localStorage["fcm2.settings"]);
+		if (!this.updated) {
+			if (this.location == "nightly") this.updated = this.version.b;
+			else this.updated = this.version.g+'['+this.version.b+'] '+this.version.s;
+			if (this.updated == this.settings.lastVersion) this.updated = false;
+		}
 	}
 	
 	this.saveSettings = function() {
@@ -223,7 +254,6 @@ function exapi() {
 			document.getElementById("settings").getElementsByClassName("color")[i].value = this.settings.color[i];
 			document.getElementById("settings").getElementsByClassName("color2")[i].value = this.settings.color[i];
 		}
-		
 		document.getElementById("st_labels").checked = this.settings.showLabel;
 		document.getElementById("st_debug").checked = this.settings.debug;
 		document.getElementById("st_topfontsize").value = this.settings.topFontSize;
@@ -234,6 +264,7 @@ function exapi() {
 		document.getElementById("st_debugInterval").value = this.settings.chInterval;
 		document.getElementById("st_debugCanvasSize").value = this.settings.canvasSize;
 		
+		for (i=0; i<document.getElementsByClassName("ac").length; i++) api.switchElemState(document.getElementsByClassName("ac")[i]);
 		this.colorMode(this.settings.palette);
 	}
 	
@@ -296,6 +327,40 @@ function exapi() {
 		for (var i=0; i<api.mouse.onclick.length; i++) api.mouse.onclick[i]();
 	}
 	
+	this.pinchListener = function(e) {
+		if (!api.mouse.pinching) {
+			api.mouse.stPinch = Math.sqrt(
+				(e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) * (e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) +
+				(e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY) * (e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY));
+			api.mouse.stZoom = camera.z;
+			api.mouse.pinching = true;
+		}
+		else {
+			var t = Math.sqrt(
+				(e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) * (e.targetTouches.Touch[0].clientX - e.targetTouches.Touch[1].clientX) +
+				(e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY) * (e.targetTouches.Touch[0].clientY - e.targetTouches.Touch[1].clientY));
+			camera.z = api.mouse.stZoom * (t / api.mouse.stPinch);
+		}
+	}
+	
+	this.touchListener = function(e, ec) {
+		if (e.targetTouches.length == 2) api.pinchListener(e);
+		else {
+			api.mouse.pinching = false;
+			var cc = document.getElementById("c").getBoundingClientRect();
+			api.mouse.X = parseInt(e.changedTouches[0].pageX-cc.left);
+			api.mouse.Y = parseInt(e.changedTouches[0].pageY-cc.top);
+			api.mouse.button = (ec?0:1);
+			document.getElementById("debug_mouseInfo").innerHTML = api.mouse.X+':'+api.mouse.Y+' ['+api.mouse.button+']';
+			document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
+		}
+	}
+	
+	this.switchElemState = function(e) {
+		if (e.getElementsByTagName("input")[0].checked) e.classList.add("sel");
+		else e.classList.remove("sel");
+	}
+	
 	this.init = function(fatal) {
 		if (window.location.hostname == "") this.location = "local";
 		else if (window.location.hostname == "stsyn.github.io") this.location = "nightly";
@@ -318,6 +383,20 @@ function exapi() {
 			document.getElementById("c").addEventListener("mouseup", function(event) {
 				api.mouseListener(event, true);
 			});
+			
+			document.getElementsByTagName("body")[0].addEventListener("touchmove", function(event) {
+				mX = event.clientX;
+				mY = event.clientY;
+				
+				api.touchListener(event, false);
+			});
+			document.getElementById("c").addEventListener("touchstart", function(event) {
+				api.touchListener(event, false);
+			});
+			document.getElementById("c").addEventListener("touchend", function(event) {
+				api.touchListener(event, true);
+			});
+			
 			document.getElementsByTagName("body")[0].addEventListener("click", function() {
 				t=false;
 			});
@@ -337,6 +416,11 @@ function exapi() {
 				this.loadSettings();
 				this.fixSettings();
 			}
+			
+			var ele = document.getElementsByClassName("ac");
+			for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function() {
+				api.switchElemState(this);
+			});
 		}
 		
 		this.styleSwitch('labelHidden','showLabel',false,false,true);

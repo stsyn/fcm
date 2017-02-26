@@ -91,6 +91,8 @@ body {
 	background: #fdd;
 	color: #e11;
 	fill: #e11;}
+.b.stillsel.sel {cursor:pointer}
+.b.stillsel.sel:hover {background:#6f6}
 input[type="text"].b {
 	cursor:text;
 	font-size:100%}
@@ -234,6 +236,7 @@ body.night .red{color: #f88;}
 body.night .b.red, body.night .b.red path{
 	background: #400;
 	fill: #f88}
+body.night .b.stillsel.sel:hover {background:#080}
 body.night #windows .w{background:#000}
 body.night #windows .h{
 	background:#016; 
