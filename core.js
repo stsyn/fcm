@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.1", s:"pre-alpha", b:19};
+	this.version = {g:"0.0.2", s:"pre-alpha", b:20};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -58,6 +58,7 @@ function exapi() {
 		}
 		document.getElementById("brush"+n).classList.add("sel");
 		this.brush = n;
+		api.forceRedraw = true;
 	}
 	
 	this.colorMode = function (t) {
@@ -447,6 +448,7 @@ function exapi() {
 		
 		this.callWindow('side');
 		this.forceRedraw = true;
+		this.overDraw = false;
 		api.mouse.button = 0;
 		appInit();
 		
