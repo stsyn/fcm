@@ -51,11 +51,13 @@ function translateCoordsReverseNZY(i) {
 function appDrawBond(el,b) {
 	if (AuxBonds2 !== undefined) {
 		ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+		ctx.setLineDash([3, 5]);
 		ctx.beginPath();
 		ctx.moveTo(translateCoordsX(el[AuxBonds].X),translateCoordsY(el[AuxBonds].Y));
 		ctx.lineTo(translateCoordsX(el[AuxBonds2].X),translateCoordsY(el[AuxBonds2].Y));
 		ctx.closePath();
 		ctx.stroke();
+		ctx.setLineDash([1, 0]);
 	}
 	ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
 	for (var i=0; i<b.length; i++) {

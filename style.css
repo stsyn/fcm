@@ -10,7 +10,6 @@ body {
 	font-family: Open Sans, sans-serif;
 	font-size:16px}
 #top {
-	
 	background:#fff;
 	transition:.15s;
 	height:1.6em;
@@ -47,6 +46,9 @@ body {
 	border-bottom:1px #ddd solid;
 	height:1.6em}
 #bottom .nothide {display:none}
+.bl {display:block !important}
+.il {display:inline !important}
+.hd {display:none !important}
 
 .b img, .b svg, .b input {
 	display:inline-block;
@@ -180,6 +182,11 @@ width:100%;}
 	left:10vw;
 	height:40vh;
 	top:30vh}
+#windows .w.huge {
+	width:90vw;
+	left:5vw;
+	height:90vh;
+	top:5vh}
 #windows .w.side {
 	width:22em;
 	left:calc(50vw - 11em);
@@ -196,14 +203,15 @@ width:100%;}
 	overflow-y:auto}
 #windows .cc.btns{height:calc(100% - 4.3em - 18px)}
 #windows .bt{padding:5px}
-#windows .h {
+#windows .h, #windows .hc {
 	width:100%;
 	font-size:150%;
 	font-weight:bold;
-	cursor:move;
 	text-align:center;
 	background:#f0f5ff;
 	color:#68a}
+#windows .h {cursor:move}
+#windows .h:hover {background:#d0e0f0}
 #windows .close {
 	font-size:150%;
 	font-weight:bold;
@@ -238,7 +246,7 @@ body.night .b.red, body.night .b.red path{
 	fill: #f88}
 body.night .b.stillsel.sel:hover {background:#080}
 body.night #windows .w{background:#000}
-body.night #windows .h{
+body.night #windows .h, body.night #windows .hc{
 	background:#016; 
 	color:#099}
 body.night #windows .close {

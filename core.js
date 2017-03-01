@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.2", s:"pre-alpha", b:20};
+	this.version = {g:"0.0.2", s:"pre-alpha", b:21};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -76,6 +76,81 @@ function exapi() {
 	}
 	
 	
+	this.getSaves = function () {
+		var ote = localStorage["fcm2.saves"];
+		if (ote !== undefined) ote = JSON.parse(localStorage["fcm2.saves"]);
+		return ote;
+	}
+	
+	this.putSaves = function (s) {
+		localStorage["fcm2.saves"] = JSON.stringify(s);
+	}
+	
+	this.includeSaves = function (el, a, addname) {
+		el.innerHTML == "";
+		if (addname) 
+			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="_custom_"><label><input type="text" name="selection_name" id="save_custom" value="" class="b i" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
+		if (a === undefined) return;
+		if (a.length == 0) return;
+		for (var i=0; i<a.length; i++) 
+			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'"><label>'+a[i]+'</label></div>';
+	}
+	
+	this.readSelected = function(el) {
+		var e = el.querySelectorAll('input[type="radio"]');
+		for (var i=0; i<e.length; i++) {
+			if (e[i].checked) return e[i].value;
+		}
+	}
+	
+	this.save = function(name) {
+		var o = this.getSaves();
+		if (o === undefined) o = [];
+		for (var i=0; 1; i++) if (o[i] === undefined) {
+			o[i] = name;
+			break;
+		}
+		this.putSaves(o);
+		
+		project.id = name;
+		localStorage[name] = JSON.stringify(project);
+		this.callPopup2(windows.saveDone);
+		this.closeWindow("save");
+	}
+	
+	
+	this.trySave = function() {
+		var v = this.readSelected(document.getElementById("savelist"));
+		if (v == "_custom_") {
+			v = document.getElementById("save_custom").value;
+			if (v == "") {
+				windows.error.content = "Введите имя файла сохранения!";
+				this.callPopup2(windows.error);
+				return;
+			}
+			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "hasSettings")) {
+				windows.error.content = "Данное имя использовать запрещено! Попробуйте какое-нибудь другое.";
+				this.callPopup2(windows.error);
+				return;
+			}
+			var svs = this.getSaves();
+			if (svs !== undefined) {
+				if (svs.length != 0) {
+					for (var i=0; i<svs.length; i++) {
+						if (v == svs[i]) {
+							windows.sureSave.buttons[0].functions='api.save("'+v+'")';
+							this.callPopup2(windows.sureSave);
+							return;
+						}
+					}
+				}
+			}
+			else {
+				this.save(v);
+				return;
+			}
+		}
+	}
 	
 	this.callPopup2 = function(arg) {
 		this.popUp = "popUp";
@@ -134,6 +209,11 @@ function exapi() {
 			document.getElementById("side_button").classList.add("sel");
 			document.getElementById("side").classList.toggle("d");
 		}
+		else if (id == "save") {
+			this.includeSaves(document.getElementById("savelist"),this.getSaves(),true);
+			document.getElementById("save_button").classList.add("sel");
+			document.getElementById("save").classList.toggle("d");
+		}
 		else {
 			this.windows[id] = undefined;
 			return;
@@ -145,35 +225,36 @@ function exapi() {
 			document.getElementById("side").getElementsByClassName("w")[0].style.marginLeft = "calc(50vw - 11em)";
 			document.getElementById("side").getElementsByClassName("w")[0].style.marginTop = "-20vh";
 		}
-		
-		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousedown", this.initWindowMove);
-		
-		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousemove", function(event) {
-			if (t != this.parentNode.parentNode.id) return;
-			var el = document.getElementById(id).getElementsByClassName("w")[0];
+		if (document.getElementById(id).getElementsByClassName("h")[0] !== undefined) {
+			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousedown", this.initWindowMove);
 			
+			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousemove", function(event) {
+				if (t != this.parentNode.parentNode.id) return;
+				var el = document.getElementById(id).getElementsByClassName("w")[0];
+				
+				
+				el.style.marginTop = "calc(-50vh + "+(event.clientY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
+				el.style.marginLeft = "calc(-50vw + "+(event.clientX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";
+			});
 			
-			el.style.marginTop = "calc(-50vh + "+(event.clientY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
-			el.style.marginLeft = "calc(-50vw + "+(event.clientX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";
-		});
-		
-		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mouseup", function() {
-			t=false;
-		});
-		
-		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchstart", this.initWindowMoveTouch);
-		
-		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchmove", function(event) {
-			if (t != this.parentNode.parentNode.id) return;
-			var el = document.getElementById(id).getElementsByClassName("w")[0];
+			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mouseup", function() {
+				t=false;
+			});
 			
-			el.style.marginTop = "calc(-50vh + "+(event.changedTouches[0].pageY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
-			el.style.marginLeft = "calc(-50vw + "+(event.changedTouches[0].pageX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";
-		});
-		
-		document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchend", function() {
-			t=false;
-		});
+			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchstart", this.initWindowMoveTouch);
+			
+			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchmove", function(event) {
+				if (t != this.parentNode.parentNode.id) return;
+				var el = document.getElementById(id).getElementsByClassName("w")[0];
+				
+				el.style.marginTop = "calc(-50vh + "+(event.changedTouches[0].pageY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
+				el.style.marginLeft = "calc(-50vw + "+(event.changedTouches[0].pageX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";
+			});
+			
+			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchend", function() {
+				t=false;
+			});
+		}
 	}
 	
 	this.closeWindow = function(id) {
@@ -181,6 +262,7 @@ function exapi() {
 		document.getElementById(id).classList.toggle("d");
 		if (id == "settings") document.getElementById("settings_button").classList.remove("sel");
 		else if (id == "side") document.getElementById("side_button").classList.remove("sel");
+		else if (id == "save") document.getElementById("save_button").classList.remove("sel");
 		this.windows[id] = undefined;
 	}
 	
@@ -466,6 +548,9 @@ function exapi() {
 		windows.changelog = {header:'Список изменений',content:'<iframe src="//stsyn.github.io/fcm/changelog/'+this.location+'.txt"></iframe>',size:0,windowsize:'ifr'};
 		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М. и Нафикова Д.И.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.location == "local"?0:1),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
+		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:0,windowsize:'sm'};
 	}
 }
 
