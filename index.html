@@ -146,7 +146,13 @@
 						</div></div></div></span>
 					</div>
 					
-					<div class="table"><span class="b line fs" id="brush-1" onclick="api.selectBrush(-1)">Просмотр</span></div>
+					<div class="line">
+						<span class="t de l">Редактирование</span>
+						<div class="table r"><div class="t3"><div class="t2">
+							<span class="t"><span class="b fs" id="brush-1" onclick="api.selectBrush(-1)">Просмотр</span></span>
+							<span class="t"><span class="b fs" id="brush-2" onclick="api.selectBrush(-2)">Перемещение</span></span>
+						</div></div></div>
+					</div>
 				</div>
 				
 				<div id="pad2" class="pad">
@@ -175,7 +181,7 @@
 				</div>
 				<div class="close" onclick="api.closeWindow('save')">X</div>
 			<div class="cc btns">
-				<div id="savelist" class="pad" style="display:block;float:left;width:calc(100% - 30em - 16px);height:calc(100% - 8px)"></div>
+				<div id="savelist" class="pad selection" style="display:block;float:left;width:calc(100% - 30em - 16px);height:calc(100% - 8px)"></div>
 				<div id="savepad" class="pad" style="display:block;float:left;width:30em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
 			</div>
 			<div class="bt"><div class="table r"><div class="t3"><div class="t2">

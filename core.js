@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.2", s:"pre-alpha", b:21};
+	this.version = {g:"0.0.2", s:"pre-alpha", b:22};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -53,7 +53,7 @@ function exapi() {
 	}
 	
 	this.selectBrush = function (n) {
-		for (var i=-1; i<6; i++) {
+		for (var i=-2; i<6; i++) {
 			document.getElementById("brush"+i).classList.remove("sel");
 		}
 		document.getElementById("brush"+n).classList.add("sel");
@@ -89,11 +89,11 @@ function exapi() {
 	this.includeSaves = function (el, a, addname) {
 		el.innerHTML == "";
 		if (addname) 
-			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="_custom_"><label><input type="text" name="selection_name" id="save_custom" value="" class="b i" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
+			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="saves_._custom_" id="_custom_"><label for="_custom_"><input type="text" name="selection_name" id="save_custom" value="" class="b i fs" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
 		if (a === undefined) return;
 		if (a.length == 0) return;
 		for (var i=0; i<a.length; i++) 
-			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'"><label>'+a[i]+'</label></div>';
+			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="saves_.'+i+'"><label for="saves_.'+i+'" class="b fs">'+a[i]+'</label></div>';
 	}
 	
 	this.readSelected = function(el) {
@@ -106,7 +106,12 @@ function exapi() {
 	this.save = function(name) {
 		var o = this.getSaves();
 		if (o === undefined) o = [];
-		for (var i=0; 1; i++) if (o[i] === undefined) {
+		var check = false;
+		for (var i=0; o.length; i++) if (o[i] == name) {
+			check = true;
+			break;
+		}
+		if (!check) for (var i=0; 1; i++) if (o[i] === undefined) {
 			o[i] = name;
 			break;
 		}
@@ -128,7 +133,7 @@ function exapi() {
 				this.callPopup2(windows.error);
 				return;
 			}
-			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "hasSettings")) {
+			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "hasSettings") || (v == "_custom_")) {
 				windows.error.content = "Данное имя использовать запрещено! Попробуйте какое-нибудь другое.";
 				this.callPopup2(windows.error);
 				return;
@@ -138,7 +143,7 @@ function exapi() {
 				if (svs.length != 0) {
 					for (var i=0; i<svs.length; i++) {
 						if (v == svs[i]) {
-							windows.sureSave.buttons[0].functions='api.save("'+v+'")';
+							windows.sureSave.buttons[0].functions="api.save('"+v+"')";
 							this.callPopup2(windows.sureSave);
 							return;
 						}
@@ -149,6 +154,11 @@ function exapi() {
 				this.save(v);
 				return;
 			}
+		}
+		else {
+			windows.sureSave.buttons[0].functions="api.save('"+v+"')";
+			this.callPopup2(windows.sureSave);
+			return;
 		}
 	}
 	

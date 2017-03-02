@@ -130,6 +130,9 @@ width:100%;}
 .line:last-child{margin-bottom:0}
 .line .t{padding-top:3px}
 
+.selection input[type="radio"] {display:none}
+input:checked + label, input:checked + label .b{background:#cfc !important}
+
 #windows > div {
 	display:none;
 	position:fixed;
@@ -255,6 +258,7 @@ body.night #windows .close {
 .night_nothide{display:none !important}
 body.night .night_nothide{display:inline !important}
 body.night .night_hide{display:none}
+body.night input:checked + label, body.night input:checked + label .b{background:#040 !important}
 
 .sizes {text-align:center}
 
