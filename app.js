@@ -1,7 +1,7 @@
 var project = {settings:{},elements:[],bonds:[]};
 var camera = {};
-var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#000",actconn:"#8f8"},
-				   {bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060"}];
+var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#000",actconn:"#8f8",fakeconn:"#f88"},
+				   {bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600"}];
 var ctx, zoomprop;
 var doMoving = {};
 var currentBrush = {};
@@ -51,6 +51,7 @@ function translateCoordsReverseNZY(i) {
 function appDrawBond(el,b) {
 	if (AuxBonds2 !== undefined) {
 		ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+		if (!isBondUnique(AuxBonds,AuxBonds2) || AuxBonds==AuxBonds2) ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].fakeconn;
 		ctx.setLineDash([3, 5]);
 		ctx.beginPath();
 		ctx.moveTo(translateCoordsX(el[AuxBonds].X),translateCoordsY(el[AuxBonds].Y));
@@ -81,6 +82,14 @@ function appDrawElements(el) {
 		if (el[i] === undefined) continue;
 		ctx.fillStyle = api.settings.color[el[i].type-1];
 		ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].actconn;
+		if (AuxBonds == i) {
+			if ((api.brush == 99) && !isBondUnique(AuxBonds,AuxBonds2) || AuxBonds==AuxBonds2) {
+				ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].fakeconn;
+				document.getElementById("brush0").style.background=colorScheme[(api.settings.nightMode?1:0)].fakeconn;
+			}
+			else if (api.brush == 99) document.getElementById("brush0").style.background=colorScheme[(api.settings.nightMode?1:0)].line;
+			else document.getElementById("brush0").style.background="";
+		}
 		ctx.beginPath();
 		ctx.arc(translateCoordsX(el[i].X),translateCoordsY(el[i].Y), size, 0,6.28);
 		ctx.closePath();
@@ -222,8 +231,14 @@ function RemoveBond(ActualBond) {
 	api.forceRedraw = true;
 }
 
+function isBondUnique(a,b) {
+	for (var i=0; i<project.bonds.length; i++) if ((project.bonds[i].first == a) && (project.bonds[i].second == b)) return false;
+	return true;
+}
+
 function AddBond(FirstElement,SecondElement) {
 	if (FirstElement == SecondElement) return;
+	if (!isBondUnique(FirstElement,SecondElement)) return;
 	var i=0;
 	for (i=0;1;i++) if (project.bonds[i] === undefined) break;
 	project.bonds[i]={};
