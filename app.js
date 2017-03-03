@@ -7,6 +7,7 @@ var doMoving = {};
 var currentBrush = {};
 
 var AuxBonds, AuxBonds2, dAuxBonds;
+var AuxMove;
 var NumberOfBonds = 0;
 var BondsDrawingArrayFirst = {};
 var BondsDrawingArraySecond = {};
@@ -224,6 +225,7 @@ function AddElement(MouseX,MouseY) {
 function MoveElement(ActualElement,NewX,NewY) {
 	project.elements[ActualElement].X=NewX;
 	project.elements[ActualElement].Y=NewY;
+	api.forceRedraw = true;
 }
 
 function RemoveBond(ActualBond) {
@@ -293,9 +295,24 @@ function DrawRemoveSelector() {
 		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
 		if (el !== undefined) AddBond(AuxBonds,el);
 	}
-	else if (api.brush < 0)	{
+	else if (api.brush < 0 && api.brush != -2)	{
 		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
 		if (el !== undefined) RemoveElement(el);
+	}
+	else if (api.brush == -2) 
+	{
+		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
+        if (el !== undefined)
+			{
+			api.brush = 97;    	
+            AuxMove=el;
+		}			
+		
+	}
+	else if (api.brush == 97)
+	{
+	  MoveElement(AuxMove,translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y));
+	  api.brush = -2;
 	}
 	else AddElement(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y));
 	
