@@ -214,6 +214,7 @@ input:checked + label, input:checked + label .b{background:#cfc !important}
 	background:#f0f5ff;
 	color:#68a}
 #windows .h {cursor:move}
+#windows .hc {background:#f2f6f9}
 #windows .h:hover {background:#d0e0f0}
 #windows .close {
 	font-size:150%;
@@ -252,6 +253,7 @@ body.night #windows .w{background:#000}
 body.night #windows .h, body.night #windows .hc{
 	background:#016; 
 	color:#099}
+body.night #windows .hc{background:#124}
 body.night #windows .close {
 	background:#d00; 
 	color:#300}	

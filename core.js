@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.2", s:"pre-alpha", b:22};
+	this.version = {g:"0.0.2", s:"pre-alpha", b:23};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -123,6 +123,13 @@ function exapi() {
 		this.closeWindow("save");
 	}
 	
+	this.load = function(name) {
+		project = JSON.parse(localStorage[name]);
+		this.closeWindow("load");
+		this.closePopup();
+		this.forceRedraw = true;
+	}
+	
 	
 	this.trySave = function() {
 		var v = this.readSelected(document.getElementById("savelist"));
@@ -160,6 +167,12 @@ function exapi() {
 			this.callPopup2(windows.sureSave);
 			return;
 		}
+	}
+	
+	this.tryLoad = function() {
+		var v = this.readSelected(document.getElementById("loadlist"));
+		windows.warning.buttons[0].functions="api.load('"+v+"')";
+		this.callPopup2(windows.warning);
 	}
 	
 	this.callPopup2 = function(arg) {
@@ -223,6 +236,20 @@ function exapi() {
 			this.includeSaves(document.getElementById("savelist"),this.getSaves(),true);
 			document.getElementById("save_button").classList.add("sel");
 			document.getElementById("save").classList.toggle("d");
+			
+		}
+		else if (id == "load") {
+			var o = this.getSaves();
+			if ((o === undefined) || (o.length == 0)) {
+				windows.error.content = "Сохраненные проекты отсутствуют.";
+				this.callPopup2(windows.error);
+				this.windows[id] = false;
+			}
+			else {
+				this.includeSaves(document.getElementById("loadlist"),this.getSaves(),false);
+				document.getElementById("load_button").classList.add("sel");
+				document.getElementById("load").classList.toggle("d");
+			}
 		}
 		else {
 			this.windows[id] = undefined;
@@ -273,6 +300,7 @@ function exapi() {
 		if (id == "settings") document.getElementById("settings_button").classList.remove("sel");
 		else if (id == "side") document.getElementById("side_button").classList.remove("sel");
 		else if (id == "save") document.getElementById("save_button").classList.remove("sel");
+		else if (id == "load") document.getElementById("load_button").classList.remove("sel");
 		this.windows[id] = undefined;
 	}
 	
@@ -510,6 +538,8 @@ function exapi() {
 			document.getElementById("c").addEventListener("click", function(event) {
 				api.mouseClickListener(event);
 			});
+			
+			window.onresize = function(){api.forceRedraw = true}
 		
 		
 			if (localStorage["hasSettings"] != "true") {
