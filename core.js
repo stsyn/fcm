@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.2", s:"pre-alpha", b:24};
+	this.version = {g:"0.0.3", s:"pre-alpha", b:25};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
