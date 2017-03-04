@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.3", s:"pre-alpha", b:25};
+	this.version = {g:"0.0.3", s:"pre-alpha", b:26};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -320,6 +320,7 @@ function exapi() {
 		this.settings.chInterval = 33;
 		this.settings.canvasSize = 100;
 		this.settings.elemSize = 20;
+		this.settings.tooltips = true;
 		
 		if (this.location == "nightly") this.settings.lastVersion = this.version.b;
 		else this.settings.lastVersion = this.version.g+'['+this.version.b+'] '+this.version.s;
@@ -379,6 +380,7 @@ function exapi() {
 		}
 		document.getElementById("st_labels").checked = this.settings.showLabel;
 		document.getElementById("st_debug").checked = this.settings.debug;
+		document.getElementById("st_tooltips").checked = this.settings.tooltips;
 		document.getElementById("st_topfontsize").value = this.settings.topFontSize;
 		document.getElementById("st_glfontsize").value = this.settings.glFontSize;
 		document.getElementById("st_elemsize").value = this.settings.elemSize;
@@ -395,6 +397,7 @@ function exapi() {
 	this.getSettings = function() {
 		this.settings.showLabel = document.getElementById("st_labels").checked;
 		this.settings.debug = document.getElementById("st_debug").checked;
+		this.settings.tooltips = document.getElementById("st_tooltips").checked;
 		this.settings.topFontSize = parseFloat(document.getElementById("st_topfontsize").value);
 		this.settings.glFontSize = parseInt(document.getElementById("st_glfontsize").value);
 		this.settings.elemSize = parseInt(document.getElementById("st_elemsize").value);

@@ -199,7 +199,6 @@ function appRedraw() {
 }
 
 function appMain() {
-	api.settings.tooltips = true;
 	if (api.mouse.button == 1 || api.mouse.button == 4) {
 		if (!doMoving.fact) {
 			doMoving.fact = true;
@@ -225,7 +224,7 @@ function appMain() {
 			api.forceRedraw = true;
 		}
 	}
-	else if (((api.brush > 0) && (api.brush<=5)) || (api.brush == 97)) {
+	else if ((((api.brush > 0) && (api.brush<=5)) || (api.brush == 97)) && api.settings.tooltips) {
 		if ((tElemX != gridCoords(translateCoordsReverseX(api.mouse.X))) || (tElemY != gridCoords(translateCoordsReverseY(api.mouse.Y)))) {
 			tElemX = gridCoords(translateCoordsReverseX(api.mouse.X));
 			tElemY = gridCoords(translateCoordsReverseY(api.mouse.Y));
