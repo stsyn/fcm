@@ -4,8 +4,10 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="loadbar.css">
 	<script type="text/javascript" src="core.js"></script>
 	<script type="text/javascript" src="app.js"></script>
+	<script type="text/javascript" src="random.js"></script>
 </head>
 <body>
 	<canvas id="c"></canvas>
@@ -53,7 +55,7 @@
 			<div class="w sm">
 				<div class="cc" style="text-align:center">
 					<div class="header" style="font-weight:700;font-size:200%;margin-bottom:20px">Загружается...</div>
-					<div class="content" style="padding-bottom:16px"></div>
+					<div class="content" style="padding-bottom:16px"><div id="squaresWaveG"><div id="squaresWaveG_1" class="squaresWaveG"></div><div id="squaresWaveG_2" class="squaresWaveG"></div><div id="squaresWaveG_3" class="squaresWaveG"></div><div id="squaresWaveG_4" class="squaresWaveG"></div><div id="squaresWaveG_5" class="squaresWaveG"></div><div id="squaresWaveG_6" class="squaresWaveG"></div><div id="squaresWaveG_7" class="squaresWaveG"></div><div id="squaresWaveG_8" class="squaresWaveG"></div></div><div id="loadstring" style="font-size:200%"></div></div>
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
 					
@@ -205,6 +207,60 @@
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
 					<span class="t"><span class="b fs" onclick="api.closeWindow('load')">Отмена</span></span>
 					<span class="t"><span class="b fs" onclick="api.tryLoad()">Открыть</span></span>
+				</div></div></div></div>
+			</div>
+		</div>
+		
+		<div id="inst">
+			<div class="w tall">
+				<div class="hc">
+					<span>Свойства</span>
+				</div>
+				<div class="close" onclick="api.closeWindow('inst')">X</div>
+				<div class="cc btns" style="text-align:center">
+					<div class="pad" style="display:block">
+						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
+						<!--<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_labels"> Подписи у иконок</label></div>
+						<div class="line">Размер шрифта верхнего меню (0.8 - 2.5): <input type="text" class="b i" id="st_topfontsize" style="width:1.5em">em</div>
+						<div class="line">Общий размер шрифта (25% - 200%): <input type="text" class="b i" id="st_glfontsize" style="width:2em">%</div>
+						<div class="line">Размеры элементов (7px - 100px): <input type="text" class="b i" id="st_elemsize" style="width:2em">px</div>
+						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_grid"> Отображать сетку</label></div>
+						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_redGrid"> Отображать красные "нулевые" линии</label></div>
+						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_debug"> Режим отладки</label></div>
+					</div>
+					<div class="pad" style="display:block">
+						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Цвета элементов</div>
+						<div class="table r line"><div class="t3"><div class="t2">
+							<span class="t"><span class="b fs colorMode" onclick="api.colorMode(true)">Палитра</span></span>
+							<span class="t"><span class="b fs colorMode" onclick="api.colorMode(false)">#RGB</span></span>
+						</div></div></div>
+						<div class="table r"><div class="t3">
+							<div class="t2"><span class="t de">Дестабилизирующий фактор</span><span class="t"><input class="b i fs color" type="color" style="min-width:140px"><input class="b i fs color2" type="text"></span></div>
+							<div class="t2"><span class="t de">Промежуточный фактор</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
+							<div class="t2"><span class="t de">Целевой фактор</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
+							<div class="t2"><span class="t de">Управляющий фактор</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
+							<div class="t2"><span class="t de">Негативный фактор</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
+						</div></div>
+					</div>
+					<div class="pad debug" style="display:block">
+						<div class="line red" style="font-weight:700;font-size:120%;margin-bottom:8px">Расширенные настройки</div>
+						<div class="line red">Изменяйте с осторожностью!</div>
+						<div class="line">Интервал обновления: <input type="text" class="b i" id="st_debugInterval" style="width:1.5em">мс</div>
+						<div class="line">Размер холста: <input type="text" class="b i" id="st_debugCanvasSize" style="width:2em">%</div>
+						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_tooltips"> Подсвечивание действий</label></div>
+					</div>
+					<div class="pad" style="display:block">
+						<div class="line">
+							<div class="linebar" style="height:1.5em; line-height:1.5em;" title="Максимальный размер является приблизительным, и, в зависимости от браузера, может отличаться в большую сторону."><div class="sizes" style="font-size:70%"></div></div>
+						</div><div class="table r"><div class="t3"><div class="t2">
+							<span class="t"><span class="b fs red" onclick="api.loadDefault();api.putSettings();api.saveSettings()">Установить умолчания</span></span>
+							<span class="t"><span class="b fs red" onclick="api.callPopup2({header:'Сброс данных',content:'Внимание, абсолютно все сохраненные данные будут потеряны! Текущая сессия не будет завершена. Экспортированные данные не будут потеряны.',size:2,windowsize:'m',buttons:[{functions:'api.resetData();api.closePopup()',red:true,name:'Продолжить'},{functions:'api.closePopup()',name:'Отмена'}]})">Очистить хранилище</span></span>
+						</div></div></div>-->
+					</div>
+				</div>
+				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
+					<span class="t"><span class="b fs" onclick="api.closeWindow('settings')">Отмена</span></span>
+					<span class="t"><span class="b fs" onclick="api.getSettings();api.saveSettings();api.closeWindow('settings')">Применить</span></span>
 				</div></div></div></div>
 			</div>
 		</div>
