@@ -15,6 +15,7 @@
 	"Набегаем на оперативку...",
 	"Грабим пиксели...",
 	"Загружаем другие надписи...",
+	"Pink Fluffy Unicorn Dancing On Rainbow...",
 	"Работает на современных технологиях!"]
 	return ac[Math.floor(Math.random()*ac.length)]
 }
