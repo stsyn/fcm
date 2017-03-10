@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.4", s:"pre-alpha", b:28};
+	this.version = {g:"0.0.4", s:"pre-alpha", b:29};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -107,7 +107,7 @@ function exapi() {
 		var o = this.getSaves();
 		if (o === undefined) o = [];
 		var check = false;
-		for (var i=0; o.length; i++) if (o[i] == name) {
+		for (var i=0; i<o.length; i++) if (o[i] == name) {
 			check = true;
 			break;
 		}
@@ -125,6 +125,7 @@ function exapi() {
 	}
 	
 	this.load = function(name) {
+		console.log(name);
 		project = JSON.parse(localStorage[name]);
 		this.closeWindow("load");
 		this.closePopup();
@@ -214,10 +215,19 @@ function exapi() {
 		checkWindowPos(t);
 	}
 	
+	this.requestDeletion = function(id) {
+		console.log(id);
+		windows.sureDelete.buttons[0].functions = "RemoveElement("+id+");api.closeWindow('edit"+id+"');api.closePopup()";
+		this.callPopup2(windows.sureDelete);
+	}
+	
 	this.callWindow = function(id,arg1,arg2,arg3) {
 		t = false;
 		tx = 0;
 		ty = 0;
+		if (arg1 == "edit") {
+			id = arg1+arg2;
+		}
 		if (this.windows[id]) 
 		{	
 			document.getElementById(id).getElementsByClassName("w")[0].style.marginTop = "0";
@@ -260,6 +270,23 @@ function exapi() {
 				this.includeSaves(document.getElementById("loadlist"),o,false);
 				document.getElementById("load_button").classList.add("sel");
 				document.getElementById("load").classList.toggle("d");
+			}
+		}
+		else if (arg1 == "edit") {
+			var ec, exists = (document.getElementById(id) !== null);
+			if (exists) ec = document.getElementById(id);
+			else {
+				ec = document.createElement("div");
+				ec.innerHTML = document.getElementById("_edit_template_").innerHTML;
+				ec.id = id;
+			}
+			ec.classList.toggle("d");
+			
+			if (!exists) {
+				ec.getElementsByClassName("_сс_close2")[0].addEventListener("click", function() {api.closeWindow(id)});
+				ec.getElementsByClassName("_сс_apply")[0].addEventListener("click", function() {createAndAddElement(id,true);api.closeWindow(id)});
+				ec.getElementsByClassName("_сс_delete")[0].addEventListener("click", function() {api.requestDeletion(arg2)});
+				document.getElementById("windows").appendChild(ec);
 			}
 		}
 		else {
@@ -594,6 +621,7 @@ function exapi() {
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:0,windowsize:'sm'};
+		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент. Вы не сможете его вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 
 		if (this.location == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,777);
 		else {

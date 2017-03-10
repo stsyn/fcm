@@ -256,14 +256,14 @@
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
 					<span class="t"><span class="b fs _сс_close2" onclick="cancelCreation();api.closeWindow('inst')">Отмена</span></span>
-					<span class="t"><span class="b fs _сс_apply" onclick="createAndAddElement();api.closeWindow('inst')">Применить</span></span>
+					<span class="t"><span class="b fs _сс_apply" onclick="createAndAddElement('inst', false);api.closeWindow('inst')">Применить</span></span>
 				</div></div></div></div>
 			</div>
 		</div>
 	
 	<div id="data" style="display:none">
 		<div id="_edit_template_">
-			<div class="w tall">
+			<div class="w side">
 				<div class="h">
 					<span>Свойства</span>
 				</div>
@@ -296,16 +296,19 @@
 					</div>
 					<div class="pad debug" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:34%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
+							<div class="t de" style="width:50%">Позиция X: <input type="text" class="b i cc_X" style="width:4em"></div>
+							<div class="t de" style="width:50%">Позиция Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
+						</div><div class="t2">
+							<div class="t de" style="width:33%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
 							<div class="t de" style="width:34%">Цвет: <input type="text" class="b i cc_color" style="width:5em"></div>
-							<div class="t de" style="width:32%">Тип: <input type="text" class="b i cc_type" style="width:2em" disabled></div>
+							<div class="t de" style="width:33%">Тип: <input type="text" class="b i cc_type" style="width:2em" disabled></div>
 						</div></div></div>
 					</div>
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
-					<span class="t"><span class="b fs _сс_delete red" onclick="api.closeWindow('inst')">Удалить</span></span>
-					<span class="t"><span class="b fs _сс_close2" onclick="api.closeWindow('inst')">Отмена</span></span>
-					<span class="t"><span class="b fs _сс_apply" onclick="api.closeWindow('inst')">Применить</span></span>
+					<span class="t"><span class="b fs _сс_delete red">Удалить</span></span>
+					<span class="t"><span class="b fs _сс_close2">Отмена</span></span>
+					<span class="t"><span class="b fs _сс_apply">Применить</span></span>
 				</div></div></div></div>
 			</div>
 		</div>

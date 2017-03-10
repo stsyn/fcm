@@ -244,8 +244,8 @@ function appInit() {
 }
 
 
-function createAndAddElement() { //createElement already defined >:c
-	e = document.getElementById("inst");
+function createAndAddElement(el, isNew) { //createElement already defined >:c
+	e = document.getElementById(el);
 	var id = parseInt(e.getElementsByClassName("cc_id")[0].value);
 	project.elements[id] = {};
 	project.elements[id].X = parseInt(e.getElementsByClassName("cc_X")[0].value);
@@ -268,7 +268,7 @@ function createAndAddElement() { //createElement already defined >:c
 		if (e.getElementsByClassName("cc_cost2")[0].value !== "") project.elements[id].cost = parseInt(e.getElementsByClassName("cc_cost2")[0].value); else project.elements[id].cost = 0;
 		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].eff = parseInt(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].eff = 0;
 	}
-	api.brush = type;
+	if (!isNew) api.brush = type;
 	api.forceRedraw = true;
 }
 
@@ -285,6 +285,29 @@ function isElementThere(x,y) {
 function isBondUnique(a,b) {
 	for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] !== undefined) if ((project.bonds[i].first == a) && (project.bonds[i].second == b)) return false;
 	return true;
+}
+
+function editElement(id) {
+	api.callWindow("","edit",id);
+	var e = document.getElementById("edit"+id);
+	var el = project.elements[id];
+	e.getElementsByClassName("cc_id")[0].value = id;
+	e.getElementsByClassName("cc_X")[0].value = el.X;
+	e.getElementsByClassName("cc_Y")[0].value = el.Y;
+	e.getElementsByClassName("cc_type")[0].value = el.type;
+	
+	e.getElementsByClassName("cc_desc")[0].value = el.desc;
+	e.getElementsByClassName("cc_name")[0].value = el.name;
+	e.getElementsByClassName("cc_cost")[0].value = el.cost;
+	e.getElementsByClassName("cc_cost2")[0].value = el.cost;
+	e.getElementsByClassName("cc_state")[0].value = el.state;
+	e.getElementsByClassName("cc_limit")[0].value = el.lim;
+	e.getElementsByClassName("cc_value")[0].value = el.val;
+	e.getElementsByClassName("cc_effect")[0].value = el.eff;
+	
+	e.getElementsByClassName("_cc_initator")[0].style.display = (((el.type == 1) || (el.type == 2))?"block":"none");
+	e.getElementsByClassName("_cc_target")[0].style.display = ((el.type == 3)?"block":"none");
+	e.getElementsByClassName("_cc_control")[0].style.display = (((el.type == 4) || (el.type == 5))?"block":"none");
 }
 
 function AddElement(MouseX,MouseY) {
@@ -386,9 +409,9 @@ function DrawRemoveSelector() {
 		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
 		if (el !== undefined) AddBond(AuxBonds,el);
 	}
-	else if (api.brush < 0 && api.brush != -2)	{
+	else if (api.brush == -1) {
 		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
-		if (el !== undefined) RemoveElement(el);
+		if (el !== undefined) /*RemoveElement(el);*/ editElement(el);
 	}
 	else if (api.brush == -2) {
 		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);

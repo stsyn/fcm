@@ -98,6 +98,10 @@ body {
 input[type="text"].b, textarea.b {
 	cursor:text;
 	font-size:100%}
+input:disabled.b {
+    background: #ccc !important;
+	cursor:default;
+}
 	
 .table{
 	display:inline-block;
@@ -261,6 +265,9 @@ body.night #windows .close {
 body.night .night_nothide{display:inline !important}
 body.night .night_hide{display:none}
 body.night input:checked + label, body.night input:checked + label .b{background:#040 !important}
+body.night input:disabled.b {
+	background: #222 !important;
+	color: #888}
 
 .sizes {text-align:center}
 
