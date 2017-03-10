@@ -212,60 +212,103 @@
 		</div>
 		
 		<div id="inst">
+			<div class="back"></div>
 			<div class="w tall">
 				<div class="hc">
-					<span>Свойства</span>
+					<span>Создать</span>
 				</div>
-				<div class="close" onclick="api.closeWindow('inst')">X</div>
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
-						<!--<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_labels"> Подписи у иконок</label></div>
-						<div class="line">Размер шрифта верхнего меню (0.8 - 2.5): <input type="text" class="b i" id="st_topfontsize" style="width:1.5em">em</div>
-						<div class="line">Общий размер шрифта (25% - 200%): <input type="text" class="b i" id="st_glfontsize" style="width:2em">%</div>
-						<div class="line">Размеры элементов (7px - 100px): <input type="text" class="b i" id="st_elemsize" style="width:2em">px</div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_grid"> Отображать сетку</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_redGrid"> Отображать красные "нулевые" линии</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_debug"> Режим отладки</label></div>
-					</div>
-					<div class="pad" style="display:block">
-						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Цвета элементов</div>
-						<div class="table r line"><div class="t3"><div class="t2">
-							<span class="t"><span class="b fs colorMode" onclick="api.colorMode(true)">Палитра</span></span>
-							<span class="t"><span class="b fs colorMode" onclick="api.colorMode(false)">#RGB</span></span>
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Название: <input type="text" class="b i cc_name" style="width:8em"></div>
 						</div></div></div>
-						<div class="table r"><div class="t3">
-							<div class="t2"><span class="t de">Дестабилизирующий фактор</span><span class="t"><input class="b i fs color" type="color" style="min-width:140px"><input class="b i fs color2" type="text"></span></div>
-							<div class="t2"><span class="t de">Промежуточный фактор</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
-							<div class="t2"><span class="t de">Целевой фактор</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
-							<div class="t2"><span class="t de">Управляющий фактор</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
-							<div class="t2"><span class="t de">Негативный фактор</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
-						</div></div>
+						<div class="line de">Детальное описание: <textarea type="text" class="b i cc_desc" style="width:calc(100% - 8px); max-width:calc(100% - 8px);max-height:4em"></textarea></div>
+					</div>
+					<div class="pad _cc_initator">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i cc_state" style="width:3em"></div>
+							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i cc_limit" style="width:3em"></div>
+						</div></div></div>
+					</div>
+					<div class="pad _cc_target" style="display:block">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost" style="width:4em"></div>
+							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i cc_value" style="width:4em"></div>
+						</div></div></div>
+					</div>
+					<div class="pad _cc_control" style="display:block">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost2" style="width:4em"></div>
+							<div class="t de" style="width:50%">Эффективность: <input type="text" class="b i cc_effect" style="width:4em"></div>
+						</div></div></div>
 					</div>
 					<div class="pad debug" style="display:block">
-						<div class="line red" style="font-weight:700;font-size:120%;margin-bottom:8px">Расширенные настройки</div>
-						<div class="line red">Изменяйте с осторожностью!</div>
-						<div class="line">Интервал обновления: <input type="text" class="b i" id="st_debugInterval" style="width:1.5em">мс</div>
-						<div class="line">Размер холста: <input type="text" class="b i" id="st_debugCanvasSize" style="width:2em">%</div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_tooltips"> Подсвечивание действий</label></div>
-					</div>
-					<div class="pad" style="display:block">
-						<div class="line">
-							<div class="linebar" style="height:1.5em; line-height:1.5em;" title="Максимальный размер является приблизительным, и, в зависимости от браузера, может отличаться в большую сторону."><div class="sizes" style="font-size:70%"></div></div>
-						</div><div class="table r"><div class="t3"><div class="t2">
-							<span class="t"><span class="b fs red" onclick="api.loadDefault();api.putSettings();api.saveSettings()">Установить умолчания</span></span>
-							<span class="t"><span class="b fs red" onclick="api.callPopup2({header:'Сброс данных',content:'Внимание, абсолютно все сохраненные данные будут потеряны! Текущая сессия не будет завершена. Экспортированные данные не будут потеряны.',size:2,windowsize:'m',buttons:[{functions:'api.resetData();api.closePopup()',red:true,name:'Продолжить'},{functions:'api.closePopup()',name:'Отмена'}]})">Очистить хранилище</span></span>
-						</div></div></div>-->
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:23%">Позиция X: <input type="text" class="b i cc_X" style="width:4em"></div>
+							<div class="t de" style="width:23%">Позиция Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
+							<div class="t de" style="width:22%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
+							<div class="t de" style="width:20%">Цвет: <input type="text" class="b i cc_color" style="width:5em"></div>
+							<div class="t de" style="width:12%">Тип: <input type="text" class="b i cc_type" style="width:2em" disabled></div>
+						</div></div></div>
 					</div>
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
-					<span class="t"><span class="b fs" onclick="api.closeWindow('settings')">Отмена</span></span>
-					<span class="t"><span class="b fs" onclick="api.getSettings();api.saveSettings();api.closeWindow('settings')">Применить</span></span>
+					<span class="t"><span class="b fs _сс_close2" onclick="cancelCreation();api.closeWindow('inst')">Отмена</span></span>
+					<span class="t"><span class="b fs _сс_apply" onclick="createAndAddElement();api.closeWindow('inst')">Применить</span></span>
 				</div></div></div></div>
 			</div>
 		</div>
 	
 	<div id="data" style="display:none">
+		<div id="_edit_template_">
+			<div class="w tall">
+				<div class="h">
+					<span>Свойства</span>
+				</div>
+				<div class="cc btns" style="text-align:center">
+					<div class="pad" style="display:block">
+						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Название: <input type="text" class="b i cc_name" style="width:8em"></div>
+						</div></div></div>
+						<div class="line de">Детальное описание: <textarea type="text" class="b i cc_desc" style="width:calc(100% - 8px); max-width:calc(100% - 8px);max-height:4em"></textarea></div>
+					</div>
+					<div class="pad _cc_initator">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i cc_state" style="width:3em"></div>
+							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i cc_limit" style="width:3em"></div>
+						</div></div></div>
+					</div>
+					<div class="pad _cc_target">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost" style="width:4em"></div>
+							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i cc_value" style="width:4em"></div>
+						</div></div></div>
+					</div>
+					<div class="pad _cc_control">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost2" style="width:4em"></div>
+							<div class="t de" style="width:50%">Эффективность: <input type="text" class="b i cc_effect" style="width:4em"></div>
+						</div></div></div>
+					</div>
+					<div class="pad debug" style="display:block">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:34%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
+							<div class="t de" style="width:34%">Цвет: <input type="text" class="b i cc_color" style="width:5em"></div>
+							<div class="t de" style="width:32%">Тип: <input type="text" class="b i cc_type" style="width:2em" disabled></div>
+						</div></div></div>
+					</div>
+				</div>
+				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
+					<span class="t"><span class="b fs _сс_delete red" onclick="api.closeWindow('inst')">Удалить</span></span>
+					<span class="t"><span class="b fs _сс_close2" onclick="api.closeWindow('inst')">Отмена</span></span>
+					<span class="t"><span class="b fs _сс_apply" onclick="api.closeWindow('inst')">Применить</span></span>
+				</div></div></div></div>
+			</div>
+		</div>
 	</div>
 </body>
 </html>

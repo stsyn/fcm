@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.3", s:"pre-alpha", b:27};
+	this.version = {g:"0.0.4", s:"pre-alpha", b:28};
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -87,13 +87,13 @@ function exapi() {
 	}
 	
 	this.includeSaves = function (el, a, addname) {
-		el.innerHTML == "";
+		el.innerHTML = "";
 		if (addname) 
 			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="saves_._custom_" id="_custom_"><label for="_custom_"><input type="text" name="selection_name" id="save_custom" value="" class="b i fs" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
 		if (a === undefined) return;
 		if (a.length == 0) return;
 		for (var i=0; i<a.length; i++) 
-			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="saves_.'+i+'"><label for="saves_.'+i+'" class="b fs">'+a[i]+'</label></div>';
+			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="saves_.'+i+'" '+((!addname && (i==0))?"checked":"")+'><label for="saves_.'+i+'" class="b fs">'+a[i]+'</label></div>';
 	}
 	
 	this.readSelected = function(el) {
@@ -121,6 +121,7 @@ function exapi() {
 		localStorage[name] = JSON.stringify(project);
 		this.callPopup2(windows.saveDone);
 		this.closeWindow("save");
+		document.getElementById("savelist").innerHTML = "";
 	}
 	
 	this.load = function(name) {
@@ -128,19 +129,20 @@ function exapi() {
 		this.closeWindow("load");
 		this.closePopup();
 		this.forceRedraw = true;
+		document.getElementById("loadlist").innerHTML = "";
 	}
 	
 	
 	this.trySave = function() {
 		var v = this.readSelected(document.getElementById("savelist"));
-		if (v == "_custom_") {
+		if (v == "saves_._custom_") {
 			v = document.getElementById("save_custom").value;
 			if (v == "") {
 				windows.error.content = "Введите имя файла сохранения!";
 				this.callPopup2(windows.error);
 				return;
 			}
-			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "hasSettings") || (v == "_custom_")) {
+			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "hasSettings") || (v == "saves_._custom_")) {
 				windows.error.content = "Данное имя использовать запрещено! Попробуйте какое-нибудь другое.";
 				this.callPopup2(windows.error);
 				return;
@@ -155,6 +157,12 @@ function exapi() {
 							return;
 						}
 					}
+					this.save(v);
+					return;
+				}
+				else {
+					this.save(v);
+					return;
 				}
 			}
 			else {
@@ -232,6 +240,9 @@ function exapi() {
 			document.getElementById("side_button").classList.add("sel");
 			document.getElementById("side").classList.toggle("d");
 		}
+		else if (id == "inst") {
+			document.getElementById("inst").classList.toggle("d");
+		}
 		else if (id == "save") {
 			this.includeSaves(document.getElementById("savelist"),this.getSaves(),true);
 			document.getElementById("save_button").classList.add("sel");
@@ -246,7 +257,7 @@ function exapi() {
 				this.windows[id] = false;
 			}
 			else {
-				this.includeSaves(document.getElementById("loadlist"),this.getSaves(),false);
+				this.includeSaves(document.getElementById("loadlist"),o,false);
 				document.getElementById("load_button").classList.add("sel");
 				document.getElementById("load").classList.toggle("d");
 			}
@@ -441,14 +452,14 @@ function exapi() {
 		api.mouse.Y = parseInt(e.clientY-cc.top);
 		if (ec || (e.which == 0)) api.mouse.button = e.buttons;
 		document.getElementById("debug_mouseInfo").innerHTML = api.mouse.X+':'+api.mouse.Y+' ['+api.mouse.button+']';
-		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
+		document.getElementById("debug_viewport").innerHTML = parseInt(project.viewport.x)+':'+parseInt(project.viewport.y)+' '+parseInt(100/project.viewport.z)+'%';
 	}
 	
 	this.mouseWheelListener = function(e) {
-		if (e.deltaY > 0 && camera.z<50) camera.z*=1.25;
-		if (e.deltaY < 0 && camera.z>0.0125) camera.z/=1.25;
+		if (e.deltaY > 0 && project.viewport.z<50) project.viewport.z*=1.25;
+		if (e.deltaY < 0 && project.viewport.z>0.0125) project.viewport.z/=1.25;
 		if (e.deltaY != 0) api.forceRedraw = true;
-		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
+		document.getElementById("debug_viewport").innerHTML = parseInt(project.viewport.x)+':'+parseInt(project.viewport.y)+' '+parseInt(100/project.viewport.z)+'%';
 	}
 	
 	this.mouseClickListener = function(e) {
@@ -462,19 +473,19 @@ function exapi() {
 			api.mouse.stPinch = Math.sqrt(
 				(e.changedTouches[0].pageX - e.changedTouches[1].pageX) * (e.changedTouches[0].pageX - e.changedTouches[1].pageX) +
 				(e.changedTouches[0].pageY - e.changedTouches[1].pageY) * (e.changedTouches[1].pageY - e.changedTouches[1].pageY));
-			api.mouse.stZoom = camera.z;
+			api.mouse.stZoom = project.viewport.z;
 			api.mouse.pinching = true;
 		}
 		else {
 			var t = Math.sqrt(
 				(e.changedTouches[0].pageX - e.changedTouches[1].pageX) * (e.changedTouches[0].pageX - e.changedTouches[1].pageX) +
 				(e.changedTouches[0].pageY - e.changedTouches[1].pageY) * (e.changedTouches[1].pageY - e.changedTouches[1].pageY));
-			camera.z = api.mouse.stZoom * (api.mouse.stPinch / t);
-			if (camera.z>50) camera.z=50;
-			if (camera.z<0.0125) camera.z=0.0125;
+			project.viewport.z = api.mouse.stZoom * (api.mouse.stPinch / t);
+			if (project.viewport.z>50) project.viewport.z=50;
+			if (project.viewport.z<0.0125) project.viewport.z=0.0125;
 		}
 		api.forceRedraw = true;
-		document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
+		document.getElementById("debug_viewport").innerHTML = parseInt(project.viewport.x)+':'+parseInt(project.viewport.y)+' '+parseInt(100/project.viewport.z)+'%';
 	}
 	
 	this.touchListener = function(e, ec) {
@@ -486,7 +497,7 @@ function exapi() {
 			api.mouse.Y = parseInt(e.changedTouches[0].pageY-cc.top);
 			api.mouse.button = (ec?0:1);
 			document.getElementById("debug_mouseInfo").innerHTML = api.mouse.X+':'+api.mouse.Y+' ['+api.mouse.button+']';
-			document.getElementById("debug_viewport").innerHTML = parseInt(camera.x)+':'+parseInt(camera.y)+' '+parseInt(100/camera.z)+'%';
+			document.getElementById("debug_viewport").innerHTML = parseInt(project.viewport.x)+':'+parseInt(project.viewport.y)+' '+parseInt(100/project.viewport.z)+'%';
 		}
 		return false;
 	}
@@ -497,7 +508,6 @@ function exapi() {
 	}
 	
 	this.init = function(fatal) {
-		if (document.getElementById("loadstring") !== undefined) document.getElementById("loadstring").innerHTML = returnRandomLoadingLine();
 		if (window.location.hostname == "") this.location = "local";
 		else if (window.location.hostname == "stsyn.github.io") this.location = "nightly";
 		else if (window.location.hostname == "vtizi.ugatu.su") this.location = "stable";
@@ -600,5 +610,6 @@ function exapi() {
 var api = new exapi();
 
 window.onload = function () {
+	if (document.getElementById("loadstring") !== undefined) document.getElementById("loadstring").innerHTML = returnRandomLoadingLine();
 	api.init(true);
 }

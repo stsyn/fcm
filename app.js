@@ -1,5 +1,4 @@
-var project = {settings:{},elements:[],bonds:[]};
-var camera = {};
+var project = {settings:{},elements:[],bonds:[],viewport:{}};
 var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#000",actconn:"#8f8",fakeconn:"#f88"},
 				   {bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600"}];
 var ctx, zoomprop;
@@ -14,39 +13,39 @@ var BondsDrawingArraySecond = {};
 
 
 function resetProject() {
-	project = {settings:{},elements:[],bonds:[]};
+	project = {settings:{},elements:[],bonds:[],viewport:[]};
 	project.settings.strict = true;
 	api.forceRedraw = true;
 }
 
 function resetViewport() {
-	camera.x=0;
-	camera.y=0;
-	camera.z=0.5;
+	project.viewport.x=0;
+	project.viewport.y=0;
+	project.viewport.z=0.5;
 }
 
 function translateCoordsX(i) {
-	return (i-camera.x)/camera.z+ctx.canvas.width/2;
+	return (i-project.viewport.x)/project.viewport.z+ctx.canvas.width/2;
 }
 
 function translateCoordsY(i) {
-	return (i-camera.y)/camera.z+ctx.canvas.height/2;
+	return (i-project.viewport.y)/project.viewport.z+ctx.canvas.height/2;
 }
 
 function translateCoordsReverseX(i) {
-	return (i-ctx.canvas.width/2)*camera.z+camera.x;
+	return (i-ctx.canvas.width/2)*project.viewport.z+project.viewport.x;
 }
 
 function translateCoordsReverseY(i) {
-	return (i-ctx.canvas.height/2)*camera.z+camera.y;
+	return (i-ctx.canvas.height/2)*project.viewport.z+project.viewport.y;
 }
 
 function translateCoordsReverseNZX(i) {
-	return (i-ctx.canvas.width/2)+camera.x;
+	return (i-ctx.canvas.width/2)+project.viewport.x;
 }
 
 function translateCoordsReverseNZY(i) {
-	return (i-ctx.canvas.height/2)+camera.y;
+	return (i-ctx.canvas.height/2)+project.viewport.y;
 }
 
 function gridCoords(i) {
@@ -86,10 +85,10 @@ function appDrawBond(el,b) {
 
 function appDrawElements(el) {
 	var size = api.settings.elemSize;
-	if (camera.z>1) size = api.settings.elemSize/2;
-	if (camera.z>3) size = api.settings.elemSize/3;
-	if (camera.z>6) size = api.settings.elemSize/4;
-	if (camera.z>16) size = api.settings.elemSize/7;
+	if (project.viewport.z>1) size = api.settings.elemSize/2;
+	if (project.viewport.z>3) size = api.settings.elemSize/3;
+	if (project.viewport.z>6) size = api.settings.elemSize/4;
+	if (project.viewport.z>16) size = api.settings.elemSize/7;
 	for (var i=0; i<el.length; i++) {
 		if (el[i] === undefined) continue;
 		var x = el[i].X, y = el[i].Y;
@@ -145,11 +144,11 @@ function appRedraw() {
 	ctx.strokeStyle = colorScheme[mode].line;
 	ctx.lineWidth = 1;
 
-	var x = xmax/2 - camera.x/camera.z;
-	var y = ymax/2 - camera.y/camera.z;
+	var x = xmax/2 - project.viewport.x/project.viewport.z;
+	var y = ymax/2 - project.viewport.y/project.viewport.z;
 	
-	var d = 1/camera.z;
-	for (zoomprop=1; d<api.settings.elemSize; zoomprop*=3) d = zoomprop/camera.z;
+	var d = 1/project.viewport.z;
+	for (zoomprop=1; d<api.settings.elemSize; zoomprop*=3) d = zoomprop/project.viewport.z;
 	zoomprop/=3;
 	if (zoomprop>20) zoomprop=(zoomprop/2);
 	if (!api.settings.showGrid) zoomprop = 1;
@@ -205,13 +204,13 @@ function appMain() {
 			doMoving.act = false;
 			doMoving.stX = api.mouse.X;
 			doMoving.stY = api.mouse.Y;
-			doMoving.cStX = camera.x;
-			doMoving.cStY = camera.y;
+			doMoving.cStX = project.viewport.x;
+			doMoving.cStY = project.viewport.y;
 		}
 		else if ((Math.abs(doMoving.stX - api.mouse.X) > 10) || (Math.abs(doMoving.stY - api.mouse.Y) > 10)) doMoving.act = true;
 		if (doMoving.act) {
-			camera.x = doMoving.cStX - (api.mouse.X - doMoving.stX)*camera.z;
-			camera.y = doMoving.cStY - (api.mouse.Y - doMoving.stY)*camera.z;
+			project.viewport.x = doMoving.cStX - (api.mouse.X - doMoving.stX)*project.viewport.z;
+			project.viewport.y = doMoving.cStY - (api.mouse.Y - doMoving.stY)*project.viewport.z;
 			api.forceRedraw = true;
 		}
 	}
@@ -245,6 +244,39 @@ function appInit() {
 }
 
 
+function createAndAddElement() { //createElement already defined >:c
+	e = document.getElementById("inst");
+	var id = parseInt(e.getElementsByClassName("cc_id")[0].value);
+	project.elements[id] = {};
+	project.elements[id].X = parseInt(e.getElementsByClassName("cc_X")[0].value);
+	project.elements[id].Y = parseInt(e.getElementsByClassName("cc_Y")[0].value);
+	var type = parseInt(e.getElementsByClassName("cc_type")[0].value);
+	project.elements[id].type = type;
+	project.elements[id].desc = e.getElementsByClassName("cc_desc")[0].value;
+	project.elements[id].name = e.getElementsByClassName("cc_name")[0].value;
+	project.elements[id].privateColor = e.getElementsByClassName("cc_color")[0].value;
+	if (e.getElementsByClassName("cc_size")[0].value !== "") project.elements[id].z = parseInt(e.getElementsByClassName("cc_size")[0].value)/100; else project.elements[id].z = 1;
+	if ((type == 1) || (type == 2)) {
+		if (e.getElementsByClassName("cc_state")[0].value !== "") project.elements[id].state = parseInt(e.getElementsByClassName("cc_state")[0].value); else project.elements[id].state = 0;
+		if (e.getElementsByClassName("cc_limit")[0].value !== "") project.elements[id].lim = parseInt(e.getElementsByClassName("cc_limit")[0].value); else project.elements[id].lim = 0;
+	}
+	else if (type == 3) {
+		if (e.getElementsByClassName("cc_cost")[0].value !== "") project.elements[id].cost = parseInt(e.getElementsByClassName("cc_cost")[0].value); else project.elements[id].cost = 0;
+		if (e.getElementsByClassName("cc_value")[0].value !== "") project.elements[id].val = parseInt(e.getElementsByClassName("cc_value")[0].value); else project.elements[id].val = 0;
+	}
+	else if ((type == 4) || (type == 5)) {
+		if (e.getElementsByClassName("cc_cost2")[0].value !== "") project.elements[id].cost = parseInt(e.getElementsByClassName("cc_cost2")[0].value); else project.elements[id].cost = 0;
+		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].eff = parseInt(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].eff = 0;
+	}
+	api.brush = type;
+	api.forceRedraw = true;
+}
+
+function cancelCreation() {
+	api.brush = parseInt(document.getElementById("inst").getElementsByClassName("cc_type")[0].value);
+	api.forceRedraw = true;
+}
+
 function isElementThere(x,y) {
 	for (var i=0; i<project.elements.length; i++) if (project.elements[i] !== undefined) if ((project.elements[i].X == x) && (project.elements[i].Y == y)) return true;
 	return false;
@@ -259,11 +291,26 @@ function AddElement(MouseX,MouseY) {
 	var i, x=gridCoords(MouseX), y=gridCoords(MouseY);
 	if (isElementThere(x,y)) return;
 	for (i=0;1;i++) if (project.elements[i] === undefined) break;
-	project.elements[i] = {};
-	project.elements[i].X = x;
-	project.elements[i].Y = y;
-	project.elements[i].type = api.brush;
-	api.forceRedraw = true;
+	api.callWindow('inst');
+	e = document.getElementById("inst");
+	e.getElementsByClassName("cc_id")[0].value = i;
+	e.getElementsByClassName("cc_X")[0].value = x;
+	e.getElementsByClassName("cc_Y")[0].value = y;
+	e.getElementsByClassName("cc_type")[0].value = api.brush;
+	
+	e.getElementsByClassName("cc_desc")[0].value = "";
+	e.getElementsByClassName("cc_name")[0].value = "C"+(api.brush == 1?"(U)":(api.brush == 3?"(G)":(api.brush == 4?"(R)":(api.brush == 5?"(A)":""))))+i;
+	e.getElementsByClassName("cc_cost")[0].value = "0";
+	e.getElementsByClassName("cc_cost2")[0].value = "0";
+	e.getElementsByClassName("cc_state")[0].value = "0";
+	e.getElementsByClassName("cc_limit")[0].value = "0";
+	e.getElementsByClassName("cc_value")[0].value = "0";
+	e.getElementsByClassName("cc_effect")[0].value = "0";
+	
+	e.getElementsByClassName("_cc_initator")[0].style.display = (((api.brush == 1) || (api.brush == 2))?"block":"none");
+	e.getElementsByClassName("_cc_target")[0].style.display = ((api.brush == 3)?"block":"none");
+	e.getElementsByClassName("_cc_control")[0].style.display = (((api.brush == 4) || (api.brush == 5))?"block":"none");
+	api.brush = 100;
 }
 
 function MoveElement(ActualElement,NewX,NewY) {
@@ -304,7 +351,7 @@ function FindTheClosest(MouseX,MouseY,Type,Max) {
 			Aux1=(project.elements[key].X-MouseX)*(project.elements[key].X-MouseX);
 			Aux2=(project.elements[key].Y-MouseY)*(project.elements[key].Y-MouseY);
 			Aux3=Math.sqrt(Aux1+Aux2);
-			if (Aux3<Range*camera.z) {
+			if (Aux3<Range*project.viewport.z) {
 				Range=Aux3;
 				TheClosest=key;
 			}

@@ -95,7 +95,7 @@ body {
 	fill: #e11;}
 .b.stillsel.sel {cursor:pointer}
 .b.stillsel.sel:hover {background:#6f6}
-input[type="text"].b {
+input[type="text"].b, textarea.b {
 	cursor:text;
 	font-size:100%}
 	
@@ -196,8 +196,8 @@ input:checked + label, input:checked + label .b{background:#cfc !important}
 	height:50vh;
 	top:25vh}
 #windows .w.tall {
-	width:50vw;
-	left:25vw;
+	width:40vw;
+	left:30vw;
 	height:70vh;
 	top:15vh}
 #windows .cc{
