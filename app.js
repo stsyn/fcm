@@ -1,6 +1,6 @@
 var project = {settings:{},elements:[],bonds:[],viewport:{}};
-var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#000",actconn:"#8f8",fakeconn:"#f88"},
-				   {bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600"}];
+var colorScheme = [{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",selected:"#00f"},
+				   {bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",selected:"#cc0"}];
 var ctx, zoomprop;
 var doMoving = {};
 var currentBrush = {};
@@ -92,6 +92,8 @@ function appDrawElements(el) {
 	for (var i=0; i<el.length; i++) {
 		if (el[i] === undefined) continue;
 		var x = el[i].X, y = el[i].Y;
+		var isSelected = ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("edit")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false);
+		console.log(isSelected, i)
 		if ((i == AuxMove) && (api.brush==97) && api.settings.tooltips) {
 			x = tElemX;
 			y = tElemY;
@@ -101,7 +103,8 @@ function appDrawElements(el) {
 		if (api.brush != 97) document.getElementById("brush-2").style.background="";
 		
 		ctx.fillStyle = api.settings.color[el[i].type-1];
-		ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].actconn;
+		if ((api.brush == 99) && (AuxBonds == i)) ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].actconn;
+		if (isSelected) ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].selected;
 		if ((AuxBonds == i) && api.settings.tooltips) {
 			if ((api.brush == 99) && !isBondUnique(AuxBonds,AuxBonds2) || AuxBonds==AuxBonds2) {
 				ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].fakeconn;
@@ -114,7 +117,7 @@ function appDrawElements(el) {
 		ctx.arc(translateCoordsX(x),translateCoordsY(y), size, 0,6.28);
 		ctx.closePath();
 		ctx.fill();
-		if ((api.brush == 99) && (AuxBonds == i) && api.settings.tooltips) ctx.stroke();
+		if ((((api.brush == 99) && (AuxBonds == i)) || isSelected) && api.settings.tooltips) ctx.stroke();
 	}
 	
 	if (((api.brush>0 && api.brush<=5)) && api.settings.tooltips) {

@@ -15,7 +15,8 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.4", s:"pre-alpha", b:29};
+	this.version = {g:"0.0.4", s:"pre-alpha", b:30};
+	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -134,6 +135,24 @@ function exapi() {
 	}
 	
 	
+	this.windowOnTop = function (id) {
+		if (this.zindex[this.zindex.length-1] == id) return;
+		var i;
+			
+		for (i=0; i<this.zindex.length; i++) if (this.zindex[i] == id) break;
+		this.zindex[i] = undefined;
+		if (i == this.zindex.length-1) this.zindex[i] = id;
+		else this.zindex[this.zindex.length] = id;
+		
+		this.activeWindow = id;
+		document.getElementById(id).style.zIndex = this.zindex.length-1;
+		
+		for (i=0; i<this.zindex.length; i++) if (this.zindex[i] !== undefined) document.getElementById(this.zindex[i]).getElementsByClassName("w")[0].classList.remove("a");
+		document.getElementById(id).getElementsByClassName("w")[0].classList.add("a");
+		
+		if (api.settings.tooltips) api.forceRedraw = true;
+	}
+	
 	this.trySave = function() {
 		var v = this.readSelected(document.getElementById("savelist"));
 		if (v == "saves_._custom_") {
@@ -237,6 +256,7 @@ function exapi() {
 				document.getElementById("side").getElementsByClassName("w")[0].style.marginLeft = "calc(50vw - 11em)";
 				document.getElementById("side").getElementsByClassName("w")[0].style.marginTop = "-20vh";
 			}
+			this.windowOnTop(id);
 			return;
 		}
 		this.windows[id] = true;
@@ -294,6 +314,7 @@ function exapi() {
 			return;
 		}
 		tid = id;
+		this.windowOnTop(id);
 		document.getElementById(id).getElementsByClassName("w")[0].style.marginTop = "0";
 		document.getElementById(id).getElementsByClassName("w")[0].style.marginLeft = "0";
 		if (id =="side") {
@@ -302,6 +323,10 @@ function exapi() {
 		}
 		if (document.getElementById(id).getElementsByClassName("h")[0] !== undefined) {
 			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousedown", this.initWindowMove);
+			
+			document.getElementById(id).getElementsByClassName("w")[0].addEventListener("mousedown", function() {
+				api.windowOnTop(this.parentNode.id);
+			});
 			
 			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousemove", function(event) {
 				if (t != this.parentNode.parentNode.id) return;
@@ -339,7 +364,14 @@ function exapi() {
 		else if (id == "side") document.getElementById("side_button").classList.remove("sel");
 		else if (id == "save") document.getElementById("save_button").classList.remove("sel");
 		else if (id == "load") document.getElementById("load_button").classList.remove("sel");
+		var i;
+		for (i=0; this.zindex[i]!=id; i++) {0;}
+		this.zindex[i] = undefined;
+		for (;((this.zindex[this.zindex.length-1] === undefined) && (this.zindex.length>0));this.zindex.length--) {0;}
+		
+		if (this.activeWindow == id) this.activeWindow = undefined;
 		this.windows[id] = undefined;
+		if (api.settings.tooltips) api.forceRedraw = true;
 	}
 	
 	this.loadDefault = function() {

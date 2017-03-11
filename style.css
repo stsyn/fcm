@@ -215,10 +215,10 @@ input:checked + label, input:checked + label .b{background:#cfc !important}
 	font-size:150%;
 	font-weight:bold;
 	text-align:center;
-	background:#f0f5ff;
 	color:#68a}
 #windows .h {cursor:move}
-#windows .hc {background:#f2f6f9}
+#windows .a .hc {background:#f2f6f9}
+#windows .a .h {background:#f0f5ff}
 #windows .h:hover {background:#d0e0f0}
 #windows .close {
 	font-size:150%;
@@ -254,10 +254,9 @@ body.night .b.red, body.night .b.red path{
 	fill: #f88}
 body.night .b.stillsel.sel:hover {background:#080}
 body.night #windows .w{background:#000}
-body.night #windows .h, body.night #windows .hc{
-	background:#016; 
-	color:#099}
-body.night #windows .hc{background:#124}
+body.night #windows .h, body.night #windows .hc{color:#099}
+body.night #windows .a .h, body.night #windows .h:hover{background:#016}
+body.night #windows .a .hc, body.night #windows .hc:hover{background:#124}
 body.night #windows .close {
 	background:#d00; 
 	color:#300}	
