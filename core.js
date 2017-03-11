@@ -136,7 +136,6 @@ function exapi() {
 	
 	
 	this.windowOnTop = function (id) {
-		if (this.zindex[this.zindex.length-1] == id) return;
 		var i;
 			
 		for (i=0; i<this.zindex.length; i++) if (this.zindex[i] == id) break;
