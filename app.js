@@ -387,6 +387,34 @@ function FindTheClosest(MouseX,MouseY,Type,Max) {
 	
 }
 
+function FindTheClosestBond(MouseX,MouseY,Max)
+{
+    var Range = Max;
+	var TheClosest;
+	var AuxY1,AuxY2,AuxX1,AuxX2;
+	var AuxA,AuxB,AuxC;
+	var AuxRange;
+	
+	for (var key=0; key<project.bonds.length;key++)
+		{
+			if (project.bonds[key] === undefined) continue; 
+			AuxX1=project.elements[project.bonds[key].first].X;
+			AuxX2=project.elements[project.bonds[key].second].X;
+			AuxY1=project.elements[project.bonds[key].first].Y;
+			AuxY2=project.elements[project.bonds[key].second].Y;
+			AuxA=AuxY1-AuxY2;
+			AuxB=AuxX2-AuxX1;
+			AuxC=(AuxX1*AuxY2-AuxX2*AuxY1);
+			AuxRange=(Math.abs(AuxA*MouseX+AuxB*MouseY+AuxC))/(Math.sqrt(AuxA*AuxA+AuxB*AuxB));
+			if (AuxRange<Range)
+			{
+				Range=AuxRange;
+				TheClosest=key;
+			}
+		}	
+return TheClosest;		
+}
+
 function checkBonds() {
 	for (var i=0; i<project.bonds.length; i++) 
 		if ((project.elements[project.bonds[i].first] === undefined) || (project.elements[project.bonds[i].second] === undefined))
@@ -400,6 +428,7 @@ function RemoveElement(ActualElement) {
 }
 
 function DrawRemoveSelector() {
+	var Aux1,Aux2;
 	if (api.brush == 0) {
 		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
 		if (el !== undefined) {
@@ -421,6 +450,15 @@ function DrawRemoveSelector() {
         if (el !== undefined) {
 			api.brush = 97;    	
             AuxMove=el;
+		}			
+		
+	}
+	else if (api.brush == 4 || api.brush ==5) {
+		var el = FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize);
+        if (el !== undefined) {
+			Aux1=(project.elements[project.bonds[el].first].X+project.elements[project.bonds[el].second].X)/2;
+			Aux2=(project.elements[project.bonds[el].first].Y+project.elements[project.bonds[el].second].Y)/2;
+			AddElement(Aux1,Aux2);
 		}			
 		
 	}
