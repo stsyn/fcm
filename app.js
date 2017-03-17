@@ -11,7 +11,6 @@ var NumberOfBonds = 0;
 var BondsDrawingArrayFirst = {};
 var BondsDrawingArraySecond = {};
 
-
 function resetProject() {
 	project = {settings:{},elements:[],bonds:[],viewport:[]};
 	project.settings.strict = true;
@@ -269,7 +268,7 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	}
 	else if ((type == 4) || (type == 5)) {
 		if (e.getElementsByClassName("cc_cost2")[0].value !== "") project.elements[id].cost = parseInt(e.getElementsByClassName("cc_cost2")[0].value); else project.elements[id].cost = 0;
-		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].eff = parseInt(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].eff = 0;
+		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].eff = parseInt(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].eff = 0;	//
 	}
 	if (!isNew) api.brush = type;
 	api.forceRedraw = true;
@@ -415,6 +414,7 @@ function FindTheClosestBond(MouseX,MouseY,Max)
 return TheClosest;		
 }
 
+
 function checkBonds() {
 	for (var i=0; i<project.bonds.length; i++) 
 		if ((project.elements[project.bonds[i].first] === undefined) || (project.elements[project.bonds[i].second] === undefined))
@@ -426,6 +426,22 @@ function RemoveElement(ActualElement) {
 	checkBonds();
 	api.forceRedraw = true;
 }
+
+function BondPositon(MouseX,MouseY,key)
+{
+	var AuxY1,AuxY2,AuxX1,AuxX2,AuxRange,Range;
+	AuxX1=project.elements[project.bonds[key].first].X;
+    AuxX2=project.elements[project.bonds[key].second].X;
+	AuxY1=project.elements[project.bonds[key].first].Y;
+	AuxY2=project.elements[project.bonds[key].second].Y;
+	AuxRange=Math.sqrt((AuxX1-MouseX)*(AuxX1-MouseX)+(AuxY1-MouseY)*(AuxY1-MouseY));
+	Range=Math.sqrt((AuxX1-AuxX2)*(AuxX1-AuxX2)+(AuxY1-AuxY2)*(AuxY1-AuxY2));
+	Range=AuxRange/Range; 
+	return Range;
+}
+	    
+	
+
 
 function DrawRemoveSelector() {
 	var Aux1,Aux2;
@@ -455,10 +471,15 @@ function DrawRemoveSelector() {
 	}
 	else if (api.brush == 4 || api.brush ==5) {
 		var el = FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize);
-        if (el !== undefined) {
-			Aux1=(project.elements[project.bonds[el].first].X+project.elements[project.bonds[el].second].X)/2;
-			Aux2=(project.elements[project.bonds[el].first].Y+project.elements[project.bonds[el].second].Y)/2;
+        if (el !== undefined) 
+		{
+			var el2=BondPositon(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),el);
+		    if (el2!== undefined)
+			{
+			Aux1=project.elements[project.bonds[el].first].X+((project.elements[project.bonds[el].second].X-project.elements[project.bonds[el].first].X)*el2);
+			Aux2=project.elements[project.bonds[el].first].Y+((project.elements[project.bonds[el].second].Y-project.elements[project.bonds[el].first].Y)*el2);
 			AddElement(Aux1,Aux2);
+			}
 		}			
 		
 	}
