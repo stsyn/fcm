@@ -18,6 +18,7 @@
 	"Pink Fluffy Unicorn Dancing On Rainbow...",
 	"Собрано из смекалки и палок!",
 	"<span style=\"font-family:'Comic Sans MS',cursive;font-weight:bold\">wow! so random! such frases!</span>",
+	"Одобрено сержантом Графоуни!",
 	"Работает на современных технологиях!"]
 	return ac[Math.floor(Math.random()*ac.length)]
 }

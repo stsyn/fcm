@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.4", s:"pre-alpha", b:30};
+	this.version = {g:"0.0.4", s:"pre-alpha", b:31};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -126,7 +126,6 @@ function exapi() {
 	}
 	
 	this.load = function(name) {
-		console.log(name);
 		project = JSON.parse(localStorage[name]);
 		this.closeWindow("load");
 		this.closePopup();
@@ -234,7 +233,6 @@ function exapi() {
 	}
 	
 	this.requestDeletion = function(id) {
-		console.log(id);
 		windows.sureDelete.buttons[0].functions = "RemoveElement("+id+");api.closeWindow('edit"+id+"');api.closePopup()";
 		this.callPopup2(windows.sureDelete);
 	}
@@ -367,6 +365,7 @@ function exapi() {
 		for (i=0; this.zindex[i]!=id; i++) {0;}
 		this.zindex[i] = undefined;
 		for (;((this.zindex[this.zindex.length-1] === undefined) && (this.zindex.length>0));this.zindex.length--) {0;}
+		if (this.zindex.length>0) this.windowOnTop(this.zindex[this.zindex.length-1])
 		
 		if (this.activeWindow == id) this.activeWindow = undefined;
 		this.windows[id] = undefined;
@@ -382,6 +381,7 @@ function exapi() {
 		this.settings.topFontSize = 1.4;
 		this.settings.glFontSize = 100;
 		this.settings.dontShowAlerts = false;
+		this.settings.transparency = false;
 		this.settings.color = new Array('#bb0000','#bbbb00','#00bbbb','#00bb00','#bb00bb');
 		this.settings.showGrid = true;
 		this.settings.redGrid = true;
@@ -455,6 +455,7 @@ function exapi() {
 		document.getElementById("st_elemsize").value = this.settings.elemSize;
 		document.getElementById("st_grid").checked = this.settings.showGrid;
 		document.getElementById("st_redGrid").checked = this.settings.redGrid;
+		document.getElementById("st_transparency").checked = this.settings.transparency;
 		
 		document.getElementById("st_debugInterval").value = this.settings.chInterval;
 		document.getElementById("st_debugCanvasSize").value = this.settings.canvasSize;
@@ -472,6 +473,7 @@ function exapi() {
 		this.settings.elemSize = parseInt(document.getElementById("st_elemsize").value);
 		this.settings.showGrid = document.getElementById("st_grid").checked;
 		this.settings.redGrid = document.getElementById("st_redGrid").checked;
+		this.settings.transparency = document.getElementById("st_transparency").checked;
 		
 		this.settings.chInterval = parseInt(document.getElementById("st_debugInterval").value);
 		this.settings.canvasSize = parseInt(document.getElementById("st_debugCanvasSize").value);
@@ -490,6 +492,7 @@ function exapi() {
 		
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
 		this.styleSwitch('debugEnabled','debug',false,false,false);
+		this.styleSwitch('transparentActive','transparency',false,false,false);
 		this.topFontSize();
 		this.glFontSize();
 		
@@ -635,6 +638,7 @@ function exapi() {
 		this.styleSwitch('night','nightMode',false,false,false);
 		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
 		this.styleSwitch('debugEnabled','debug',false,false,false);
+		this.styleSwitch('transparentActive','transparency',false,false,false);
 		this.changeSidePad(0);
 		this.changeBottomPad(0);
 		this.selectBrush(-1);

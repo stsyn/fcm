@@ -155,7 +155,10 @@ input:checked + label, input:checked + label .b{background:#cfc !important}
 #windows .w {
 	z-index:2;
 	position:fixed;
+	box-shadow: 0 0 10px rgba(0,0,0,0.5);
 	background:#fff;}
+	
+#windows .a {box-shadow: 0 0 10px rgba(0,0,0,1);}
 #windows .content {min-height:calc(100% - 36px - 3em)}
 #windows > div.pu {z-index:6}
 #windows .w.ifr {
@@ -253,7 +256,10 @@ body.night .b.red, body.night .b.red path{
 	background: #400;
 	fill: #f88}
 body.night .b.stillsel.sel:hover {background:#080}
-body.night #windows .w{background:#000}
+body.night #windows .w{
+	background:#000;
+	box-shadow: 0 0 10px rgba(192,192,192,0.5)}
+body.night #windows .a	{box-shadow: 0 0 10px rgba(0,255,255,0.5)}
 body.night #windows .h, body.night #windows .hc{color:#099}
 body.night #windows .a .h, body.night #windows .h:hover{background:#016}
 body.night #windows .a .hc, body.night #windows .hc:hover{background:#124}
@@ -278,6 +284,9 @@ body.debugEnabled .debug {display:block !important}
 .bottomHidden #bottom {height:1.75em}
 .bottomHidden #bottom .nothide {display:inline}
 .bottomHidden #bottom .hide {display:none}
+
+.transparentActive #windows .w {opacity:.5}
+.transparentActive #windows .a, .transparentActive #windows #popUp .w {opacity:1}
 
 .b.i.color {display:none}
 .palette .b.i.color {display:inline}
