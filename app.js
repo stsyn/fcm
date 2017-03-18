@@ -461,8 +461,8 @@ function FindTheClosestBond(MouseX,MouseY,Max)
 		if (AuxRange<Range) { 
 			Range=AuxRange; 
 			TheClosest=key; 
-			} 
 		} 
+	} 
 	return TheClosest; 
 }
 
@@ -479,7 +479,8 @@ function RemoveElement(ActualElement) {
 	api.forceRedraw = true;
 }
 
-function BondPositon(MouseX,MouseY,key) {
+function BondPositon(MouseX,MouseY,key)
+{
 	var AuxY1,AuxY2,AuxX1,AuxX2,AuxRange,Range;
 	AuxX1=project.elements[project.bonds[key].first].X;
     AuxX2=project.elements[project.bonds[key].second].X;
@@ -488,7 +489,6 @@ function BondPositon(MouseX,MouseY,key) {
 	AuxRange=Math.sqrt((AuxX1-MouseX)*(AuxX1-MouseX)+(AuxY1-MouseY)*(AuxY1-MouseY));
 	Range=Math.sqrt((AuxX1-AuxX2)*(AuxX1-AuxX2)+(AuxY1-AuxY2)*(AuxY1-AuxY2));
 	Range=AuxRange/Range; 
-	if ((AuxX1-MouseX)<0) return 0;
 	return Range;
 }
 	
