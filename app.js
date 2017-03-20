@@ -308,7 +308,7 @@ function appInit() {
 
 
 function createAndAddElement(el, isNew) { //createElement already defined >:c
-	e = document.getElementById(el);
+	var e = document.getElementById(el);
 	var id = parseInt(e.getElementsByClassName("cc_id")[0].value);
 	project.elements[id] = {};
 	project.elements[id].X = parseFloat(e.getElementsByClassName("cc_X")[0].value);
@@ -337,8 +337,27 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	api.forceRedraw = true;
 }
 
+function createAndAddBond(el, isNew) {
+	var e = document.getElementById(el);
+	var id = parseInt(e.getElementsByClassName("cc_id")[0].value);
+	project.bonds[id] = {};
+	project.bonds[id].first = parseInt(e.getElementsByClassName("cc_first")[0].value);
+	project.bonds[id].second = parseInt(e.getElementsByClassName("cc_second")[0].value);
+	project.bonds[id].val = parseFloat(e.getElementsByClassName("cc_v")[0].value);
+	if (project.bonds[id].val < 0) project.bonds[id].val = 0;
+	if (project.bonds[id].val > 1) project.bonds[id].val = 1;
+	if (!isNew) api.brush = 0;
+	api.changed = true;
+	api.forceRedraw = true;
+}
+
 function cancelCreation() {
 	api.brush = parseInt(document.getElementById("inst").getElementsByClassName("cc_type")[0].value);
+	api.forceRedraw = true;
+}
+
+function cancelCreationBond() {
+	api.brush = 0;
 	api.forceRedraw = true;
 }
 
@@ -377,6 +396,16 @@ function editElement(id) {
 	e.getElementsByClassName("_cc_control")[0].style.display = (((el.type == 4) || (el.type == 5))?"block":"none");
 }
 
+function editBond(id) {
+	api.callWindow("","editb",id);
+	var e = document.getElementById("editb"+id);
+	var el = project.bonds[id];
+	e.getElementsByClassName("cc_id")[0].value = id;
+	e.getElementsByClassName("cc_first")[0].value = el.first;
+	e.getElementsByClassName("cc_second")[0].value = el.second;
+	e.getElementsByClassName("cc_v")[0].value = el.val;
+}
+
 function AddElement(MouseX,MouseY,onBond) {
 	var i, x=MouseX, y=MouseY;
 	if (!onBond) { 
@@ -386,7 +415,7 @@ function AddElement(MouseX,MouseY,onBond) {
 	if (isElementThere(x,y)) return;
 	for (i=0;1;i++) if (project.elements[i] === undefined) break;
 	api.callWindow('inst');
-	e = document.getElementById("inst");
+	var e = document.getElementById("inst");
 	e.getElementsByClassName("cc_id")[0].value = i;
 	e.getElementsByClassName("cc_X")[0].value = x;
 	e.getElementsByClassName("cc_Y")[0].value = y;
@@ -437,12 +466,19 @@ function AddBond(FirstElement,SecondElement) {
 	if (!isBondUnique(FirstElement,SecondElement)) return;
 	var i=0;
 	for (i=0;1;i++) if (project.bonds[i] === undefined) break;
+	api.callWindow('instb');
+	var e = document.getElementById("instb");
+	e.getElementsByClassName("cc_id")[0].value = i;
+	e.getElementsByClassName("cc_first")[0].value = FirstElement;
+	e.getElementsByClassName("cc_second")[0].value = SecondElement;
+	e.getElementsByClassName("cc_v")[0].value = "0.5";
+	/*
 	project.bonds[i]={};
 	project.bonds[i].first=FirstElement;
 	project.bonds[i].second=SecondElement;
 	api.changed = true;
-	api.forceRedraw = true;	
-	api.brush = 0;
+	api.forceRedraw = true;	*/
+	api.brush = 100;
 }
 
 function FindTheClosest(MouseX,MouseY,Type,Max) {

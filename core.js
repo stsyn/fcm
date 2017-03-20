@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.4", s:"pre-alpha", b:33};
+	this.version = {g:"0.0.4", s:"alpha", b:34};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -260,6 +260,9 @@ function exapi() {
 		if (arg1 == "edit") {
 			id = arg1+arg2;
 		}
+		else if (arg1 == "editb") {
+			id = arg1+arg2;
+		}
 		if (this.windows[id]) 
 		{	
 			document.getElementById(id).getElementsByClassName("w")[0].style.marginTop = "0";
@@ -285,6 +288,9 @@ function exapi() {
 		}
 		else if (id == "inst") {
 			document.getElementById("inst").classList.toggle("d");
+		}
+		else if (id == "instb") {
+			document.getElementById("instb").classList.toggle("d");
 		}
 		else if (id == "save") {
 			this.includeSaves(document.getElementById("savelist"),this.getSaves(),true);
@@ -319,6 +325,23 @@ function exapi() {
 				ec.getElementsByClassName("_сс_close2")[0].addEventListener("click", function() {api.closeWindow(id)});
 				ec.getElementsByClassName("_сс_apply")[0].addEventListener("click", function() {createAndAddElement(id,true);api.closeWindow(id)});
 				ec.getElementsByClassName("_сс_delete")[0].addEventListener("click", function() {api.requestDeletion(arg2)});
+				document.getElementById("windows").appendChild(ec);
+			}
+		}
+		else if (arg1 == "editb") {
+			var ec, exists = (document.getElementById(id) !== null);
+			if (exists) ec = document.getElementById(id);
+			else {
+				ec = document.createElement("div");
+				ec.innerHTML = document.getElementById("_editb_template_").innerHTML;
+				ec.id = id;
+			}
+			ec.classList.toggle("d");
+			
+			if (!exists) {
+				ec.getElementsByClassName("_сс_close2")[0].addEventListener("click", function() {api.closeWindow(id)});
+				ec.getElementsByClassName("_сс_apply")[0].addEventListener("click", function() {createAndAddBond(id,true);api.closeWindow(id)});
+				ec.getElementsByClassName("_сс_delete")[0].addEventListener("click", function() {RemoveBond(arg2)});
 				document.getElementById("windows").appendChild(ec);
 			}
 		}

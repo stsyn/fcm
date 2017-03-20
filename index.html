@@ -262,10 +262,56 @@
 			</div>
 		</div>
 	
+		<div id="instb">
+			<div class="back"></div>
+			<div class="w sm">
+				<div class="h">
+					<span>Связь</span>
+				</div>
+				<div class="cc btns" style="text-align:center">
+					<div class="pad" style="display:block">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:31%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
+							<div class="t de" style="width:35%">Начало: <input type="text" class="b i cc_first" style="width:3em" disabled></div>
+							<div class="t de" style="width:34%">Конец: <input type="text" class="b i cc_second" style="width:8em" disabled></div>
+						</div></div></div>
+						<div class="line de">Сила: <input type="text" class="b i cc_v" style="width:4em"></div>
+					</div>
+				</div>
+				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
+					<span class="t"><span class="b fs _сс_close2" onclick="cancelCreationBond();api.closeWindow('instb')">Отмена</span></span>
+					<span class="t"><span class="b fs _сс_apply" onclick="createAndAddBond('instb', false);api.closeWindow('instb')">Применить</span></span>
+				</div></div></div></div>
+			</div>
+		</div>
+	
+	</div>
 	<div id="data" style="display:none">
-		<img src="line.png" id="line_pattern">
+		<div id="_editb_template_">
+			<div class="w sm">
+				<div class="h">
+					<span>Связь</span>
+				</div>
+				<div class="cc btns" style="text-align:center">
+					<div class="pad" style="display:block">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:31%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
+							<div class="t de" style="width:35%">Начало: <input type="text" class="b i cc_first" style="width:3em" disabled></div>
+							<div class="t de" style="width:34%">Конец: <input type="text" class="b i cc_second" style="width:3em" disabled></div>
+						</div></div></div>
+						<div class="line de">Сила: <input type="text" class="b i cc_v" style="width:4em"></div>
+					</div>
+				</div>
+				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
+					<span class="t"><span class="b fs _сс_delete red">Удалить</span></span>
+					<span class="t"><span class="b fs _сс_close2">Отмена</span></span>
+					<span class="t"><span class="b fs _сс_apply">Применить</span></span>
+				</div></div></div></div>
+			</div>
+		</div>
+	
 		<div id="_edit_template_">
-			<div class="w side">
+			<div class="w sm">
 				<div class="h">
 					<span>Свойства</span>
 				</div>

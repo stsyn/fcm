@@ -19,6 +19,7 @@
 	"Собрано из смекалки и палок!",
 	"<span style=\"font-family:'Comic Sans MS',cursive;font-weight:bold\">wow! so random! such frases!</span>",
 	"Одобрено сержантом Графоуни!",
+	"Из соображений вашей безопасности воздержитесь дотрагиваться до чего бы то ни было.",
 	"Работает на современных технологиях!"]
 	return ac[Math.floor(Math.random()*ac.length)]
 }
