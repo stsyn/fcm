@@ -208,7 +208,9 @@ function appRedraw() {
 	
 	appDrawBond(project.elements, project.bonds);
 	appDrawElements(project.elements);
-	
+	//
+	Recalculate();
+	//
 	api.forceRedraw = false;
 }
 
@@ -572,7 +574,55 @@ function BondPositon(MouseX,MouseY,key) {
 	Range=AuxRange/Range; 
 	return Range;
 }
-	
+
+function Recalculate()
+{
+	var i,j,k;
+	for (i=0; i<project.elements.length;i++)
+	{
+	   if (project.elements[i] !== undefined)
+	   {
+		   project.elements[i].bondsnum = 0;
+		   project.elements[i].bonds=[];
+		   for (j=0; j<project.bonds.length;j++)
+		   {
+			   if (project.bonds[j] !== undefined)
+			   {
+				   if (project.bonds[j].first == i || project.bonds[j].second == i)
+				   {
+					   project.elements[i].bondsnum++;
+					   project.elements[i].bonds[project.elements[i].bondsnum]=j;
+				   }
+				   
+			   }
+		   }
+	   }
+	}
+	for (i=0; i<project.bonds.length;i++)
+	{
+	   if (project.bonds[i] !== undefined)
+	   {
+		   project.bonds[i].elemsnum = 0;
+		   project.bonds[i].elems=[];
+		   for (j=0; j<project.elements.length;j++)
+		   {
+			   if (project.elements[j].bondsnum !== undefined)
+			   {
+				   for (k=0;k<project.elements[j].bondsnum;k++)
+				   {
+				     if (project.elements[j].bonds[k+1] == i)
+       				 {
+					   project.bonds[i].elemsnum++;
+					   project.bonds[i].elems[project.bonds[i].elemsnum]=j;
+				     }
+				   }
+				   
+			   }
+		   }
+		   if (project.bonds[i].elemsnum == 2) project.bonds[i].check = 1;
+	   }
+	}
+}
 
 function DrawRemoveSelector() {
 	if (api.brush == 0) {
