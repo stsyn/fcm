@@ -81,7 +81,7 @@ function appDrawBond(el,b) {
 		var x1 = translateCoordsX(el[b[i].first].X), y1 = translateCoordsY(el[b[i].first].Y);
 		var x2 = translateCoordsX(el[b[i].second].X), y2 = translateCoordsY(el[b[i].second].Y);
 		var grd=ctx.createLinearGradient(x1,y1,x2,y2);
-		grd.addColorStop(1,colorScheme[(api.settings.nightMode?1:0)].aconnections);
+		grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aconnections);
 		grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].connections);
 		ctx.strokeStyle=grd;
 		ctx.beginPath();
@@ -107,7 +107,7 @@ function appDrawElements(el) {
 			x = translateOnBondCoordsX(el[i].X, el[i].Y);
 			y = translateOnBondCoordsY(el[i].X, el[i].Y);
 		}
-		var isSelected = ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("edit")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false);
+		var isSelected = ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("edit")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false) || (api.showElSel == i);
 		
 		if (el[i].privateColor != "") ctx.fillStyle = el[i].privateColor;
 		else ctx.fillStyle = api.settings.color[el[i].type-1];
@@ -208,9 +208,7 @@ function appRedraw() {
 	
 	appDrawBond(project.elements, project.bonds);
 	appDrawElements(project.elements);
-	//
-	Recalculate();
-	//
+	
 	api.forceRedraw = false;
 }
 
@@ -295,7 +293,18 @@ function appMain() {
 		if (api.forceRedraw || api.overDraw) document.getElementById("debug_mouseInfo").style.background=colorScheme[(api.settings.nightMode?1:0)].fakeconn;
 		else document.getElementById("debug_mouseInfo").style.background="";
 	}
-	if (api.forceRedraw || api.overDraw) appRedraw();
+	if (api.forceRedraw || api.overDraw) {
+		appRedraw();
+		api.updateEverything();
+	}
+	if (api.enElSel && (api.elSel != api.showElSel)) {
+		api.showElSel = api.elSel;
+		api.forceRedraw = true;
+	}
+	if (!api.enElSel && (api.showElSel !== null)) {
+		api.showElSel = null;
+		api.forceRedraw = true;
+	}
 	setTimeout(appMain, api.settings.chInterval);
 }
 
@@ -332,7 +341,7 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	}
 	else if ((type == 4) || (type == 5)) {
 		if (e.getElementsByClassName("cc_cost2")[0].value !== "") project.elements[id].cost = parseInt(e.getElementsByClassName("cc_cost2")[0].value); else project.elements[id].cost = 0;
-		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].eff = parseInt(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].eff = 0;	
+		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].val = parseInt(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].val = 0;	
 	}
 	if (!isNew) api.brush = type;
 	api.changed = true;
@@ -391,7 +400,7 @@ function editElement(id) {
 	e.getElementsByClassName("cc_state")[0].value = el.state;
 	e.getElementsByClassName("cc_limit")[0].value = el.lim;
 	e.getElementsByClassName("cc_value")[0].value = el.val;
-	e.getElementsByClassName("cc_effect")[0].value = el.eff;
+	e.getElementsByClassName("cc_effect")[0].value = el.val;
 	
 	e.getElementsByClassName("_cc_initator")[0].style.display = (((el.type == 1) || (el.type == 2))?"block":"none");
 	e.getElementsByClassName("_cc_target")[0].style.display = ((el.type == 3)?"block":"none");
@@ -574,22 +583,16 @@ function BondPositon(MouseX,MouseY,key) {
 	Range=AuxRange/Range; 
 	return Range;
 }
-
-function Recalculate()
-{
+	
+function Recalculate() {
 	var i,j,k;
-	for (i=0; i<project.elements.length;i++)
-	{
-	   if (project.elements[i] !== undefined)
-	   {
+	for (i=0; i<project.elements.length;i++) {
+	   if (project.elements[i] !== undefined) {
 		   project.elements[i].bondsnum = 0;
 		   project.elements[i].bonds=[];
-		   for (j=0; j<project.bonds.length;j++)
-		   {
-			   if (project.bonds[j] !== undefined)
-			   {
-				   if (project.bonds[j].first == i || project.bonds[j].second == i)
-				   {
+		   for (j=0; j<project.bonds.length;j++) {
+			   if (project.bonds[j] !== undefined) {
+				   if (project.bonds[j].first == i || project.bonds[j].second == i) {
 					   project.elements[i].bondsnum++;
 					   project.elements[i].bonds[project.elements[i].bondsnum]=j;
 				   }
@@ -598,29 +601,22 @@ function Recalculate()
 		   }
 	   }
 	}
-	for (i=0; i<project.bonds.length;i++)
-	{
-	   if (project.bonds[i] !== undefined)
-	   {
-		   project.bonds[i].elemsnum = 0;
-		   project.bonds[i].elems=[];
-		   for (j=0; j<project.elements.length;j++)
-		   {
-			   if (project.elements[j].bondsnum !== undefined)
-			   {
-				   for (k=0;k<project.elements[j].bondsnum;k++)
-				   {
-				     if (project.elements[j].bonds[k+1] == i)
-       				 {
-					   project.bonds[i].elemsnum++;
-					   project.bonds[i].elems[project.bonds[i].elemsnum]=j;
-				     }
-				   }
-				   
-			   }
-		   }
-		   if (project.bonds[i].elemsnum == 2) project.bonds[i].check = 1;
-	   }
+	for (i=0; i<project.bonds.length;i++) {
+		if (project.bonds[i] !== undefined) {
+			project.bonds[i].elemsnum = 0;
+			project.bonds[i].elems=[];
+			for (j=0; j<project.elements.length;j++) {
+			if (project.elements[j].bondsnum !== undefined) {
+				for (k=0;k<project.elements[j].bondsnum;k++) {
+					if (project.elements[j].bonds[k+1] == i) {
+						project.bonds[i].elemsnum++;
+						project.bonds[i].elems[project.bonds[i].elemsnum]=j;
+						}
+					}
+				}
+			}
+			if (project.bonds[i].elemsnum == 2) project.bonds[i].check = 1;
+		}
 	}
 }
 

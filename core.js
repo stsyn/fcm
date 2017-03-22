@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.4", s:"alpha", b:34};
+	this.version = {g:"0.0.4", s:"alpha", b:35};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -87,6 +87,39 @@ function exapi() {
 		localStorage["fcm2.saves"] = JSON.stringify(s);
 	}
 	
+	this.includeElementsTLine = function (e, el, i) {
+		e.innerHTML += '<div class="b fs linemenu t2" onclick="editElement('+i+')" onmouseover="api.elSel='+i+';api.forceRedraw=true"><div class="t">'+i+'</div><div class="t">'+el[i].type+'</div><div class="t">'+el[i].name+'</div><div class="t">'+((el[i].state===undefined)?"—":el[i].state)+'</div><div class="t">'+((el[i].lim===undefined)?"—":el[i].lim)+'</div><div class="t">'+((el[i].cost===undefined)?"—":el[i].cost)+'</div><div class="t">'+((el[i].val===undefined)?"—":el[i].val)+'</div></div>'
+	}
+		
+	this.includeElements = function (filter, sort) {
+		var el = project.elements;
+		var e = document.getElementById("bpad1").getElementsByClassName("t3")[0];
+		this.filter = filter;
+		this.sort = sort;
+		
+		if (el.length == 0) {
+			e.innerHTML = "Нет элементов";
+			return;
+		}
+		e.innerHTML = '<div class="t2 headline"><div id="sort0" class="t b fs">ID</div><div id="sort1" class="t b fs">Тип</div><div id="sort2" class="t b fs na">Имя</div><div id="sort3" class="t b fs na">Состояние</div><div id="sort4" class="t b fs na">Предельное состояние</div><div id="sort5" class="t b fs na">Стоимость</div><div id="sort6" class="t b fs na">Эффективность</div></div>';
+		var i, j;
+		if (sort == 0) for (i=0; i<el.length; i++) {
+			this.includeElementsTLine (e, el, i);
+		}
+		else if (sort == 1) for (j=1; j<5; j++) {
+			for (i=0; i<el.length; i++) {
+				if (el[i].type == j) this.includeElementsTLine (e, el, i);
+			}
+		}
+		else {
+		
+		}
+		
+		for (i=0; i<2; i++) document.getElementById("sort"+i).setAttribute("onclick", "api.includeElements("+filter+", "+i+")");
+		document.getElementById("sort"+sort).classList.add("sel");
+		
+	}
+	
 	this.includeSaves = function (el, a, addname) {
 		el.innerHTML = "";
 		if (addname) 
@@ -105,34 +138,50 @@ function exapi() {
 	}
 	
 	this.save = function(name) {
-		var o = this.getSaves();
-		if (o === undefined) o = [];
-		var check = false;
-		for (var i=0; i<o.length; i++) if (o[i] == name) {
-			check = true;
-			break;
+		try {
+			var o = this.getSaves();
+			if (o === undefined) o = [];
+			var check = false;
+			for (var i=0; i<o.length; i++) if (o[i] == name) {
+				check = true;
+				break;
+			}
+			if (!check) for (var i=0; 1; i++) if (o[i] === undefined) {
+				o[i] = name;
+				break;
+			}
+			this.putSaves(o);
+			
+			project.id = name;
+			localStorage[name] = JSON.stringify(project);
+			this.callPopup2(windows.saveDone);
+			this.closeWindow("save");
+			document.getElementById("savelist").innerHTML = "";
+			this.changed = false;
 		}
-		if (!check) for (var i=0; 1; i++) if (o[i] === undefined) {
-			o[i] = name;
-			break;
+		catch (ex) {
+			windows.saveError.content = 'Не удалось сохранить проект. Скорее всего, в локальном хранилище недостаточно места. Попробуйте удалить ненужные проекты, или выполните экспорт текущего проекта и сохраните его на жестком диске.<br><br>Описание ошибки:<br>'+ex;
+			this.callPopup2(windows.saveError);
 		}
-		this.putSaves(o);
-		
-		project.id = name;
-		localStorage[name] = JSON.stringify(project);
-		this.callPopup2(windows.saveDone);
-		this.closeWindow("save");
-		document.getElementById("savelist").innerHTML = "";
-		this.changed = false;
 	}
 	
 	this.load = function(name) {
-		project = JSON.parse(localStorage[name]);
-		this.closeWindow("load");
-		this.closePopup();
-		this.forceRedraw = true;
-		document.getElementById("loadlist").innerHTML = "";
-		this.changed = false;
+		try {
+			project = JSON.parse(localStorage[name]);
+			this.closeWindow("load");
+			this.closePopup();
+			this.forceRedraw = true;
+			document.getElementById("loadlist").innerHTML = "";
+			this.changed = false;
+		}
+		catch (ex) {
+			windows.loadError.content = 'Не удалось загрузить проект. Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект. Если ошибка продолжит повторяться, экспортируйте этот проект и отправьте разработчикам.<br><br>Описание ошибки:<br>'+ex;
+			this.callPopup2(windows.loadError);
+		}
+	}
+	
+	this.updateEverything = function() {
+		this.includeElements(this.filter, this.sort);
 	}
 	
 	
@@ -466,7 +515,7 @@ function exapi() {
 			}
 		}
 		catch (ex) {
-			windows.startupError.content = 'Не удалось загрузить настройки программы. После нажатия кнопки, настройки будут сброшены в значение по умолчанию, все сохраненные ранее проекты останутся без изменений. Если ошибка будет повторяться, свяжитесь с разработчиками.<br><br>Описание ошибки:<br>'+ex;
+			windows.loadError.content = 'Не удалось загрузить настройки программы. После нажатия кнопки, настройки будут сброшены в значение по умолчанию, все сохраненные ранее проекты останутся без изменений. Если ошибка будет повторяться, свяжитесь с разработчиками.<br><br>Описание ошибки:<br>'+ex;
 			this.callPopup2(windows.startupError);
 			api.error = true;
 		}
@@ -624,6 +673,8 @@ function exapi() {
 		
 		this.mouse.pressed = false;
 		this.mouse.click = false;
+		this.filter = 0;
+		this.sort = 0;
 		
 		if (fatal) {
 			document.getElementsByTagName("body")[0].addEventListener("mousemove", function(event) {
@@ -632,6 +683,11 @@ function exapi() {
 				
 				api.mouseListener(event, false);
 			});
+			
+			document.getElementById("c").addEventListener("mousemove", function(event) {
+				api.enElSel = false;
+			});
+	
 			document.getElementById("c").addEventListener("mousedown", function(event) {
 				api.mouseListener(event, true);
 			});
@@ -660,6 +716,10 @@ function exapi() {
 			});
 			document.getElementById("c").addEventListener("click", function(event) {
 				api.mouseClickListener(event);
+			});
+			
+			document.getElementById("bpad1").addEventListener("mousemove", function() {
+				api.enElSel = true;
 			});
 			
 			window.onresize = function(){api.forceRedraw = true}
@@ -699,13 +759,17 @@ function exapi() {
 		appInit();
 		
 		windows.changelog = {header:'Список изменений',content:'<iframe src="//stsyn.github.io/fcm/changelog/'+this.location+'.txt"></iframe>',size:0,windowsize:'ifr'};
-		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М. и Нафикова Д.И.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.location == "local"?0:1),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'}],windowsize:'sm'};
+		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М. и Нафикова Д.И.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.location == "local"?0:2),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'},{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:0,windowsize:'sm'};
 		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент. Вы не сможете его вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 
+		
+		windows.saveError = {header:'Ошибка!',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		windows.loadError = {header:'Ошибка!',size:3,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'location.reload();',red:false,name:'Перезагрузить программу'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		
 		if (this.error) return;
 		if (this.location == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,777);
 		else {
