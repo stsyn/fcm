@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.4", s:"alpha", b:35};
+	this.version = {g:"0.0.5", s:"alpha", b:36};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -88,26 +88,37 @@ function exapi() {
 	}
 	
 	this.includeElementsTLine = function (e, el, i) {
-		e.innerHTML += '<div class="b fs linemenu t2" onclick="editElement('+i+')" onmouseover="api.elSel='+i+';api.forceRedraw=true"><div class="t">'+i+'</div><div class="t">'+el[i].type+'</div><div class="t">'+el[i].name+'</div><div class="t">'+((el[i].state===undefined)?"—":el[i].state)+'</div><div class="t">'+((el[i].lim===undefined)?"—":el[i].lim)+'</div><div class="t">'+((el[i].cost===undefined)?"—":el[i].cost)+'</div><div class="t">'+((el[i].val===undefined)?"—":el[i].val)+'</div></div>'
+		e.innerHTML += '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+el[i].name+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":el[i].val)+'</td></tr>';
 	}
 		
-	this.includeElements = function (filter, sort) {
+	this.includeElements = function (e,filter, sort) {
 		var el = project.elements;
-		var e = document.getElementById("bpad1").getElementsByClassName("t3")[0];
-		this.filter = filter;
+		var ax = ((filter == -1)?"":" na")
 		this.sort = sort;
 		
 		if (el.length == 0) {
 			e.innerHTML = "Нет элементов";
 			return;
 		}
-		e.innerHTML = '<div class="t2 headline"><div id="sort0" class="t b fs">ID</div><div id="sort1" class="t b fs">Тип</div><div id="sort2" class="t b fs na">Имя</div><div id="sort3" class="t b fs na">Состояние</div><div id="sort4" class="t b fs na">Предельное состояние</div><div id="sort5" class="t b fs na">Стоимость</div><div id="sort6" class="t b fs na">Эффективность</div></div>';
+		e.innerHTML = '<tr class="headline"><td class="b fs sort0'+ax+'">ID</td><td class="b fs sort1'+ax+'">Тип</td><td class="b fs na sort2">Имя</td><td class="b fs na sort3">Состояние</td><td class="b fs na sort4">Предельное</td><td class="b fs na sort5">Стоимость</td><td class="b fs na sort6">Эффективность</td></tr>';
 		var i, j;
-		if (sort == 0) for (i=0; i<el.length; i++) {
+		if (filter != -1) {
+			sort = 0;
+			this.includeElementsTLine (e, el, project.bonds[filter].first);
+			for (i=0; i<el.length; i++) {
+				if (el[i] === undefined) continue;
+				if (((el[i].type == 4) || (el[i].type == 5)) && el[i].X == filter) this.includeElementsTLine (e, el, i);
+			}
+			this.includeElementsTLine (e, el, project.bonds[filter].second);
+		}
+		
+		else if (sort == 0) for (i=0; i<el.length; i++) {
+			if (el[i] === undefined) continue;
 			this.includeElementsTLine (e, el, i);
 		}
 		else if (sort == 1) for (j=1; j<5; j++) {
 			for (i=0; i<el.length; i++) {
+				if (el[i] === undefined) continue;
 				if (el[i].type == j) this.includeElementsTLine (e, el, i);
 			}
 		}
@@ -115,8 +126,59 @@ function exapi() {
 		
 		}
 		
-		for (i=0; i<2; i++) document.getElementById("sort"+i).setAttribute("onclick", "api.includeElements("+filter+", "+i+")");
-		document.getElementById("sort"+sort).classList.add("sel");
+		if (filter == -1) {	
+			for (i=0; i<2; i++) e.getElementsByClassName("sort"+i)[0].setAttribute("onclick", "document.getElementById('bpad1').getElementsByTagName('table')[0],api.includeElements("+filter+", "+i+")");
+			e.getElementsByClassName("sort"+sort)[0].classList.add("sel");
+		}
+		
+	}
+	
+	this.includeBondsTLine = function (e, b, el, i) {
+		e.innerHTML += '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+'-'+b[i].second+'</td><td>'+b[i].val+'</td><td>'+el[b[i].first].name+'</td><td>'+el[b[i].second].name+'</td></tr>';
+	}
+		
+	this.includeBonds = function (e, filter) {
+		var el = project.elements;
+		var b = project.bonds;
+		
+		if (b.length == 0) {
+			e.innerHTML = "Нет связей";
+			return;
+		}
+		if ((filter != -1) && (cache.elements[filter].inbonds.length == 0) && (cache.elements[filter].outbonds.length == 0) && (el[filter].type != 4) && (el[filter].type != 5)) {
+			e.innerHTML = "Нет связей";
+			return;
+		}
+		e.innerHTML = '<tr class="headline"><td class="b fs na">ID</td><td class="b fs na">Путь</div><td class="b fs na">Сила</td><td class="b fs na">Начало</td><td class="b fs na">Конец</td></tr>';
+		var i, j;
+		if (filter != -1) {
+			if ((el[filter].type == 4) || (el[filter].type == 5)) {
+				e.innerHTML += '<tr><td colspan="5">Родительская связь</td></tr>';
+				this.includeBondsTLine (e, b, el, el[filter].X);
+				return;
+			}
+			var t = true;
+			for (i=0; i<cache.elements[filter].inbonds.length; i++) {
+				if (t) {
+					t = false;
+					e.innerHTML += '<tr><td colspan="5">Входящие связи</td></tr>';
+				}
+				this.includeBondsTLine (e, b, el, cache.elements[filter].inbonds[i]);
+			}
+			var t = true;
+			for (i=0; i<cache.elements[filter].outbonds.length; i++) {
+				if (t) {
+					t = false;
+					e.innerHTML += '<tr><td colspan="5">Исходящие связи</td></tr>';
+				}
+				this.includeBondsTLine (e, b, el, cache.elements[filter].outbonds[i]);
+			}
+		}
+		
+		else for (i=0; i<b.length; i++) {
+			if (b[i] === undefined) continue;
+			this.includeBondsTLine (e, b, el, i); //я случайно }:]
+		}
 		
 	}
 	
@@ -158,6 +220,7 @@ function exapi() {
 			this.closeWindow("save");
 			document.getElementById("savelist").innerHTML = "";
 			this.changed = false;
+			Recalculate();
 		}
 		catch (ex) {
 			windows.saveError.content = 'Не удалось сохранить проект. Скорее всего, в локальном хранилище недостаточно места. Попробуйте удалить ненужные проекты, или выполните экспорт текущего проекта и сохраните его на жестком диске.<br><br>Описание ошибки:<br>'+ex;
@@ -173,15 +236,14 @@ function exapi() {
 			this.forceRedraw = true;
 			document.getElementById("loadlist").innerHTML = "";
 			this.changed = false;
+			Recalculate();
+			this.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1, this.sort);
+			this.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
 		}
 		catch (ex) {
 			windows.loadError.content = 'Не удалось загрузить проект. Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект. Если ошибка продолжит повторяться, экспортируйте этот проект и отправьте разработчикам.<br><br>Описание ошибки:<br>'+ex;
 			this.callPopup2(windows.loadError);
 		}
-	}
-	
-	this.updateEverything = function() {
-		this.includeElements(this.filter, this.sort);
 	}
 	
 	
@@ -298,7 +360,12 @@ function exapi() {
 	}
 	
 	this.requestDeletion = function(id) {
-		windows.sureDelete.buttons[0].functions = "RemoveElement("+id+",true);api.closeWindow('edit"+id+"');api.closePopup()";
+		windows.sureDelete.buttons[0].functions = "RemoveElement("+id+",true);api.closeWindow('edite"+id+"');api.closePopup()";
+		this.callPopup2(windows.sureDelete);
+	}
+	
+	this.requestDeletionBond = function(id) {
+		windows.sureDelete.buttons[0].functions = "RemoveBond("+id+",true);api.closeWindow('editb"+id+"');api.closePopup()";
 		this.callPopup2(windows.sureDelete);
 	}
 	
@@ -307,7 +374,7 @@ function exapi() {
 		tx = 0;
 		ty = 0;
 		if (arg1 == "edit") {
-			id = arg1+arg2;
+			id = arg1+"e"+arg2;
 		}
 		else if (arg1 == "editb") {
 			id = arg1+arg2;
@@ -372,6 +439,7 @@ function exapi() {
 			
 			if (!exists) {
 				ec.getElementsByClassName("_сс_close2")[0].addEventListener("click", function() {api.closeWindow(id)});
+				ec.getElementsByClassName("close")[0].addEventListener("click", function() {api.closeWindow(id)});
 				ec.getElementsByClassName("_сс_apply")[0].addEventListener("click", function() {createAndAddElement(id,true);api.closeWindow(id)});
 				ec.getElementsByClassName("_сс_delete")[0].addEventListener("click", function() {api.requestDeletion(arg2)});
 				document.getElementById("windows").appendChild(ec);
@@ -389,8 +457,9 @@ function exapi() {
 			
 			if (!exists) {
 				ec.getElementsByClassName("_сс_close2")[0].addEventListener("click", function() {api.closeWindow(id)});
+				ec.getElementsByClassName("close")[0].addEventListener("click", function() {api.closeWindow(id)});
 				ec.getElementsByClassName("_сс_apply")[0].addEventListener("click", function() {createAndAddBond(id,true);api.closeWindow(id)});
-				ec.getElementsByClassName("_сс_delete")[0].addEventListener("click", function() {RemoveBond(arg2)});
+				ec.getElementsByClassName("_сс_delete")[0].addEventListener("click", function() {api.requestDeletionBond(arg2)});
 				document.getElementById("windows").appendChild(ec);
 			}
 		}
@@ -407,6 +476,22 @@ function exapi() {
 			document.getElementById("side").getElementsByClassName("w")[0].style.marginTop = "-20vh";
 		}
 		if (document.getElementById(id).getElementsByClassName("h")[0] !== undefined) {
+			if (arg1 == "editb") {
+				document.getElementById(id).getElementsByClassName("elist")[0].getElementsByTagName("table")[0].addEventListener("mouseover", function() {
+					api.enElSel = true;
+				});
+				document.getElementById(id).getElementsByClassName("elist")[0].getElementsByTagName("table")[0].addEventListener("mouseout", function(event) {
+					api.enElSel = false;
+				});
+			}
+			if (arg1 == "edit") {
+				document.getElementById(id).getElementsByClassName("blist")[0].getElementsByTagName("table")[0].addEventListener("mouseover", function() {
+					api.enBSel = true;
+				});
+				document.getElementById(id).getElementsByClassName("blist")[0].getElementsByTagName("table")[0].addEventListener("mouseout", function(event) {
+					api.enBSel = false;
+				});
+			}
 			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousedown", this.initWindowMove);
 			
 			document.getElementById(id).getElementsByClassName("w")[0].addEventListener("mousedown", function() {
@@ -673,7 +758,6 @@ function exapi() {
 		
 		this.mouse.pressed = false;
 		this.mouse.click = false;
-		this.filter = 0;
 		this.sort = 0;
 		
 		if (fatal) {
@@ -683,11 +767,7 @@ function exapi() {
 				
 				api.mouseListener(event, false);
 			});
-			
-			document.getElementById("c").addEventListener("mousemove", function(event) {
-				api.enElSel = false;
-			});
-	
+
 			document.getElementById("c").addEventListener("mousedown", function(event) {
 				api.mouseListener(event, true);
 			});
@@ -718,8 +798,18 @@ function exapi() {
 				api.mouseClickListener(event);
 			});
 			
-			document.getElementById("bpad1").addEventListener("mousemove", function() {
+			document.getElementById("bpad1").getElementsByTagName("table")[0].addEventListener("mouseover", function() {
 				api.enElSel = true;
+			});
+			document.getElementById("bpad1").getElementsByTagName("table")[0].addEventListener("mouseout", function(event) {
+				api.enElSel = false;
+			});
+				
+			document.getElementById("bpad2").getElementsByTagName("table")[0].addEventListener("mouseover", function() {
+				api.enBSel = true;
+			});
+			document.getElementById("bpad2").getElementsByTagName("table")[0].addEventListener("mouseout", function(event) {
+				api.enBSel = false;
 			});
 			
 			window.onresize = function(){api.forceRedraw = true}
@@ -764,7 +854,7 @@ function exapi() {
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:0,windowsize:'sm'};
-		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент. Вы не сможете его вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент и все, что на нем находится. Вы не сможете все это вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 
 		
 		windows.saveError = {header:'Ошибка!',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};

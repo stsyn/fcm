@@ -32,7 +32,7 @@ body {
 	border-top:1px solid #ddd;
 	background:#fff;
 	position:fixed;
-	height:15em;
+	height:30%;
 	bottom:0;
 	width:100%;
 	transition:.15s;
@@ -40,7 +40,7 @@ body {
 #bottom .list {
 	overflow-y:auto;
 	width:100%;
-	height:12.5em;
+	height:calc(100% - 2.2em);
 	margin-top:2px}
 #bottom .nothide {display:none}
 .bl {display:block !important}
@@ -116,6 +116,10 @@ input:disabled.b {
 width:100%;}
 .table .headline .t {padding-bottom:0.3em}
 .table .b .t {border:1px solid #ddd}
+td {display:table-cell !important}
+tr {display:table-row !important}
+tr.headline, tbody, table.r {width:100%}
+table.r td {text-align:center}
 
 .pad {
 	width:calc(100% - 8px);
@@ -178,11 +182,21 @@ input:checked + label, input:checked + label .b{background:#cfc !important}
 	height:100%;
 	border:none;
 	width:100%}
+#windows .w.vsm {
+	width:30vw;
+	left:35vw;
+	height:40vh;
+	top:30vh}
 #windows .w.sm {
 	width:40vw;
 	left:30vw;
 	height:40vh;
-	top:20vh}
+	top:30vh}
+#windows .w.sm2 {
+	width:40vw;
+	left:30vw;
+	height:30vh;
+	top:35vh}
 #windows .w.m {
 	width:60vw;
 	left:20vw;

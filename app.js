@@ -1,7 +1,7 @@
 var project = {settings:{},elements:[],bonds:[],viewport:{}};
 var colorScheme = [
-{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",selected:"#00f",aconnections:"rgba(17,17,17,0)"},
-{bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",selected:"#cc0",aconnections:"rgba(68,187,187,0)"}];
+{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",selected:"#00f",aconnections:"rgba(17,17,17,0)",aactconn:"rgba(136,255,136,0)"},
+{bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)"}];
 var ctx, zoomprop, linePattern;
 var doMoving = {};
 var currentBrush = {};
@@ -17,8 +17,7 @@ var BondsDrawingArraySecond = {};
 function resetProject() {
 	project = {settings:{},elements:[],bonds:[],viewport:[]};
 	project.settings.strict = true;
-	api.changed = false;
-	api.forceRedraw = true;
+	update();
 }
 
 function resetViewport() {
@@ -81,8 +80,15 @@ function appDrawBond(el,b) {
 		var x1 = translateCoordsX(el[b[i].first].X), y1 = translateCoordsY(el[b[i].first].Y);
 		var x2 = translateCoordsX(el[b[i].second].X), y2 = translateCoordsY(el[b[i].second].Y);
 		var grd=ctx.createLinearGradient(x1,y1,x2,y2);
-		grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aconnections);
-		grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].connections);
+		var isSel = (api.showBSel == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("editb")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false);
+		if (isSel) {
+			grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aactconn);
+			grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].actconn);	
+		}
+		else {
+			grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aconnections);
+			grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].connections);
+		}
 		ctx.strokeStyle=grd;
 		ctx.beginPath();
 		ctx.moveTo(x1,y1);
@@ -107,7 +113,7 @@ function appDrawElements(el) {
 			x = translateOnBondCoordsX(el[i].X, el[i].Y);
 			y = translateOnBondCoordsY(el[i].X, el[i].Y);
 		}
-		var isSelected = ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("edit")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false) || (api.showElSel == i);
+		var isSelected = ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("edite")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false) || (api.showElSel == i);
 		
 		if (el[i].privateColor != "") ctx.fillStyle = el[i].privateColor;
 		else ctx.fillStyle = api.settings.color[el[i].type-1];
@@ -295,7 +301,6 @@ function appMain() {
 	}
 	if (api.forceRedraw || api.overDraw) {
 		appRedraw();
-		api.updateEverything();
 	}
 	if (api.enElSel && (api.elSel != api.showElSel)) {
 		api.showElSel = api.elSel;
@@ -305,18 +310,36 @@ function appMain() {
 		api.showElSel = null;
 		api.forceRedraw = true;
 	}
+	if (api.enBSel && (api.bSel != api.showBSel)) {
+		api.showBSel = api.bSel;
+		api.forceRedraw = true;
+	}
+	if (!api.enBSel && (api.showBSel !== null)) {
+		api.showBSel = null;
+		api.forceRedraw = true;
+	}
 	setTimeout(appMain, api.settings.chInterval);
 }
 
 function appInit() {
 	doMoving.fact = false;
 	api.changed = false;
+	cache.elements = [];
+	cache.bonds = [];
 	resetViewport();
 	ctx = document.getElementById("c").getContext('2d');
 	setTimeout(appMain, api.settings.chInterval);
     api.mouse.onclick[0] = DrawRemoveSelector;
 }
 
+
+function update() {
+	Recalculate();
+	api.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1, api.sort);
+	api.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
+	api.changed = true;
+	api.forceRedraw = true;
+}
 
 function createAndAddElement(el, isNew) { //createElement already defined >:c
 	var e = document.getElementById(el);
@@ -344,8 +367,7 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].val = parseInt(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].val = 0;	
 	}
 	if (!isNew) api.brush = type;
-	api.changed = true;
-	api.forceRedraw = true;
+	update();
 }
 
 function createAndAddBond(el, isNew) {
@@ -358,8 +380,7 @@ function createAndAddBond(el, isNew) {
 	if (project.bonds[id].val < 0) project.bonds[id].val = 0;
 	if (project.bonds[id].val > 1) project.bonds[id].val = 1;
 	if (!isNew) api.brush = 0;
-	api.changed = true;
-	api.forceRedraw = true;
+	update();
 }
 
 function cancelCreation() {
@@ -382,9 +403,33 @@ function isBondUnique(a,b) {
 	return true;
 }
 
+function includeNeighbours(id, e) {
+	var i, t = true, ec;
+	e.innerHTML = "";
+	for (i=0; i<cache.elements[id].inbonds.length;i++) {
+		if (t) {
+			e.innerHTML = '<div class="line">Предыдущие элементы:<br>';
+			t = false;
+		}
+		ec = project.bonds[cache.elements[id].inbonds[i]].first;
+		e.innerHTML += '<div class="b i" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+	}
+	if (!t) e.innerHTML += '</div>';
+	t = true;
+	for (i=0; i<cache.elements[id].outbonds.length;i++) {
+		if (t) {
+			e.innerHTML += '<div class="line">Следующие элементы:<br>';
+			t = false;
+		}
+		ec = project.bonds[cache.elements[id].outbonds[i]].second;
+		e.innerHTML += '<div class="b i" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+	}
+	if (!t) e.innerHTML += '</div>';
+}
+
 function editElement(id) {
 	api.callWindow("","edit",id);
-	var e = document.getElementById("edit"+id);
+	var e = document.getElementById("edite"+id);
 	var el = project.elements[id];
 	e.getElementsByClassName("cc_id")[0].value = id;
 	e.getElementsByClassName("cc_X")[0].value = el.X;
@@ -405,6 +450,9 @@ function editElement(id) {
 	e.getElementsByClassName("_cc_initator")[0].style.display = (((el.type == 1) || (el.type == 2))?"block":"none");
 	e.getElementsByClassName("_cc_target")[0].style.display = ((el.type == 3)?"block":"none");
 	e.getElementsByClassName("_cc_control")[0].style.display = (((el.type == 4) || (el.type == 5))?"block":"none");
+	
+	api.includeBonds(e.getElementsByClassName("blist")[0].getElementsByTagName("table")[0],id);
+	includeNeighbours(id, e.getElementsByClassName("ellist")[0]);
 }
 
 function editBond(id) {
@@ -415,6 +463,7 @@ function editBond(id) {
 	e.getElementsByClassName("cc_first")[0].value = el.first;
 	e.getElementsByClassName("cc_second")[0].value = el.second;
 	e.getElementsByClassName("cc_v")[0].value = el.val;
+	api.includeElements(e.getElementsByClassName("elist")[0].getElementsByTagName("table")[0], id, 0);
 }
 
 function AddElement(MouseX,MouseY,onBond) {
@@ -468,8 +517,8 @@ function MoveElement(ActualElement,NewX,NewY) {
 
 function RemoveBond(ActualBond) {
 	delete project.bonds[ActualBond];
-	api.forceRedraw = true;
-	api.changed = true;
+	checkOnBondElements();
+	update();
 }
 
 function AddBond(FirstElement,SecondElement) {
@@ -483,12 +532,6 @@ function AddBond(FirstElement,SecondElement) {
 	e.getElementsByClassName("cc_first")[0].value = FirstElement;
 	e.getElementsByClassName("cc_second")[0].value = SecondElement;
 	e.getElementsByClassName("cc_v")[0].value = "0.5";
-	/*
-	project.bonds[i]={};
-	project.bonds[i].first=FirstElement;
-	project.bonds[i].second=SecondElement;
-	api.changed = true;
-	api.forceRedraw = true;	*/
 	api.brush = 100;
 }
 
@@ -568,8 +611,7 @@ function checkBonds() {
 function RemoveElement(ActualElement, tryCheckBonds) {
 	delete project.elements[ActualElement];
 	if (tryCheckBonds) checkBonds();
-	api.changed = true;
-	api.forceRedraw = true;
+	update();
 }
 
 function BondPositon(MouseX,MouseY,key) {
@@ -586,38 +628,36 @@ function BondPositon(MouseX,MouseY,key) {
 	
 function Recalculate() {
 	var i,j,k;
-	for (i=0; i<project.elements.length;i++) {
+	for (i=0; i<project.elements.length;i++) { //входящие и исходящие связи
 	   if (project.elements[i] !== undefined) {
-		   project.elements[i].bondsnum = 0;
-		   project.elements[i].bonds=[];
+		   cache.elements[i] = {};
+		   cache.elements[i].outbonds=[];
+		   cache.elements[i].inbonds=[];
 		   for (j=0; j<project.bonds.length;j++) {
 			   if (project.bonds[j] !== undefined) {
-				   if (project.bonds[j].first == i || project.bonds[j].second == i) {
-					   project.elements[i].bondsnum++;
-					   project.elements[i].bonds[project.elements[i].bondsnum]=j;
-				   }
-				   
+				   if (project.bonds[j].first == i) cache.elements[i].outbonds[cache.elements[i].outbonds.length]=j;
+				   if (project.bonds[j].second == i) cache.elements[i].inbonds[cache.elements[i].inbonds.length]=j;
 			   }
 		   }
 	   }
-	}
-	for (i=0; i<project.bonds.length;i++) {
-		if (project.bonds[i] !== undefined) {
-			project.bonds[i].elemsnum = 0;
-			project.bonds[i].elems=[];
+	}/*
+	for (i=0; i<project.bonds.length;i++) {		//шо цэ такоэ?
+		if (project.bonds[i] !== undefined) { 	//Данил, я просил массив для связей, который содержит элементы НА каждой связи
+			cache.bonds[i] = {};				//а уже идет второй день, а я до сих пор не могу понять. что делает этот кусок кода
+			cache.bonds[i].elems=[];			//ах да, я вспомнил третий тип кэша, 
+												//массив, равный количеству типов элементов, содержащий все элементы этого типа
 			for (j=0; j<project.elements.length;j++) {
-			if (project.elements[j].bondsnum !== undefined) {
-				for (k=0;k<project.elements[j].bondsnum;k++) {
-					if (project.elements[j].bonds[k+1] == i) {
-						project.bonds[i].elemsnum++;
-						project.bonds[i].elems[project.bonds[i].elemsnum]=j;
+				if (project.elements.length !== undefined) {
+					for (k=0;k<project.elements.length;k++) {
+						if (cache.elements[j].bonds[k] == i) {
+							cache.bonds[i].elems[cache.bonds[i].length]=j;
 						}
 					}
 				}
 			}
-			if (project.bonds[i].elemsnum == 2) project.bonds[i].check = 1;
+			if (cache.bonds[i].elemsnum == 2) project.bonds[i].check = 1;
 		}
-	}
+	}*/
 }
 
 function DrawRemoveSelector() {
