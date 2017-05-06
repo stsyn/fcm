@@ -142,6 +142,56 @@ table.r td {text-align:center}
 .selection input[type="radio"] {display:none}
 input:checked + label, input:checked + label .b{background:#cfc !important}
 
+#messages {
+	position:fixed;
+	top:2em;
+	left:0;
+	width:20em;
+	z-index:10000;
+}
+#messages > span{
+	width:calc(100% - .5em);
+	margin:.25em;
+	display:block;
+	padding:.25em;
+	background:#aaa;
+	color:#000;
+	transition: .4s;
+}
+body.night #messages > span{
+	background:#444;
+	color:#eee;
+}
+.transparentActive #messages > span{opacity:.8}
+.transparentActive #messages > span:active{opacity:1}
+
+#messages > span.green{
+	background:#afa;
+	color:#000;
+}
+body.night #messages > span.green{
+	background:#040;
+	color:#eee;
+}
+
+#messages > span.yellow{
+	background:#ffa;
+	color:#000;
+}
+body.night #messages > span.yellow{
+	background:#440;
+	color:#eee;
+}
+
+#messages > span.red{
+	background:#faa;
+	color:#000;
+}
+body.night #messages > span.red{
+	background:#400;
+	color:#eee;
+}
+
 #windows > div {
 	display:none;
 	position:fixed;
@@ -165,7 +215,7 @@ input:checked + label, input:checked + label .b{background:#cfc !important}
 	
 #windows .a {box-shadow: 0 0 10px rgba(0,0,0,1);}
 #windows .content {min-height:calc(100% - 36px - 3em)}
-#windows > div.pu {z-index:6}
+#windows > div.pu {z-index:9999}
 #windows .w.ifr {
 	width:60vw;
 	left:20vw;

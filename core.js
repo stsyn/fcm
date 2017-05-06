@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:36};
+	this.version = {g:"0.0.5", s:"alpha", b:37};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -97,7 +97,7 @@ function exapi() {
 		this.sort = sort;
 		
 		if (el.length == 0) {
-			e.innerHTML = "Нет элементов";
+			e.innerHTML = '<tr class="headline"><td class="b fs na">Нет элементов</td></tr>';
 			return;
 		}
 		e.innerHTML = '<tr class="headline"><td class="b fs sort0'+ax+'">ID</td><td class="b fs sort1'+ax+'">Тип</td><td class="b fs na sort2">Имя</td><td class="b fs na sort3">Состояние</td><td class="b fs na sort4">Предельное</td><td class="b fs na sort5">Стоимость</td><td class="b fs na sort6">Эффективность</td></tr>';
@@ -142,7 +142,7 @@ function exapi() {
 		var b = project.bonds;
 		
 		if (b.length == 0) {
-			e.innerHTML = "Нет связей";
+			e.innerHTML = '<tr class="headline"><td class="b fs na">Нет связей</td></tr>';
 			return;
 		}
 		if ((filter != -1) && (cache.elements[filter].inbonds.length == 0) && (cache.elements[filter].outbonds.length == 0) && (el[filter].type != 4) && (el[filter].type != 5)) {
@@ -188,8 +188,10 @@ function exapi() {
 			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="saves_._custom_" id="_custom_"><label for="_custom_"><input type="text" name="selection_name" id="save_custom" value="" class="b i fs" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
 		if (a === undefined) return;
 		if (a.length == 0) return;
-		for (var i=0; i<a.length; i++) 
+		for (var i=0; i<a.length; i++) {
+			if (addname && a[i] == "_temp_save") continue;
 			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="saves_.'+i+'" '+((!addname && (i==0))?"checked":"")+'><label for="saves_.'+i+'" class="b fs">'+a[i]+'</label></div>';
+		}
 	}
 	
 	this.readSelected = function(el) {
@@ -199,7 +201,7 @@ function exapi() {
 		}
 	}
 	
-	this.save = function(name) {
+	this.save = function(name, silent) {
 		try {
 			var o = this.getSaves();
 			if (o === undefined) o = [];
@@ -214,11 +216,15 @@ function exapi() {
 			}
 			this.putSaves(o);
 			
+			if (project.id == "_temp_save" && name != "_temp_save") api.deleteSave(project.id, true);
 			project.id = name;
+			api.settings.lastLoaded = name;
 			localStorage[name] = JSON.stringify(project);
-			this.callPopup2(windows.saveDone);
-			this.closeWindow("save");
-			document.getElementById("savelist").innerHTML = "";
+			if (!silent) {
+				this.callPopup2(windows.saveDone);
+				this.closeWindow("save");
+				document.getElementById("savelist").innerHTML = "";
+			}
 			this.changed = false;
 			Recalculate();
 		}
@@ -228,32 +234,58 @@ function exapi() {
 		}
 	}
 	
-	this.load = function(name) {
+	this.load = function(name, silent) {
 		try {
 			project = JSON.parse(localStorage[name]);
-			this.closeWindow("load");
-			this.closePopup();
-			this.forceRedraw = true;
-			document.getElementById("loadlist").innerHTML = "";
+			if (!silent) {
+				this.closeWindow("load");
+				this.closePopup();
+				document.getElementById("loadlist").innerHTML = "";
+			}
+			api.settings.lastLoaded = name;
+			update();
 			this.changed = false;
-			Recalculate();
-			this.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1, this.sort);
-			this.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
 		}
 		catch (ex) {
-			windows.loadError.content = 'Не удалось загрузить проект. Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект. Если ошибка продолжит повторяться, экспортируйте этот проект и отправьте разработчикам.<br><br>Описание ошибки:<br>'+ex;
+			windows.loadError.content = 'Не удалось загрузить проект. Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки:<br>'+ex;
 			this.callPopup2(windows.loadError);
 		}
 	}
 	
+	this.deleteSave = function (name, silent) {
+		var v = this.readSelected(document.getElementById("loadlist")); 
+		if (name !== undefined) v = name;
+		var o = this.getSaves();
+		for (var i=0; i<o.length; i++) if (o[i] == v) {
+			o.splice(i,1);
+			break;
+		}
+		this.putSaves(o);
+		localStorage.removeItem(v);
+		if (!silent) {
+			this.closePopup();
+			this.closeWindow("load");
+			this.callWindow("load");
+		}
+	}
+	
+	this.addMessage = function (txt, color) {
+		var ac = document.createElement('span');
+		ac.innerHTML = txt;
+		ac.className = color;
+		ac.addEventListener("click", function(event) {
+			this.parentNode.removeChild(this);
+		});
+		document.getElementById('messages').appendChild(ac);
+		if (api.messageTimeout == 0 || api.messageTimeout === undefined) api.messageTimeout = 10000;
+	}
 	
 	this.windowOnTop = function (id) {
 		var i;
 			
 		for (i=0; i<this.zindex.length; i++) if (this.zindex[i] == id) break;
-		this.zindex[i] = undefined;
-		if (i == this.zindex.length-1) this.zindex[i] = id;
-		else this.zindex[this.zindex.length] = id;
+		this.zindex.splice(i, 1);
+		this.zindex[this.zindex.length] = id;
 		
 		this.activeWindow = id;
 		document.getElementById(id).style.zIndex = this.zindex.length-1;
@@ -273,7 +305,7 @@ function exapi() {
 				this.callPopup2(windows.error);
 				return;
 			}
-			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "hasSettings") || (v == "saves_._custom_")) {
+			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "undefined") || (v == "_temp_save") || (v == "hasSettings") || (v == "saves_._custom_")) {
 				windows.error.content = "Данное имя использовать запрещено! Попробуйте какое-нибудь другое.";
 				this.callPopup2(windows.error);
 				return;
@@ -288,21 +320,21 @@ function exapi() {
 							return;
 						}
 					}
-					this.save(v);
+					this.save(v, false);
 					return;
 				}
 				else {
-					this.save(v);
+					this.save(v, false);
 					return;
 				}
 			}
 			else {
-				this.save(v);
+				this.save(v, false);
 				return;
 			}
 		}
 		else {
-			windows.sureSave.buttons[0].functions="api.save('"+v+"')";
+			windows.sureSave.buttons[0].functions="api.save('"+v+"', false)";
 			this.callPopup2(windows.sureSave);
 			return;
 		}
@@ -536,8 +568,7 @@ function exapi() {
 		else if (id == "load") document.getElementById("load_button").classList.remove("sel");
 		var i;
 		for (i=0; this.zindex[i]!=id; i++) {0;}
-		this.zindex[i] = undefined;
-		for (;((this.zindex[this.zindex.length-1] === undefined) && (this.zindex.length>0));this.zindex.length--) {0;}
+		this.zindex.splice(i, 1);
 		if (this.zindex.length>0) this.windowOnTop(this.zindex[this.zindex.length-1])
 		
 		if (this.activeWindow == id) this.activeWindow = undefined;
@@ -548,8 +579,8 @@ function exapi() {
 	this.loadDefault = function() {
 		this.settings.showLabel = true;
 		this.settings.palette = true;
-		this.settings.nightMode = (this.location == "nightly");
-		this.settings.debug = (this.location == "nightly");
+		this.settings.nightMode = (this.locationName == "nightly");
+		this.settings.debug = (this.locationName == "nightly");
 		this.settings.bottomHidden = false;
 		this.settings.topFontSize = 1.4;
 		this.settings.glFontSize = 100;
@@ -558,13 +589,15 @@ function exapi() {
 		this.settings.color = new Array('#bb0000','#bbbb00','#00bbbb','#00bb00','#bb00bb');
 		this.settings.showGrid = true;
 		this.settings.redGrid = true;
+		this.settings.autosave = 0;
+		this.settings.autoload = false;
 		
 		this.settings.chInterval = 33;
 		this.settings.canvasSize = 100;
 		this.settings.elemSize = 20;
 		this.settings.tooltips = true;
 		
-		if (this.location == "nightly") this.settings.lastVersion = this.version.b;
+		if (this.locationName == "nightly") this.settings.lastVersion = this.version.b;
 		else this.settings.lastVersion = this.version.g+'['+this.version.b+'] '+this.version.s;
 		
 		localStorage["hasSettings"] = true;
@@ -586,6 +619,8 @@ function exapi() {
 		if (this.settings.elemSize === undefined) this.settings.elemSize = 20;
 		if (this.settings.showGrid === undefined) this.settings.showGrid = true;
 		if (this.settings.redGrid === undefined) this.settings.redGrid = true;
+		if (this.settings.autosave === undefined) this.settings.autosave = 0;
+		if (this.settings.autoload === undefined) this.settings.autoload = false;
 		this.saveSettings();
 		this.loadSettings();
 	}
@@ -594,7 +629,7 @@ function exapi() {
 		try {
 			this.settings = JSON.parse(localStorage["fcm2.settings"]);
 			if (!this.updated) {
-				if (this.location == "nightly") this.updated = this.version.b;
+				if (this.locationName == "nightly") this.updated = this.version.b;
 				else this.updated = this.version.g+'['+this.version.b+'] '+this.version.s;
 				if (this.updated == this.settings.lastVersion) this.updated = false;
 			}
@@ -637,12 +672,13 @@ function exapi() {
 		document.getElementById("st_grid").checked = this.settings.showGrid;
 		document.getElementById("st_redGrid").checked = this.settings.redGrid;
 		document.getElementById("st_transparency").checked = this.settings.transparency;
+		document.getElementById("st_autosave").value = this.settings.autosave;
+		document.getElementById("st_autoload").checked = this.settings.autoload;
 		
 		document.getElementById("st_debugInterval").value = this.settings.chInterval;
 		document.getElementById("st_debugCanvasSize").value = this.settings.canvasSize;
 		
 		for (i=0; i<document.getElementsByClassName("ac").length; i++) api.switchElemState(document.getElementsByClassName("ac")[i]);
-		this.colorMode(this.settings.palette);
 	}
 	
 	this.getSettings = function() {
@@ -655,6 +691,8 @@ function exapi() {
 		this.settings.showGrid = document.getElementById("st_grid").checked;
 		this.settings.redGrid = document.getElementById("st_redGrid").checked;
 		this.settings.transparency = document.getElementById("st_transparency").checked;
+		this.settings.autosave = parseInt(document.getElementById("st_autosave").value);
+		this.settings.autoload = document.getElementById("st_autoload").checked;
 		
 		this.settings.chInterval = parseInt(document.getElementById("st_debugInterval").value);
 		this.settings.canvasSize = parseInt(document.getElementById("st_debugCanvasSize").value);
@@ -665,6 +703,9 @@ function exapi() {
 		if (this.settings.glFontSize > 200) this.settings.glFontSize=200;
 		if (this.settings.elemSize < 7) this.settings.elemSize=25;
 		if (this.settings.elemSize > 100) this.settings.elemSize=200;
+		if (this.settings.autosave < 0) this.settings.autosave=0;
+		if (this.settings.autosave > 0 && this.autosaveInterval == 0) this.autosaveInterval = this.settings.autosave*1000*60;
+		if (this.settings.autosave == 0) this.autosaveInterval = 0;
 		var i;
 		for (i=0; i<5; i++) {
 			if (this.settings.palette) this.settings.color[i] = document.getElementById("settings").getElementsByClassName("color")[i].value;
@@ -676,7 +717,7 @@ function exapi() {
 		this.styleSwitch('transparentActive','transparency',false,false,false);
 		this.topFontSize();
 		this.glFontSize();
-		
+			
 		this.forceRedraw = true;
 	}
 	
@@ -751,10 +792,10 @@ function exapi() {
 	
 	this.init = function(fatal) {
 		windows.startupError = {header:'Ошибка!',size:1,buttons:[{functions:'api.loadDefault();api.saveSettings();api.closePopup();',red:true,name:'Установить умолчания'}],windowsize:'sm'};
-		if (window.location.hostname == "") this.location = "local";
-		else if (window.location.hostname == "stsyn.github.io") this.location = "nightly";
-		else if (window.location.hostname == "vtizi.ugatu.su") this.location = "stable";
-		else this.location = "unknown";
+		if (window.location.hostname == "") this.locationName = "local";
+		else if (window.location.hostname == "stsyn.github.io") this.locationName = "nightly";
+		else if (window.location.hostname == "vtizi.ugatu.su") this.locationName = "stable";
+		else this.locationName = "unknown";
 		
 		this.mouse.pressed = false;
 		this.mouse.click = false;
@@ -841,32 +882,39 @@ function exapi() {
 		this.changeBottomPad(0);
 		this.selectBrush(-1);
 		this.popUp = "popUp";
+		this.colorMode(this.settings.palette);
 		
 		this.callWindow('side');
 		this.forceRedraw = true;
 		this.overDraw = false;
-		api.mouse.button = 0;
+		this.mouse.button = 0;
+		this.autosaveInterval = this.settings.autosave*1000*60;
 		appInit();
 		
-		windows.changelog = {header:'Список изменений',content:'<iframe src="//stsyn.github.io/fcm/changelog/'+this.location+'.txt"></iframe>',size:0,windowsize:'ifr'};
-		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М. и Нафикова Д.И.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.location == "local"?0:2),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'},{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
+		windows.changelog = {header:'Список изменений',content:'<iframe src="//stsyn.github.io/fcm/changelog/'+this.locationName+'.txt"></iframe>',size:0,windowsize:'ifr'};
+		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М. и Нафикова Д.И.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.locationName == "local"?0:2),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'},{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:0,windowsize:'sm'};
 		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент и все, что на нем находится. Вы не сможете все это вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		windows.deleteSave = {header:'Внимание!',content:'Подтвердите удаление этого слота.',size:2,buttons:[{red:true,functions:'api.deleteSave(undefined, false)',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 
 		
 		windows.saveError = {header:'Ошибка!',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.loadError = {header:'Ошибка!',size:3,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'location.reload();',red:false,name:'Перезагрузить программу'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		
+		if (api.settings.autoload) this.load(api.settings.lastLoaded,true);
+		
 		if (this.error) return;
-		if (this.location == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,777);
+		this.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1, api.sort);
+		this.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
+		if (this.locationName == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,777);
 		else {
 			var tt = "";
-			if (this.location == "unknown") tt = 'Вы используете версию из неизвестного источника! Настоятельно рекомендуется использовать стабильную версию на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
-			else if (this.location == "local") tt = 'Вы используете сохраненную локальную версию. Актуальную стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
-			else if (this.location == "nightly") tt = 'Вы используете самую свежую промежуточную бета-версию. В ней могут содержаться ошибки и недоделанные возможности! В случае обнаружения ошибок и предложений убедительная просьба связаться с разрабочиками! Стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
+			if (this.locationName == "unknown") tt = 'Вы используете версию из неизвестного источника! Настоятельно рекомендуется использовать стабильную версию на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
+			else if (this.locationName == "local") tt = 'Вы используете сохраненную локальную версию. Актуальную стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
+			else if (this.locationName == "nightly") tt = 'Вы используете самую свежую промежуточную бета-версию. В ней могут содержаться ошибки и недоделанные возможности! В случае обнаружения ошибок и предложений убедительная просьба связаться с разрабочиками! Стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
 			
 			this.callPopup2({header:'Внимание!',content:tt,size:2,windowsize:'sm',buttons:[{functions:'api.settings.dontShowAlerts=true;api.closePopup();api.saveSettings()',name:'Больше не показывать'},{functions:'api.closePopup()',name:'Закрыть'}]});
 		}
@@ -877,7 +925,7 @@ var api = new exapi();
 
 window.onload = function () {
 	if (document.getElementById("loadstring") !== undefined) document.getElementById("loadstring").innerHTML = returnRandomLoadingLine();
-	api.init(true);
+	setTimeout(function() {api.init(true)},200);
 }
 
 window.onbeforeunload = function (evt) {

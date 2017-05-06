@@ -48,6 +48,7 @@
 		</div>
 	</div>
 	
+	<div id="messages"></div>
 	
 	<div id="windows">
 		<div id="popUp" class="pu d">
@@ -95,12 +96,17 @@
 							<div class="t2"><span class="t de">Негативный фактор</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
 						</div></div>
 					</div>
+					<div class="pad" style="display:block">
+						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Поведение</div>
+						<div class="line">Интервал автосохранения (0 - отключить): <input type="text" class="b i" id="st_autosave" style="width:1.5em">мин</div>
+						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_autoload"> Автооткрытие последнего проекта</label></div>
+						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_tooltips"> Подсвечивать действия</label></div>
+					</div>
 					<div class="pad debug" style="display:block">
 						<div class="line red" style="font-weight:700;font-size:120%;margin-bottom:8px">Расширенные настройки</div>
 						<div class="line red">Изменяйте с осторожностью!</div>
 						<div class="line">Интервал обновления: <input type="text" class="b i" id="st_debugInterval" style="width:1.5em">мс</div>
 						<div class="line">Размер холста: <input type="text" class="b i" id="st_debugCanvasSize" style="width:2em">%</div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_tooltips"> Подсвечивание действий</label></div>
 					</div>
 					<div class="pad" style="display:block">
 						<div class="line">
@@ -179,6 +185,7 @@
 	</div>
 
 		<div id="save">
+			<div class="back"></div>
 			<div class="w huge">
 				<div class="hc">
 					<span>Сохранить</span>
@@ -196,6 +203,7 @@
 		</div>
 		
 		<div id="load">
+			<div class="back"></div>
 			<div class="w huge">
 				<div class="hc">
 					<span>Открыть</span>
@@ -207,6 +215,7 @@
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
 					<span class="t"><span class="b fs" onclick="api.closeWindow('load')">Отмена</span></span>
+					<span class="t"><span class="b fs red" onclick="api.callPopup2(windows.deleteSave)">Удалить</span></span>
 					<span class="t"><span class="b fs" onclick="api.tryLoad()">Открыть</span></span>
 				</div></div></div></div>
 			</div>
@@ -247,11 +256,15 @@
 					</div>
 					<div class="pad debug" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:23%">Позиция X: <input type="text" class="b i cc_X" style="width:4em"></div>
-							<div class="t de" style="width:23%">Позиция Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
-							<div class="t de" style="width:22%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
-							<div class="t de" style="width:20%">Цвет: <input type="text" class="b i cc_color" style="width:5em"></div>
-							<div class="t de" style="width:12%">Тип: <input type="text" class="b i cc_type" style="width:2em" disabled></div>
+							<div class="t de" style="width:38%">Позиция X: <input type="text" class="b i cc_X" style="width:4em"></div>
+							<div class="t de" style="width:38%">Позиция Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
+							<div class="t de" style="width:24%">Тип: <input type="text" class="b i cc_type" style="width:2em" disabled></div>
+						</div></div></div>
+					</div>
+					<div class="pad" style="display:block">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
+							<div class="t de" style="width:50%">Цвет: <input type="text" class="b i cc_color2 color2" style="width:6em"> 		<input type="checkbox" class="b i color cc_color_check"> <input type="color" class="b i cc_color color" style="width:5em"></div>
 						</div></div></div>
 					</div>
 				</div>
@@ -349,13 +362,15 @@
 					</div>
 					<div class="pad debug" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Позиция X: <input type="text" class="b i cc_X" style="width:4em"></div>
-							<div class="t de" style="width:50%">Позиция Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
+							<div class="t de" style="width:38%">Позиция X: <input type="text" class="b i cc_X" style="width:4em"></div>
+							<div class="t de" style="width:38%">Позиция Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
+							<div class="t de" style="width:24%">Тип: &nbsp;<input type="text" class="b i cc_type" style="width:2em" disabled></div>
 						</div></div></div>
+					</div>
+					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:38%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
-							<div class="t de" style="width:37%">Цвет: <input type="text" class="b i cc_color" style="width:5em"></div>
-							<div class="t de" style="width:25%">Тип: &nbsp;<input type="text" class="b i cc_type" style="width:2em" disabled></div>
+							<div class="t de" style="width:50%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
+							<div class="t de" style="width:50%">Цвет: <input type="text" class="b i cc_color2 color2" style="width:6em"> 		<input type="checkbox" class="b i color cc_color_check"> <input type="color" class="b i cc_color color" style="width:5em"></div>
 						</div></div></div>
 					</div>
 					<div class="pad selection blist" style="display:block"><table class="r" cellspacing="0" rules="all">

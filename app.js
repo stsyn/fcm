@@ -9,14 +9,13 @@ var cache = {};
 
 var AuxBonds, AuxBonds2, dAuxBonds;
 var AuxMove, tElemX, tElemY;
-var NumberOfBonds = 0;
-var BondsDrawingArrayFirst = {};
-var BondsDrawingArraySecond = {};
 
 
 function resetProject() {
 	project = {settings:{},elements:[],bonds:[],viewport:[]};
 	project.settings.strict = true;
+	api.changed=false;
+	api.settings.lastLoaded = undefined;
 	update();
 }
 
@@ -318,6 +317,33 @@ function appMain() {
 		api.showBSel = null;
 		api.forceRedraw = true;
 	}
+	
+	if (api.messageTimeout > 0) {
+		api.messageTimeout-=api.settings.chInterval;
+		if (document.getElementById("messages").childNodes.length == 0) api.messageTimeout = 0;
+		if (api.messageTimeout <= 0) {
+			if (document.getElementById("messages").childNodes.length > 0) document.getElementById("messages").removeChild(document.getElementById("messages").childNodes[0]);
+			if (document.getElementById("messages").childNodes.length > 0) api.messageTimeout += 10000;
+			else api.messageTimeout = 0;
+		}
+	}
+	
+	if (api.settings.autosave != 0) {
+		if (api.autosaveInterval > 0) {
+			api.autosaveInterval -= api.settings.chInterval;
+			if (api.autosaveInterval <= 0) {
+				if (project.id == undefined) project.id = '_temp_save';
+				try {
+					api.save(project.id, true);
+					api.addMessage('Сохранено!','green');
+					api.autosaveInterval += api.settings.autosave*1000*60;
+				}
+				catch(ex) {
+					api.addMessage('Не удалось сохранить проект!','red');
+				}
+			}
+		}
+	}
 	setTimeout(appMain, api.settings.chInterval);
 }
 
@@ -351,7 +377,12 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	project.elements[id].type = type;
 	project.elements[id].desc = e.getElementsByClassName("cc_desc")[0].value;
 	project.elements[id].name = e.getElementsByClassName("cc_name")[0].value;
-	project.elements[id].privateColor = e.getElementsByClassName("cc_color")[0].value;
+	if (api.settings.palette) {
+		if (e.getElementsByClassName("cc_color_check")[0].checked) 
+			project.elements[id].privateColor = e.getElementsByClassName("cc_color")[0].value;
+		else project.elements[id].privateColor = 0;
+	}
+	else project.elements[id].privateColor = e.getElementsByClassName("cc_color2")[0].value;
 	if (e.getElementsByClassName("cc_size")[0].value !== "") project.elements[id].z = parseInt(e.getElementsByClassName("cc_size")[0].value)/100; else project.elements[id].z = 1;
 	
 	if ((type == 1) || (type == 2)) {
@@ -436,6 +467,8 @@ function editElement(id) {
 	e.getElementsByClassName("cc_Y")[0].value = el.Y;
 	e.getElementsByClassName("cc_type")[0].value = el.type;
 	e.getElementsByClassName("cc_color")[0].value = project.elements[id].privateColor;
+	e.getElementsByClassName("cc_color2")[0].value = project.elements[id].privateColor;
+	e.getElementsByClassName("cc_color_check")[0].checked = project.elements[id].privateColor;
 	e.getElementsByClassName("cc_size")[0].value = project.elements[id].z*100;
 	
 	e.getElementsByClassName("cc_desc")[0].value = el.desc;
@@ -480,7 +513,9 @@ function AddElement(MouseX,MouseY,onBond) {
 	e.getElementsByClassName("cc_X")[0].value = x;
 	e.getElementsByClassName("cc_Y")[0].value = y;
 	e.getElementsByClassName("cc_type")[0].value = api.brush;
+	e.getElementsByClassName("cc_color_check")[0].checked = false;
 	e.getElementsByClassName("cc_color")[0].value = "";
+	e.getElementsByClassName("cc_color2")[0].value = "";
 	e.getElementsByClassName("cc_size")[0].value = "100";
 	
 	e.getElementsByClassName("cc_desc")[0].value = "";
