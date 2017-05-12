@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:37};
+	this.version = {g:"0.0.5", s:"alpha", b:38};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -216,9 +216,10 @@ function exapi() {
 			}
 			this.putSaves(o);
 			
-			if (project.id == "_temp_save" && name != "_temp_save") api.deleteSave(project.id, true);
+			if (project.id == "_temp_save" && name != "_temp_save") this.deleteSave(project.id, true);
 			project.id = name;
-			api.settings.lastLoaded = name;
+			this.settings.lastLoaded = name;
+			this.saveSettings();
 			localStorage[name] = JSON.stringify(project);
 			if (!silent) {
 				this.callPopup2(windows.saveDone);
@@ -243,12 +244,15 @@ function exapi() {
 				document.getElementById("loadlist").innerHTML = "";
 			}
 			api.settings.lastLoaded = name;
+			this.saveSettings();
 			update();
 			this.changed = false;
+			return false;
 		}
 		catch (ex) {
-			windows.loadError.content = 'Не удалось загрузить проект. Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки:<br>'+ex;
+			windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки:<br>'+ex;
 			this.callPopup2(windows.loadError);
+			return true;
 		}
 	}
 	
@@ -382,12 +386,14 @@ function exapi() {
 	
 	this.requestReset = function() {
 		if (this.changed) {
-			windows.warning.buttons[0].functions='resetProject();resetViewport();api.closePopup()';
-			api.callPopup2(windows.warning);
+			windows.warning.buttons[0].functions='resetProject();resetViewport();api.closePopup();delete api.settings.lastLoaded;api.saveSettings();';
+			this.callPopup2(windows.warning);
 		}
 		else {
 			resetProject();
 			resetViewport();
+			delete this.settings.lastLoaded;
+			this.saveSettings();
 		}
 	}
 	
@@ -892,7 +898,7 @@ function exapi() {
 		appInit();
 		
 		windows.changelog = {header:'Список изменений',content:'<iframe src="//stsyn.github.io/fcm/changelog/'+this.locationName+'.txt"></iframe>',size:0,windowsize:'ifr'};
-		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М. и Нафикова Д.И.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+api.location+')',size:(this.locationName == "local"?0:2),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'},{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
+		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М. и Нафикова Д.И.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')',size:(this.locationName == "local"?0:2),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'},{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
@@ -904,7 +910,7 @@ function exapi() {
 		windows.saveError = {header:'Ошибка!',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.loadError = {header:'Ошибка!',size:3,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'location.reload();',red:false,name:'Перезагрузить программу'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		
-		if (api.settings.autoload) this.load(api.settings.lastLoaded,true);
+		if (this.settings.autoload && this.settings.lastLoaded != undefined) this.error = this.error || this.load(this.settings.lastLoaded,true);
 		
 		if (this.error) return;
 		this.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1, api.sort);

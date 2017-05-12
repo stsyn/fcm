@@ -73,37 +73,65 @@ function appDrawBond(el,b) {
 		ctx.stroke();
 		ctx.setLineDash([1, 0]);
 	}
-	ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
 	for (var i=0; i<b.length; i++) {
 		if (b[i] === undefined) continue;
 		var x1 = translateCoordsX(el[b[i].first].X), y1 = translateCoordsY(el[b[i].first].Y);
 		var x2 = translateCoordsX(el[b[i].second].X), y2 = translateCoordsY(el[b[i].second].Y);
-		var grd=ctx.createLinearGradient(x1,y1,x2,y2);
+		
 		var isSel = (api.showBSel == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("editb")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false);
-		if (isSel) {
-			grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aactconn);
-			grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].actconn);	
+		if (!api.settings.gradientArrows) {
+			var grd=ctx.createLinearGradient(x1,y1,x2,y2);
+			if (isSel) {
+				grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aactconn);
+				grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].actconn);	
+			}
+			else {
+				grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aconnections);
+				grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].connections);
+			}
+			ctx.strokeStyle=grd;
 		}
 		else {
-			grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aconnections);
-			grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].connections);
+			if (isSel) {
+				ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+				ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+			}
+			else {
+				ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
+				ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
+			}
 		}
-		ctx.strokeStyle=grd;
 		ctx.beginPath();
 		ctx.moveTo(x1,y1);
 		ctx.lineTo(x2,y2);
+		var a = -3.14/2-Math.atan2(x1-x2, y1-y2);
+		var d = getSize()*el[b[i].second].z;
+		var cx = x2 - d*Math.cos(a);
+		var cy = y2 - d*Math.sin(a);
+		ctx.moveTo(cx,cy);
+		var dx = x2 - d*2*Math.cos(a);
+		var dy = y2 - d*2*Math.sin(a);
+		
+		ctx.lineTo(dx+(getSize()/3*Math.cos(a+3.14/2)),dy+(getSize()/3*Math.sin(a+3.14/2)));
+		ctx.lineTo(dx+(getSize()/3*Math.cos(a-3.14/2)),dy+(getSize()/3*Math.sin(a-3.14/2)));
+		ctx.lineTo(cx,cy);
 		
 		ctx.closePath();
 		ctx.stroke();
+		ctx.fill();
 	}	
 }
 
+function getSize() {
+	if (project.viewport.z>1) return api.settings.elemSize/2;
+	if (project.viewport.z>3) return api.settings.elemSize/3;
+	if (project.viewport.z>6) return api.settings.elemSize/4;
+	if (project.viewport.z>16) return api.settings.elemSize/7;
+	return api.settings.elemSize;
+}
+
 function appDrawElements(el) {
-	var size = api.settings.elemSize;
-	if (project.viewport.z>1) size = api.settings.elemSize/2;
-	if (project.viewport.z>3) size = api.settings.elemSize/3;
-	if (project.viewport.z>6) size = api.settings.elemSize/4;
-	if (project.viewport.z>16) size = api.settings.elemSize/7;
+	var size = getSize();
 	
 	for (var i=0; i<el.length; i++) {
 		if (el[i] === undefined) continue;
@@ -127,10 +155,37 @@ function appDrawElements(el) {
 			else if (api.brush == 99) document.getElementById("brush0").style.background=colorScheme[(api.settings.nightMode?1:0)].line;
 			else document.getElementById("brush0").style.background="";
 		}
-		ctx.beginPath();
-		ctx.arc(translateCoordsX(x),translateCoordsY(y), size*el[i].z, 0,6.28);
-		ctx.closePath();
-		ctx.fill();
+		if ((el[i].type == 4) || (el[i].type == 5)) {
+			var b = project.bonds;
+			var x1 = el[b[el[i].X].first].X;
+			var x2 = el[b[el[i].X].second].X;
+			var y1 = el[b[el[i].X].first].Y;
+			var y2 = el[b[el[i].X].second].Y;
+			var a = 3.14-Math.atan2(x1-x2, y1-y2);
+			var tcanvas = document.createElement('canvas');
+			tcanvas.width = size*el[i].z*2+10;
+			tcanvas.height = size*el[i].z*2+10;
+			var tcx = tcanvas.getContext('2d');
+			tcx.fillStyle = ctx.fillStyle;
+			tcx.strokeStyle = ctx.strokeStyle;
+			tcx.beginPath();
+			tcx.arc(size*el[i].z+5,size*el[i].z+5, size*el[i].z, a-3.14/4, a+3.14*1.25);
+			tcx.closePath();
+			tcx.fill();
+			tcx.globalCompositeOperation = 'destination-out';
+			tcx.beginPath();
+			tcx.arc(size*el[i].z+5+size*0.65*el[i].z*Math.cos(a-3.14/2), size*el[i].z+5+size*0.65*el[i].z*Math.sin(a-3.14/2), size*el[i].z*0.85, 0, 6.28);
+			tcx.closePath();
+			tcx.fill();
+			ctx.drawImage(tcanvas,translateCoordsX(x)-size*el[i].z-5,translateCoordsY(y)-size*el[i].z-5);
+			
+		}
+		else {
+			ctx.beginPath();
+			ctx.arc(translateCoordsX(x),translateCoordsY(y), size*el[i].z, 0,6.28);
+			ctx.closePath();
+			ctx.fill();
+		}
 		if ((((api.brush == 99) && (AuxBonds == i)) || isSelected) && api.settings.tooltips) ctx.stroke();
 	}
 	
