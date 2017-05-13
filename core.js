@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:38};
+	this.version = {g:"0.0.5", s:"alpha", b:39};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -54,7 +54,7 @@ function exapi() {
 	}
 	
 	this.selectBrush = function (n) {
-		for (var i=-2; i<6; i++) {
+		for (var i=-2; i<7; i++) {
 			document.getElementById("brush"+i).classList.remove("sel");
 		}
 		document.getElementById("brush"+n).classList.add("sel");
@@ -79,7 +79,7 @@ function exapi() {
 	
 	this.getSaves = function () {
 		var ote = localStorage["fcm2.saves"];
-		if (ote !== undefined) ote = JSON.parse(localStorage["fcm2.saves"]);
+		if (ote != undefined) ote = JSON.parse(localStorage["fcm2.saves"]);
 		return ote;
 	}
 	
@@ -91,44 +91,25 @@ function exapi() {
 		e.innerHTML += '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+el[i].name+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":el[i].val)+'</td></tr>';
 	}
 		
-	this.includeElements = function (e,filter, sort) {
+	this.includeElements = function (e,filter) {
 		var el = project.elements;
 		var ax = ((filter == -1)?"":" na")
-		this.sort = sort;
 		
 		if (el.length == 0) {
 			e.innerHTML = '<tr class="headline"><td class="b fs na">Нет элементов</td></tr>';
 			return;
 		}
-		e.innerHTML = '<tr class="headline"><td class="b fs sort0'+ax+'">ID</td><td class="b fs sort1'+ax+'">Тип</td><td class="b fs na sort2">Имя</td><td class="b fs na sort3">Состояние</td><td class="b fs na sort4">Предельное</td><td class="b fs na sort5">Стоимость</td><td class="b fs na sort6">Эффективность</td></tr>';
+		e.innerHTML = '<tr class="headline"><td class="b fs na sort0'+ax+'">ID</td><td class="b fs na sort1'+ax+'">Тип</td><td class="b fs na sort2">Имя</td><td class="b fs na sort3">Состояние</td><td class="b fs na sort4">Предельное</td><td class="b fs na sort5">Стоимость</td><td class="b fs na sort6">Эффективность</td></tr>';
 		var i, j;
 		if (filter != -1) {
-			sort = 0;
 			this.includeElementsTLine (e, el, project.bonds[filter].first);
-			for (i=0; i<el.length; i++) {
-				if (el[i] === undefined) continue;
-				if (((el[i].type == 4) || (el[i].type == 5)) && el[i].X == filter) this.includeElementsTLine (e, el, i);
-			}
+			for (i=0; i<cache.bonds[filter].elems.length; i++) this.includeElementsTLine (e, el, cache.bonds[filter].elems[i]);
 			this.includeElementsTLine (e, el, project.bonds[filter].second);
 		}
 		
-		else if (sort == 0) for (i=0; i<el.length; i++) {
-			if (el[i] === undefined) continue;
+		else for (i=0; i<el.length; i++) {
+			if (el[i] == undefined) continue;
 			this.includeElementsTLine (e, el, i);
-		}
-		else if (sort == 1) for (j=1; j<5; j++) {
-			for (i=0; i<el.length; i++) {
-				if (el[i] === undefined) continue;
-				if (el[i].type == j) this.includeElementsTLine (e, el, i);
-			}
-		}
-		else {
-		
-		}
-		
-		if (filter == -1) {	
-			for (i=0; i<2; i++) e.getElementsByClassName("sort"+i)[0].setAttribute("onclick", "document.getElementById('bpad1').getElementsByTagName('table')[0],api.includeElements("+filter+", "+i+")");
-			e.getElementsByClassName("sort"+sort)[0].classList.add("sel");
 		}
 		
 	}
@@ -176,7 +157,7 @@ function exapi() {
 		}
 		
 		else for (i=0; i<b.length; i++) {
-			if (b[i] === undefined) continue;
+			if (b[i] == undefined) continue;
 			this.includeBondsTLine (e, b, el, i); //я случайно }:]
 		}
 		
@@ -186,7 +167,7 @@ function exapi() {
 		el.innerHTML = "";
 		if (addname) 
 			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="saves_._custom_" id="_custom_"><label for="_custom_"><input type="text" name="selection_name" id="save_custom" value="" class="b i fs" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
-		if (a === undefined) return;
+		if (a == undefined) return;
 		if (a.length == 0) return;
 		for (var i=0; i<a.length; i++) {
 			if (addname && a[i] == "_temp_save") continue;
@@ -204,13 +185,13 @@ function exapi() {
 	this.save = function(name, silent) {
 		try {
 			var o = this.getSaves();
-			if (o === undefined) o = [];
+			if (o == undefined) o = [];
 			var check = false;
 			for (var i=0; i<o.length; i++) if (o[i] == name) {
 				check = true;
 				break;
 			}
-			if (!check) for (var i=0; 1; i++) if (o[i] === undefined) {
+			if (!check) for (var i=0; 1; i++) if (o[i] == undefined) {
 				o[i] = name;
 				break;
 			}
@@ -258,7 +239,7 @@ function exapi() {
 	
 	this.deleteSave = function (name, silent) {
 		var v = this.readSelected(document.getElementById("loadlist")); 
-		if (name !== undefined) v = name;
+		if (name != undefined) v = name;
 		var o = this.getSaves();
 		for (var i=0; i<o.length; i++) if (o[i] == v) {
 			o.splice(i,1);
@@ -281,7 +262,7 @@ function exapi() {
 			this.parentNode.removeChild(this);
 		});
 		document.getElementById('messages').appendChild(ac);
-		if (api.messageTimeout == 0 || api.messageTimeout === undefined) api.messageTimeout = 10000;
+		if (api.messageTimeout == 0 || api.messageTimeout == undefined) api.messageTimeout = 10000;
 	}
 	
 	this.windowOnTop = function (id) {
@@ -294,10 +275,11 @@ function exapi() {
 		this.activeWindow = id;
 		document.getElementById(id).style.zIndex = this.zindex.length-1;
 		
-		for (i=0; i<this.zindex.length; i++) if (this.zindex[i] !== undefined) document.getElementById(this.zindex[i]).getElementsByClassName("w")[0].classList.remove("a");
+		for (i=0; i<this.zindex.length; i++) if (this.zindex[i] != undefined) document.getElementById(this.zindex[i]).getElementsByClassName("w")[0].classList.remove("a");
 		document.getElementById(id).getElementsByClassName("w")[0].classList.add("a");
 		
 		if (api.settings.tooltips) api.forceRedraw = true;
+		api.rearrangeWindows();
 	}
 	
 	this.trySave = function() {
@@ -315,7 +297,7 @@ function exapi() {
 				return;
 			}
 			var svs = this.getSaves();
-			if (svs !== undefined) {
+			if (svs != undefined) {
 				if (svs.length != 0) {
 					for (var i=0; i<svs.length; i++) {
 						if (v == svs[i]) {
@@ -454,7 +436,7 @@ function exapi() {
 		}
 		else if (id == "load") {
 			var o = this.getSaves();
-			if ((o === undefined) || (o.length == 0)) {
+			if ((o == undefined) || (o.length == 0)) {
 				windows.error.content = "Сохраненные проекты отсутствуют! Если вы не можете найти уже сохраненный проект, запустите программу с того же самого места, где вы ее запускали в прошлый раз.";
 				this.callPopup2(windows.error);
 				this.windows[id] = false;
@@ -513,7 +495,7 @@ function exapi() {
 			document.getElementById("side").getElementsByClassName("w")[0].style.marginLeft = "calc(50vw - 11em)";
 			document.getElementById("side").getElementsByClassName("w")[0].style.marginTop = "-20vh";
 		}
-		if (document.getElementById(id).getElementsByClassName("h")[0] !== undefined) {
+		if (document.getElementById(id).getElementsByClassName("h")[0] != undefined) {
 			if (arg1 == "editb") {
 				document.getElementById(id).getElementsByClassName("elist")[0].getElementsByTagName("table")[0].addEventListener("mouseover", function() {
 					api.enElSel = true;
@@ -565,8 +547,14 @@ function exapi() {
 		}
 	}
 	
+	this.rearrangeWindows = function() {
+		for (var i=0; i<this.zindex.length; i++) {
+			document.getElementById(this.zindex[i]).style.zIndex = i;
+		}
+	}
+	
 	this.closeWindow = function(id) {
-		if (this.windows[id] === undefined) return;
+		if (this.windows[id] == undefined) return;
 		document.getElementById(id).classList.toggle("d");
 		if (id == "settings") document.getElementById("settings_button").classList.remove("sel");
 		else if (id == "side") document.getElementById("side_button").classList.remove("sel");
@@ -580,6 +568,7 @@ function exapi() {
 		if (this.activeWindow == id) this.activeWindow = undefined;
 		this.windows[id] = undefined;
 		if (api.settings.tooltips) api.forceRedraw = true;
+		api.rearrangeWindows();
 	}
 	
 	this.loadDefault = function() {
@@ -592,7 +581,7 @@ function exapi() {
 		this.settings.glFontSize = 100;
 		this.settings.dontShowAlerts = false;
 		this.settings.transparency = false;
-		this.settings.color = new Array('#bb0000','#bbbb00','#00bbbb','#00bb00','#bb00bb');
+		this.settings.color = new Array('#bb0000','#bbbb00','#0000bb','#00bb00','#8000bb','#00bbbb','#006600');
 		this.settings.showGrid = true;
 		this.settings.redGrid = true;
 		this.settings.autosave = 0;
@@ -620,13 +609,13 @@ function exapi() {
 	}
 	
 	this.fixSettings = function () {
-		if (this.settings.chInterval === undefined) this.settings.chInterval = 33;
-		if (this.settings.canvasSize === undefined) this.settings.canvasSize = 100;
-		if (this.settings.elemSize === undefined) this.settings.elemSize = 20;
-		if (this.settings.showGrid === undefined) this.settings.showGrid = true;
-		if (this.settings.redGrid === undefined) this.settings.redGrid = true;
-		if (this.settings.autosave === undefined) this.settings.autosave = 0;
-		if (this.settings.autoload === undefined) this.settings.autoload = false;
+		if (this.settings.chInterval == undefined) this.settings.chInterval = 33;
+		if (this.settings.canvasSize == undefined) this.settings.canvasSize = 100;
+		if (this.settings.elemSize == undefined) this.settings.elemSize = 20;
+		if (this.settings.showGrid == undefined) this.settings.showGrid = true;
+		if (this.settings.redGrid == undefined) this.settings.redGrid = true;
+		if (this.settings.autosave == undefined) this.settings.autosave = 0;
+		if (this.settings.autoload == undefined) this.settings.autoload = false;
 		this.saveSettings();
 		this.loadSettings();
 	}
@@ -665,7 +654,7 @@ function exapi() {
 		document.getElementById("settings").getElementsByClassName("linebar")[0].style.background = 
 		this.settings.nightMode ? "linear-gradient(to right, #500 0% , #500 "+size*100/5000+"%, #050 "+size*100/5000+"%, #050 100%)" : "linear-gradient(to right, #faa 0% , #faa "+size*100/5000+"%, #afa "+size*100/5000+"%, #afa 100%)";
 		var i;
-		for (i=0; i<5; i++) {
+		for (i=0; i<7; i++) {
 			document.getElementById("settings").getElementsByClassName("color")[i].value = this.settings.color[i];
 			document.getElementById("settings").getElementsByClassName("color2")[i].value = this.settings.color[i];
 		}
@@ -713,7 +702,7 @@ function exapi() {
 		if (this.settings.autosave > 0 && this.autosaveInterval == 0) this.autosaveInterval = this.settings.autosave*1000*60;
 		if (this.settings.autosave == 0) this.autosaveInterval = 0;
 		var i;
-		for (i=0; i<5; i++) {
+		for (i=0; i<7; i++) {
 			if (this.settings.palette) this.settings.color[i] = document.getElementById("settings").getElementsByClassName("color")[i].value;
 			else this.settings.color[i] = document.getElementById("settings").getElementsByClassName("color2")[i].value;
 		}
@@ -913,7 +902,7 @@ function exapi() {
 		if (this.settings.autoload && this.settings.lastLoaded != undefined) this.error = this.error || this.load(this.settings.lastLoaded,true);
 		
 		if (this.error) return;
-		this.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1, api.sort);
+		this.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1);
 		this.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
 		if (this.locationName == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,777);
 		else {
@@ -930,7 +919,7 @@ function exapi() {
 var api = new exapi();
 
 window.onload = function () {
-	if (document.getElementById("loadstring") !== undefined) document.getElementById("loadstring").innerHTML = returnRandomLoadingLine();
+	if (document.getElementById("loadstring") != undefined) document.getElementById("loadstring").innerHTML = returnRandomLoadingLine();
 	setTimeout(function() {api.init(true)},200);
 }
 
