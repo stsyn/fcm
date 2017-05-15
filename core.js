@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:39};
+	this.version = {g:"0.0.5", s:"alpha", b:40};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -54,7 +54,7 @@ function exapi() {
 	}
 	
 	this.selectBrush = function (n) {
-		for (var i=-2; i<7; i++) {
+		for (var i=-3; i<7; i++) {
 			document.getElementById("brush"+i).classList.remove("sel");
 		}
 		document.getElementById("brush"+n).classList.add("sel");
@@ -208,6 +208,12 @@ function exapi() {
 				document.getElementById("savelist").innerHTML = "";
 			}
 			this.changed = false;
+			
+			if (project.meta == undefined) project.meta = {};
+			var t = new Date();
+			if (isNaN(project.meta.timeCreated)) project.meta.timeCreated = t.getTime();
+			project.meta.timeSaved = t.getTime();
+			
 			Recalculate();
 		}
 		catch (ex) {
@@ -422,6 +428,11 @@ function exapi() {
 			document.getElementById("side_button").classList.add("sel");
 			document.getElementById("side").classList.toggle("d");
 		}
+		else if (id == "project") {
+			this.putMetas();
+			document.getElementById("project_button").classList.add("del");
+			document.getElementById("project").classList.toggle("d");
+		}
 		else if (id == "inst") {
 			document.getElementById("inst").classList.toggle("d");
 		}
@@ -581,11 +592,12 @@ function exapi() {
 		this.settings.glFontSize = 100;
 		this.settings.dontShowAlerts = false;
 		this.settings.transparency = false;
+		this.settings.cursor = true;
 		this.settings.color = new Array('#bb0000','#bbbb00','#0000bb','#00bb00','#8000bb','#00bbbb','#006600');
 		this.settings.showGrid = true;
 		this.settings.redGrid = true;
-		this.settings.autosave = 0;
-		this.settings.autoload = false;
+		this.settings.autosave = 5;
+		this.settings.autoload = true;
 		
 		this.settings.chInterval = 33;
 		this.settings.canvasSize = 100;
@@ -666,6 +678,7 @@ function exapi() {
 		document.getElementById("st_elemsize").value = this.settings.elemSize;
 		document.getElementById("st_grid").checked = this.settings.showGrid;
 		document.getElementById("st_redGrid").checked = this.settings.redGrid;
+		document.getElementById("st_cursor").checked = this.settings.cursor;
 		document.getElementById("st_transparency").checked = this.settings.transparency;
 		document.getElementById("st_autosave").value = this.settings.autosave;
 		document.getElementById("st_autoload").checked = this.settings.autoload;
@@ -685,6 +698,7 @@ function exapi() {
 		this.settings.elemSize = parseInt(document.getElementById("st_elemsize").value);
 		this.settings.showGrid = document.getElementById("st_grid").checked;
 		this.settings.redGrid = document.getElementById("st_redGrid").checked;
+		this.settings.cursor = document.getElementById("st_cursor").checked;
 		this.settings.transparency = document.getElementById("st_transparency").checked;
 		this.settings.autosave = parseInt(document.getElementById("st_autosave").value);
 		this.settings.autoload = document.getElementById("st_autoload").checked;
@@ -710,10 +724,60 @@ function exapi() {
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
 		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.styleSwitch('transparentActive','transparency',false,false,false);
+		this.styleSwitch('customCursor','cursor',false,false,false);
 		this.topFontSize();
 		this.glFontSize();
 			
 		this.forceRedraw = true;
+	}
+	
+	this.putMetas = function() {
+		document.getElementById('m_id').value = project.id;
+		if (project.meta != undefined) {
+			document.getElementById('m_descript').value = project.meta.description;
+			document.getElementById('m_ts_created').value = project.meta.timeCreated;
+			document.getElementById('m_ts_saved').value = project.meta.timeSaved;
+			document.getElementById('m_compress').checked = project.meta.compress;
+			document.getElementById('m_encrypt').checked = project.meta.encrypt;
+			if (project.meta.encrypt) {
+				document.getElementById('m_pass1').value = project.meta.password;
+				document.getElementById('m_pass2').value = project.meta.password;
+			}
+			
+		}
+		if (project.settings != undefined) {
+			document.getElementById('m_strict').checked = project.settings.strictMode;
+			document.getElementById('m_propsize').checked = project.settings.proportional;
+		}
+	}
+	
+	this.getMetas = function() {
+		if (document.getElementById('m_encrypt').checked) {
+			if (document.getElementById('m_pass1').value != document.getElementById('m_pass2').value) {
+				api.addMessage('Пароли не совпадают','red');
+				return;
+			}
+			if (document.getElementById('m_pass1').value.length < 4) {
+				api.addMessage('Пароль слишком короткий','red');
+				return;
+			}
+		}
+		project.id = document.getElementById('m_id').value;
+		var t = new Date();
+		project.meta  = {};
+		project.meta.description = document.getElementById('m_descript').value;
+		project.meta.timeCreated = parseInt(document.getElementById('m_ts_created').value);
+		if (isNaN(project.meta.timeCreated)) project.meta.timeCreated = t.getTime();
+		project.meta.timeSaved = parseInt(document.getElementById('m_ts_saved').value);
+		if (isNaN(project.meta.timeSaved)) project.meta.timeSaved = t.getTime();
+		project.meta.compress = document.getElementById('m_compress').checked;
+		project.meta.encrypt = document.getElementById('m_encrypt').checked;
+		if (project.meta.encrypt) project.meta.password = document.getElementById('m_pass1').value;
+		project.settings  = {};
+		project.settings.strictMode = document.getElementById('m_strict').checked;
+		project.settings.proportional = document.getElementById('m_propsize').checked;
+		this.closeWindow('project');
+		
 	}
 	
 	this.resetData = function() {
@@ -873,6 +937,7 @@ function exapi() {
 		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
 		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.styleSwitch('transparentActive','transparency',false,false,false);
+		this.styleSwitch('customCursor','cursor',false,false,false);
 		this.changeSidePad(0);
 		this.changeBottomPad(0);
 		this.selectBrush(-1);

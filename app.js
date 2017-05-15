@@ -8,7 +8,7 @@ var currentBrush = {};
 var cache = {};
 
 var AuxBonds, AuxBonds2, dAuxBonds;
-var AuxMove, tElemX, tElemY;
+var AuxMove, tElemX, tElemY, tBond, tElem;
 
 
 function resetProject() {
@@ -78,7 +78,7 @@ function appDrawBond(el,b) {
 		var x1 = translateCoordsX(el[b[i].first].X), y1 = translateCoordsY(el[b[i].first].Y);
 		var x2 = translateCoordsX(el[b[i].second].X), y2 = translateCoordsY(el[b[i].second].Y);
 		
-		var isSel = (api.showBSel == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("editb")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false);
+		var isSel = (tBond == i) || (api.showBSel == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("editb")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false);
 		if (api.settings.transparency) {
 			var grd=ctx.createLinearGradient(x1,y1,x2,y2);
 			if (isSel) {
@@ -107,15 +107,15 @@ function appDrawBond(el,b) {
 		ctx.moveTo(x1,y1);
 		ctx.lineTo(x2,y2);
 		var a = -3.14/2-Math.atan2(x1-x2, y1-y2);
-		var d = getSize()*el[b[i].second].z;
+		var d = getSize(b[i].second);
 		var cx = x2 - d*Math.cos(a);
 		var cy = y2 - d*Math.sin(a);
 		ctx.moveTo(cx,cy);
 		var dx = x2 - d*2*Math.cos(a);
 		var dy = y2 - d*2*Math.sin(a);
 		
-		ctx.lineTo(dx+(getSize()/3*Math.cos(a+3.14/2)),dy+(getSize()/3*Math.sin(a+3.14/2)));
-		ctx.lineTo(dx+(getSize()/3*Math.cos(a-3.14/2)),dy+(getSize()/3*Math.sin(a-3.14/2)));
+		ctx.lineTo(dx+(getSize(b[i].second)/3*Math.cos(a+3.14/2)),dy+(getSize(b[i].second)/3*Math.sin(a+3.14/2)));
+		ctx.lineTo(dx+(getSize(b[i].second)/3*Math.cos(a-3.14/2)),dy+(getSize(b[i].second)/3*Math.sin(a-3.14/2)));
 		ctx.lineTo(cx,cy);
 		
 		ctx.closePath();
@@ -124,25 +124,32 @@ function appDrawBond(el,b) {
 	}	
 }
 
-function getSize() {
-	if (project.viewport.z>1) return api.settings.elemSize/2;
-	if (project.viewport.z>3) return api.settings.elemSize/3;
-	if (project.viewport.z>6) return api.settings.elemSize/4;
-	if (project.viewport.z>16) return api.settings.elemSize/7;
-	return api.settings.elemSize;
+function getSize(i) {
+	var ac;
+	if (i == -1) ac = 1;
+	else if (project.settings.proportional && (project.elements[i].val>0)) {
+		ac = project.elements[i].val;
+		if (ac > 1) 3-2/Math.log(ac);
+		else (ac+0.1)*3;
+	}
+	else ac = project.elements[i].z;
+	if (project.viewport.z>1) return api.settings.elemSize*ac/2;
+	if (project.viewport.z>3) return api.settings.elemSize*ac/3;
+	if (project.viewport.z>6) return api.settings.elemSize*ac/4;
+	if (project.viewport.z>16) return api.settings.elemSize*ac/7;
+	return api.settings.elemSize*ac;
 }
 
 function appDrawElements(el) {
-	var size = getSize();
-	
 	for (var i=0; i<el.length; i++) {
+		size = getSize(i);
 		if (el[i] == undefined) continue;
 		var x = el[i].X, y = el[i].Y;
 		if ((el[i].type == 4) || (el[i].type == 5)) {
 			x = translateOnBondCoordsX(el[i].X, el[i].Y);
 			y = translateOnBondCoordsY(el[i].X, el[i].Y);
 		}
-		var isSelected = ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("edite")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false) || (api.showElSel == i);
+		var isSelected = (tElem == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("edite")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false) || (api.showElSel == i);
 		
 		if (el[i].privateColor != "") ctx.fillStyle = el[i].privateColor;
 		else ctx.fillStyle = api.settings.color[el[i].type-1];
@@ -170,28 +177,30 @@ function appDrawElements(el) {
 			tcx = tcanvas.getContext('2d');
 			tcx.fillStyle = ctx.fillStyle;
 			tcx.strokeStyle = ctx.strokeStyle;
+			tcx.lineWidth = 3;
 			tcx.beginPath();
-			tcx.arc(size*el[i].z+5,size*el[i].z+5, size*el[i].z, a-3.14/4, a+3.14*1.25);
-			tcx.closePath();
-			tcx.fill();
-			tcx.globalCompositeOperation = 'destination-out';
-			tcx.beginPath();
-			tcx.arc(size*el[i].z+5+size*0.65*el[i].z*Math.cos(a-3.14/2), size*el[i].z+5+size*0.65*el[i].z*Math.sin(a-3.14/2), size*el[i].z*0.85, 0, 6.28);
+			tcx.arc(size+5,size+5, size, a-3.14/4, a+3.14*1.25);
 			tcx.closePath();
 			tcx.fill();
 			if ((((api.brush == 99) && (AuxBonds == i)) || isSelected) && api.settings.tooltips) tcx.stroke();
-			ctx.drawImage(tcanvas,translateCoordsX(x)-size*el[i].z-5,translateCoordsY(y)-size*el[i].z-5);
+			tcx.globalCompositeOperation = 'destination-out';
+			tcx.beginPath();
+			tcx.arc(size+5+size*0.65*Math.cos(a-3.14/2), size+5+size*0.65*Math.sin(a-3.14/2), size*0.85, 0, 6.28);
+			tcx.closePath();
+			tcx.fill();
+			ctx.drawImage(tcanvas,translateCoordsX(x)-size-5,translateCoordsY(y)-size-5);
 			
 		}
 		else {
 			ctx.beginPath();
-			ctx.arc(translateCoordsX(x),translateCoordsY(y), size*el[i].z, 0,6.28);
+			ctx.arc(translateCoordsX(x),translateCoordsY(y), size, 0,6.28);
 			ctx.closePath();
 			ctx.fill();
 			if ((((api.brush == 99) && (AuxBonds == i)) || isSelected) && api.settings.tooltips) ctx.stroke();
 		}
 	}
 	
+	size = getSize(-1);
 	if (((api.brush>0 && api.brush<=6)) && api.settings.tooltips) {
 		ctx.strokeStyle = api.settings.color[api.brush-1];
 		ctx.setLineDash([3, 5]);
@@ -339,6 +348,36 @@ function appMain() {
 			api.forceRedraw = true;
 		}
 	}
+	else if ((api.brush == -3) && api.settings.tooltips) {
+		var el = FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize);
+        if (el != undefined) {
+			if (tBond != el) {
+				tBond = el;
+				api.forceRedraw = true;
+			}
+		}	
+		else {
+			if (tBond != el) {
+				tBond = el;
+				api.forceRedraw = true;
+			}
+		}
+	}
+	else if ((api.brush == -1) && api.settings.tooltips) {
+		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize*3);
+        if (el != undefined) {
+			if (tElem != el) {
+				tElem = el;
+				api.forceRedraw = true;
+			}
+		}	
+		else {
+			if (tElem != el) {
+				tElem = el;
+				api.forceRedraw = true;
+			}
+		}
+	}
 	else if (((api.brush > 0) && (api.brush<=6)) && api.settings.tooltips) {
 		if ((tElemX != gridCoords(translateCoordsReverseX(api.mouse.X))) || (tElemY != gridCoords(translateCoordsReverseY(api.mouse.Y)))) {
 			tElemX = gridCoords(translateCoordsReverseX(api.mouse.X));
@@ -442,6 +481,8 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	}
 	else project.elements[id].privateColor = e.getElementsByClassName("cc_color2")[0].value;
 	if (e.getElementsByClassName("cc_size")[0].value !== "") project.elements[id].z = parseInt(e.getElementsByClassName("cc_size")[0].value)/100; else project.elements[id].z = 1;
+	if (project.elements[id].z > 3) project.elements[id].z = 3;
+	if (project.elements[id].z < 0.6) project.elements[id].z = 0.6;
 	
 	if ((type == 1) || (type == 2)) {
 		if (e.getElementsByClassName("cc_state")[0].value !== "") project.elements[id].state = parseInt(e.getElementsByClassName("cc_state")[0].value); else project.elements[id].state = 0;
@@ -645,7 +686,7 @@ function FindTheClosest(MouseX,MouseY,Type,Max) {
 			Aux1=(x-MouseX)*(x-MouseX);
 			Aux2=(y-MouseY)*(y-MouseY);
 			Aux3=Math.sqrt(Aux1+Aux2);
-			if (Aux3<Range*project.viewport.z) {
+			if ((Aux3<Range*project.viewport.z) && (Aux3<=getSize(key)*project.viewport.z)) {
 				Range=Aux3;
 				TheClosest=key;
 			}
@@ -677,7 +718,7 @@ function FindTheClosestBond(MouseX,MouseY,Max) {
 		T=Math.sqrt((AuxX2-AuxX1)*(AuxX2-AuxX1)+(AuxY2-AuxY1)*(AuxY2-AuxY1)); 
 		AuxRange=(Math.abs(AuxA*MouseX+AuxB*MouseY+AuxC))/(Math.sqrt(AuxA*AuxA+AuxB*AuxB)); 
 		if (E>T || R>T) AuxRange=Range+1; 
-		if (AuxRange<Range) { 
+		if (AuxRange<Range*project.viewport.z) { 
 			Range=AuxRange; 
 			TheClosest=key; 
 		} 
@@ -747,7 +788,7 @@ function Recalculate() {
 
 function DrawRemoveSelector() {
 	if (api.brush == 0) {
-		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
+		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize*3);
 		if (el != undefined) {
 			AuxBonds = el;
 			api.brush=99;
@@ -755,15 +796,19 @@ function DrawRemoveSelector() {
 		}
 	}
 	else if (api.brush == 99) {
-		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
+		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize*3);
 		if (el != undefined) AddBond(AuxBonds,el);
 	}
+	else if (api.brush == -3) {
+		var el = FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize);
+		if (el != undefined) editBond(el);
+	}
 	else if (api.brush == -1) {
-		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
+		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize*3);
 		if (el != undefined) editElement(el);
 	}
 	else if (api.brush == -2) {
-		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
+		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize*3);
         if (el != undefined) {
 			api.brush = 97;    	
             AuxMove=el;
