@@ -12,8 +12,11 @@ var AuxMove, tElemX, tElemY, tBond, tElem;
 
 
 function resetProject() {
+	var t = new Date();
 	project = {settings:{},elements:[],bonds:[],viewport:[]};
 	project.settings.strict = true;
+	project.meta.timeCreated = t.getTime();
+	project.meta.timeSaved = t.getTime();
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
 	update();
@@ -55,6 +58,10 @@ function translateOnBondCoordsX(b, ac) {
 
 function translateOnBondCoordsY(b, ac) {
 	return project.elements[project.bonds[b].first].Y+((project.elements[project.bonds[b].second].Y-project.elements[project.bonds[b].first].Y)*ac);
+}
+
+function deXSS(s) {
+	return s.replace(RegExp('<', 'g'), '&lt;').replace(RegExp('>', 'g'), '&gt;').replace(RegExp('"', 'g'), '&#34;').replace(RegExp("'", 'g'), '&#39;');
 }
 
 function gridCoords(i) {
@@ -437,6 +444,7 @@ function appMain() {
 				}
 				catch(ex) {
 					api.addMessage('Не удалось сохранить проект!','red');
+					if (api.settings.debug) throw ex;
 				}
 			}
 		}
@@ -472,29 +480,34 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	project.elements[id].Y = parseFloat(e.getElementsByClassName("cc_Y")[0].value);
 	var type = parseInt(e.getElementsByClassName("cc_type")[0].value);
 	project.elements[id].type = type;
-	project.elements[id].desc = e.getElementsByClassName("cc_desc")[0].value;
-	project.elements[id].name = e.getElementsByClassName("cc_name")[0].value;
+	project.elements[id].desc = deXSS(e.getElementsByClassName("cc_desc")[0].value);
+	project.elements[id].name = deXSS(e.getElementsByClassName("cc_name")[0].value);
 	if (api.settings.palette) {
 		if (e.getElementsByClassName("cc_color_check")[0].checked) 
-			project.elements[id].privateColor = e.getElementsByClassName("cc_color")[0].value;
+			project.elements[id].privateColor = deXSS(e.getElementsByClassName("cc_color")[0].value);
 		else project.elements[id].privateColor = 0;
 	}
-	else project.elements[id].privateColor = e.getElementsByClassName("cc_color2")[0].value;
-	if (e.getElementsByClassName("cc_size")[0].value !== "") project.elements[id].z = parseInt(e.getElementsByClassName("cc_size")[0].value)/100; else project.elements[id].z = 1;
+	else project.elements[id].privateColor = deXSS(e.getElementsByClassName("cc_color2")[0].value);
+	if (e.getElementsByClassName("cc_size")[0].value !== "") project.elements[id].z = parseInt(e.getElementsByClassName("cc_size")[0].value)/100; 
+	else project.elements[id].z = 1;
 	if (project.elements[id].z > 3) project.elements[id].z = 3;
 	if (project.elements[id].z < 0.6) project.elements[id].z = 0.6;
 	
 	if ((type == 1) || (type == 2)) {
-		if (e.getElementsByClassName("cc_state")[0].value !== "") project.elements[id].state = parseInt(e.getElementsByClassName("cc_state")[0].value); else project.elements[id].state = 0;
-		if (e.getElementsByClassName("cc_limit")[0].value !== "") project.elements[id].lim = parseInt(e.getElementsByClassName("cc_limit")[0].value); else project.elements[id].lim = 0;
+		if (e.getElementsByClassName("cc_state")[0].value !== "") project.elements[id].state = parseFloat(e.getElementsByClassName("cc_state")[0].value); else project.elements[id].state = 0;
+		if (e.getElementsByClassName("cc_limit")[0].value !== "") project.elements[id].lim = parseFloat(e.getElementsByClassName("cc_limit")[0].value); else project.elements[id].lim = 0;
 	}
 	else if (type == 3) {
-		if (e.getElementsByClassName("cc_cost")[0].value !== "") project.elements[id].cost = parseInt(e.getElementsByClassName("cc_cost")[0].value); else project.elements[id].cost = 0;
-		if (e.getElementsByClassName("cc_value")[0].value !== "") project.elements[id].val = parseInt(e.getElementsByClassName("cc_value")[0].value); else project.elements[id].val = 0;
+		if (e.getElementsByClassName("cc_cost")[0].value !== "") project.elements[id].cost = parseFloat(e.getElementsByClassName("cc_cost")[0].value); else project.elements[id].cost = 0;
+		if (e.getElementsByClassName("cc_value")[0].value !== "") project.elements[id].val = parseFloat(e.getElementsByClassName("cc_value")[0].value); else project.elements[id].val = 0;
 	}
 	else if ((type == 4) || (type == 5)) {
-		if (e.getElementsByClassName("cc_cost2")[0].value !== "") project.elements[id].cost = parseInt(e.getElementsByClassName("cc_cost2")[0].value); else project.elements[id].cost = 0;
-		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].val = parseInt(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].val = 0;	
+		if (e.getElementsByClassName("cc_cost2")[0].value !== "") project.elements[id].cost = parseFloat(e.getElementsByClassName("cc_cost2")[0].value); else project.elements[id].cost = 0;
+		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].val = parseFloat(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].val = 0;	
+		if (project.settings.strict) {
+			if (project.elements[id].val < 0) project.elements[id].val = 0;
+			if (project.elements[id].val > 1) project.elements[id].val = 1;
+		}
 	}
 	if (!isNew) api.brush = type;
 	update();

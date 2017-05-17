@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:40};
+	this.version = {g:"0.0.5", s:"alpha", b:41};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -169,16 +169,18 @@ function exapi() {
 			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="saves_._custom_" id="_custom_"><label for="_custom_"><input type="text" name="selection_name" id="save_custom" value="" class="b i fs" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
 		if (a == undefined) return;
 		if (a.length == 0) return;
-		for (var i=0; i<a.length; i++) {
+		var i, ec = -1;
+		for (i=0; i<a.length; i++) if (a[i] == project.name) ec = i;
+		for (i=0; i<a.length; i++) {
 			if (addname && a[i] == "_temp_save") continue;
-			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="saves_.'+i+'" '+((!addname && (i==0))?"checked":"")+'><label for="saves_.'+i+'" class="b fs">'+a[i]+'</label></div>';
+			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="saves_.'+i+'" '+(((!addname && (i==0)) || (ec == i))?"checked":"")+'><label for="saves_.'+i+'" class="b fs">'+a[i]+'</label></div>';
 		}
 	}
 	
 	this.readSelected = function(el) {
 		var e = el.querySelectorAll('input[type="radio"]');
 		for (var i=0; i<e.length; i++) {
-			if (e[i].checked) return e[i].value;
+			if (e[i].checked) return deXSS(e[i].value);
 		}
 	}
 	
@@ -219,11 +221,13 @@ function exapi() {
 		catch (ex) {
 			windows.saveError.content = 'Не удалось сохранить проект. Скорее всего, в локальном хранилище недостаточно места. Попробуйте удалить ненужные проекты, или выполните экспорт текущего проекта и сохраните его на жестком диске.<br><br>Описание ошибки:<br>'+ex;
 			this.callPopup2(windows.saveError);
+			if (api.settings.debug) throw ex;
 		}
 	}
 	
 	this.load = function(name, silent) {
 		try {
+			if (api.settings.debug) console.log("Loading ", name);
 			project = JSON.parse(localStorage[name]);
 			if (!silent) {
 				this.closeWindow("load");
@@ -239,6 +243,7 @@ function exapi() {
 		catch (ex) {
 			windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки:<br>'+ex;
 			this.callPopup2(windows.loadError);
+			if (api.settings.debug) throw ex;
 			return true;
 		}
 	}
@@ -291,7 +296,7 @@ function exapi() {
 	this.trySave = function() {
 		var v = this.readSelected(document.getElementById("savelist"));
 		if (v == "saves_._custom_") {
-			v = document.getElementById("save_custom").value;
+			v = deXSS(document.getElementById("save_custom").value);
 			if (v == "") {
 				windows.error.content = "Введите имя файла сохранения!";
 				this.callPopup2(windows.error);
@@ -307,8 +312,8 @@ function exapi() {
 				if (svs.length != 0) {
 					for (var i=0; i<svs.length; i++) {
 						if (v == svs[i]) {
-							windows.sureSave.buttons[0].functions="api.save('"+v+"')";
 							this.callPopup2(windows.sureSave);
+							document.getElementById('popUp').getElementsByClassName('b')[0].addEventListener("click", function() {api.save(v, false)});
 							return;
 						}
 					}
@@ -326,8 +331,8 @@ function exapi() {
 			}
 		}
 		else {
-			windows.sureSave.buttons[0].functions="api.save('"+v+"', false)";
 			this.callPopup2(windows.sureSave);
+			document.getElementById('popUp').getElementsByClassName('b')[0].addEventListener("click", function() {api.save(v, false)});
 			return;
 		}
 	}
@@ -356,6 +361,7 @@ function exapi() {
 	
 	this.closePopup = function() {
 		document.getElementById("popUp").classList.remove("d");
+		api.windowOnTop(api.zindex.pop());
 	}
 	
 	this.initWindowMove = function(e) {
@@ -451,6 +457,7 @@ function exapi() {
 				windows.error.content = "Сохраненные проекты отсутствуют! Если вы не можете найти уже сохраненный проект, запустите программу с того же самого места, где вы ее запускали в прошлый раз.";
 				this.callPopup2(windows.error);
 				this.windows[id] = false;
+				return;
 			}
 			else {
 				this.includeSaves(document.getElementById("loadlist"),o,false);
@@ -645,6 +652,7 @@ function exapi() {
 			windows.loadError.content = 'Не удалось загрузить настройки программы. После нажатия кнопки, настройки будут сброшены в значение по умолчанию, все сохраненные ранее проекты останутся без изменений. Если ошибка будет повторяться, свяжитесь с разработчиками.<br><br>Описание ошибки:<br>'+ex;
 			this.callPopup2(windows.startupError);
 			api.error = true;
+			if (api.settings.debug) throw ex;
 		}
 	}
 	
@@ -746,7 +754,7 @@ function exapi() {
 			
 		}
 		if (project.settings != undefined) {
-			document.getElementById('m_strict').checked = project.settings.strictMode;
+			document.getElementById('m_strict').checked = project.settings.strict;
 			document.getElementById('m_propsize').checked = project.settings.proportional;
 		}
 	}
@@ -774,18 +782,19 @@ function exapi() {
 		project.meta.encrypt = document.getElementById('m_encrypt').checked;
 		if (project.meta.encrypt) project.meta.password = document.getElementById('m_pass1').value;
 		project.settings  = {};
-		project.settings.strictMode = document.getElementById('m_strict').checked;
+		project.settings.strict = document.getElementById('m_strict').checked;
 		project.settings.proportional = document.getElementById('m_propsize').checked;
 		this.closeWindow('project');
 		
 	}
 	
 	this.resetData = function() {
+		delete this.settings;
+		this.settings = {};
 		localStorage.clear();
 		this.loadDefault();
 		this.saveSettings();
-		this.putSettings();
-		this.init(false);
+		location.reload();
 	}
 	
 	this.mouseListener = function(e, ec) {
@@ -951,8 +960,9 @@ function exapi() {
 		this.autosaveInterval = this.settings.autosave*1000*60;
 		appInit();
 		
-		windows.changelog = {header:'Список изменений',content:'<iframe src="//stsyn.github.io/fcm/changelog/'+this.locationName+'.txt"></iframe>',size:0,windowsize:'ifr'};
-		windows.about = {header:'FCMBuilder2',content:'Курсовой проект Бельского С.М. и Нафикова Д.И.<br>Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')',size:(this.locationName == "local"?0:2),buttons:[{functions:'api.callPopup2(windows.changelog)',red:false,name:'Список изменений'},{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
+		windows.changelog = {header:'Список изменений',content:(this.locationName!='local'?('<iframe src="//stsyn.github.io/fcm/changelog/'+this.locationName+'.txt"></iframe>'):'<iframe src="changelog/stable.txt"></iframe>'),size:0,windowsize:'ifr'};
+		windows.legal = {header:' ',content:'<iframe src="legal.txt"></iframe>',size:0,windowsize:'ifr'};
+		windows.about = {header:'FCMBuilder2',content:'<div class="b fs" onclick="api.callPopup2(windows.legal)">Курсовой проект Бельского С.М. и Нафикова Д.И.</div><div class="b fs" onclick="api.callPopup2(windows.changelog)">Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')</div>',size:1,buttons:[{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
