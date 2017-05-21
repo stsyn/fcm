@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:42};
+	this.version = {g:"0.0.5", s:"alpha", b:43};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -217,7 +217,10 @@ function exapi() {
 	this.exportProject = function () {
 		var blob = new Blob([JSON.stringify(project)], {type: "application/json"});
 		var url = URL.createObjectURL(blob);
-		window.open(url);
+		var a = document.createElement('a');
+		a.download = project.id+'.fcm';
+		a.href = url;
+		a.click();
 	}
 	
 	this.importProject = function () {
