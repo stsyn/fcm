@@ -938,6 +938,7 @@ function exapi() {
 		this.mouse.pressed = false;
 		this.mouse.click = false;
 		this.sort = 0;
+		appInit();
 		
 		if (fatal) {
 			document.getElementsByTagName("body")[0].addEventListener("mousemove", function(event) {
@@ -1053,7 +1054,6 @@ function exapi() {
 		this.overDraw = false;
 		this.mouse.button = 0;
 		this.autosaveInterval = this.settings.autosave*1000*60;
-		appInit();
 		
 		windows.changelog = {header:'Список изменений',content:(this.locationName!='local'?('<iframe src="//stsyn.github.io/fcm/changelog/'+this.locationName+'.txt"></iframe>'):'<iframe src="changelog/stable.txt"></iframe>'),size:0,windowsize:'ifr'};
 		windows.legal = {header:' ',content:'<iframe src="legal.txt"></iframe>',size:0,windowsize:'ifr'};
