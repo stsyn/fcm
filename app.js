@@ -13,13 +13,15 @@ var AuxMove, tElemX, tElemY, tBond, tElem;
 
 function resetProject() {
 	var t = new Date();
-	project = {settings:{},elements:[],bonds:[],viewport:[]};
+	project = {meta:{},settings:{},elements:[],bonds:[],viewport:{}};
 	project.settings.strict = true;
+	project.settings.proportional = false;
 	project.meta.timeCreated = t.getTime();
 	project.meta.timeSaved = t.getTime();
+	project.meta.description = '';
+	update();
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
-	update();
 }
 
 function resetViewport() {
@@ -439,11 +441,9 @@ function appMain() {
 				if (project.id == undefined) project.id = '_temp_save';
 				try {
 					api.save(project.id, true);
-					api.addMessage('Сохранено!','green');
 					api.autosaveInterval += api.settings.autosave*1000*60;
 				}
 				catch(ex) {
-					api.addMessage('Не удалось сохранить проект!','red');
 					if (api.settings.debug) throw ex;
 				}
 			}
@@ -457,6 +457,7 @@ function appInit() {
 	api.changed = false;
 	cache.elements = [];
 	cache.bonds = [];
+	resetProject();
 	resetViewport();
 	ctx = document.getElementById("c").getContext('2d');
 	setTimeout(appMain, api.settings.chInterval);

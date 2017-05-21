@@ -67,6 +67,28 @@ body.customCursor #c {cursor: url('cur.cur'), crosshair;}
 .b.i {
 	float:none;
 	display:inline-block;}
+#top .b.in {
+	float: none;
+	display:block;
+	border-right:none;
+	border-left:none;
+	}
+#top .b.in:not(:first-child) {
+	border-left:1px solid #ddd !important;
+	border-top:1px solid #ddd;
+	margin-left:-1px;
+	}
+#top .b.in:last-child {border-bottom:1px solid #ddd}
+#top .h:not(:hover) .b.in:not(:first-child) {
+	height:0;
+	overflow-y:hidden;
+	border-bottom:none;
+	border-top:none;
+	}
+body.night #top .b.in:not(:first-child) {border-left:1px solid #333 !important;}
+#top .b.h {
+	padding:0;
+	}
 #top .b:not(:first-child), #bottom .line .b:not(:first-child):not(:last-child) {border-left:none}
 #top .b, #bottom .line .b.as{
 	border-top:none;
@@ -82,7 +104,7 @@ body.customCursor #c {cursor: url('cur.cur'), crosshair;}
 .b.na {
 	color:#888;
 	cursor:default}
-.b.na path{fill:#888}
+.b.na path, body.night .b.na path{fill:#888}
 .b.fs{
 	width:calc(100% - .5em - 2px);
 	float:none}
@@ -317,7 +339,7 @@ body.night .b.sel, body.night .b.sel path{
 	background:#040;
 	fill:#8f8;
 	color:#8f8}
-body.night .b:not(.na):not(.sel) path {fill:#eee}
+body.night .b path {fill:#eee}
 body.night .red{color: #f88;}
 body.night .b.red, body.night .b.red path{
 	background: #400;

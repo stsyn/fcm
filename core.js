@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:41};
+	this.version = {g:"0.0.5", s:"alpha", b:42};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -76,6 +76,35 @@ function exapi() {
 		this.settings.palette = t;
 	}
 	
+	
+	this.putMetaData = function (proj, el) {
+		el.innerHTML = '';
+		
+		if (proj != "null") {
+			var p;
+			try {
+				p = JSON.parse(proj);
+			}
+			catch (ex) {
+				el.innerHTML = 'Ошибка в проекте: '+ex;
+				return true;
+			}
+			if (p.meta != undefined) {
+				if (p.meta.description != undefined) el.innerHTML += p.meta.description+'<br>';
+				var d = new Date(p.meta.timeCreated);
+				el.innerHTML += 'Создан: '+d.getDate()+'.'+d.getMonth()+'.'+d.getFullYear()+' '+d.getHours()+':'+d.getMinutes()+'<br>';
+				d = new Date(p.meta.timeSaved);
+				el.innerHTML += 'Сохранен: '+d.getDate()+'.'+d.getMonth()+'.'+d.getFullYear()+' '+d.getHours()+':'+d.getMinutes()+'<br><br>';
+				el.innerHTML += 'Сжатие: '+(p.meta.compress?'да':'нет')+'<br>';
+				el.innerHTML += 'Шифрование: '+(p.meta.encrypt?'да':'нет')+'<br>';
+				return false;
+			}
+			else {
+				el.innerHTML += 'В проекте нет метаданных!';
+				return false;
+			}
+		}
+	}
 	
 	this.getSaves = function () {
 		var ote = localStorage["fcm2.saves"];
@@ -163,28 +192,46 @@ function exapi() {
 		
 	}
 	
-	this.includeSaves = function (el, a, addname) {
+	this.includeSaves = function (el, a, addname, el2) {
 		el.innerHTML = "";
 		if (addname) 
-			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="saves_._custom_" id="_custom_"><label for="_custom_"><input type="text" name="selection_name" id="save_custom" value="" class="b i fs" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
+			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="saves_._custom_" id="_custom_"><label for="_custom_" onclick="api.putMetaData(null,document.getElementById(\''+el2+'\'))"><input type="text" name="selection_name" id="save_custom" value="" class="b i fs" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
 		if (a == undefined) return;
 		if (a.length == 0) return;
 		var i, ec = -1;
-		for (i=0; i<a.length; i++) if (a[i] == project.name) ec = i;
+		for (i=0; i<a.length; i++) if (a[i] == project.id) ec = i;
 		for (i=0; i<a.length; i++) {
 			if (addname && a[i] == "_temp_save") continue;
-			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="saves_.'+i+'" '+(((!addname && (i==0)) || (ec == i))?"checked":"")+'><label for="saves_.'+i+'" class="b fs">'+a[i]+'</label></div>';
+			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="saves_.'+i+'" '+(((!addname && (i==0)) || (ec == i))?"checked":"")+'><label for="saves_.'+i+'" class="b fs" onclick="api.putMetaData(localStorage[\''+a[i]+'\'],document.getElementById(\''+el2+'\'))">'+a[i]+'</label></div>';
+			if ((!addname && (i==0)) || (ec == i)) this.putMetaData(localStorage[a[i]],document.getElementById(el2));
 		}
 	}
 	
-	this.readSelected = function(el) {
+	this.readSelected = function (el) {
 		var e = el.querySelectorAll('input[type="radio"]');
 		for (var i=0; i<e.length; i++) {
 			if (e[i].checked) return deXSS(e[i].value);
 		}
 	}
 	
-	this.save = function(name, silent) {
+	this.exportProject = function () {
+		var blob = new Blob([JSON.stringify(project)], {type: "application/json"});
+		var url = URL.createObjectURL(blob);
+		window.open(url);
+	}
+	
+	this.importProject = function () {
+		var c = document.getElementById("import").getElementsByClassName("im_c")[0].value;
+		if (this.putMetaData(c,document.getElementById("importpad"))) {
+			this.addMessage('Проект не может быть импортирован','red');
+		}
+		project = JSON.parse(c);
+		update();
+		this.changed = false;
+		this.closeWindow('import');
+	}
+	
+	this.save = function (name, silent) {
 		try {
 			var o = this.getSaves();
 			if (o == undefined) o = [];
@@ -215,17 +262,26 @@ function exapi() {
 			var t = new Date();
 			if (isNaN(project.meta.timeCreated)) project.meta.timeCreated = t.getTime();
 			project.meta.timeSaved = t.getTime();
+			if (silent) api.addMessage('Сохранено!','green');
 			
 			Recalculate();
 		}
 		catch (ex) {
-			windows.saveError.content = 'Не удалось сохранить проект. Скорее всего, в локальном хранилище недостаточно места. Попробуйте удалить ненужные проекты, или выполните экспорт текущего проекта и сохраните его на жестком диске.<br><br>Описание ошибки:<br>'+ex;
-			this.callPopup2(windows.saveError);
+			if (!silent) {
+				windows.saveError.content = 'Не удалось сохранить проект. Скорее всего, в локальном хранилище недостаточно места. Попробуйте удалить ненужные проекты, или выполните экспорт текущего проекта и сохраните его на жестком диске.<br><br>Описание ошибки:<br>'+ex;
+				this.callPopup2(windows.saveError);
+			}
+			else api.addMessage('Не удалось сохранить проект!','red');
 			if (api.settings.debug) throw ex;
 		}
 	}
 	
-	this.load = function(name, silent) {
+	this.saveCurrent = function () {
+		if ((project.id == undefined) || (project.id == '_temp_save')) this.callWindow('save');
+		else this.save(project.id, true);
+	}
+	
+	this.load = function (name, silent) {
 		try {
 			if (api.settings.debug) console.log("Loading ", name);
 			project = JSON.parse(localStorage[name]);
@@ -302,7 +358,7 @@ function exapi() {
 				this.callPopup2(windows.error);
 				return;
 			}
-			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "undefined") || (v == "_temp_save") || (v == "hasSettings") || (v == "saves_._custom_")) {
+			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "undefined") || (v == "_temp_save") || (v == "hasSettings") || (v == "saves_._custom_") || (v == "null")) {
 				windows.error.content = "Данное имя использовать запрещено! Попробуйте какое-нибудь другое.";
 				this.callPopup2(windows.error);
 				return;
@@ -446,7 +502,7 @@ function exapi() {
 			document.getElementById("instb").classList.toggle("d");
 		}
 		else if (id == "save") {
-			this.includeSaves(document.getElementById("savelist"),this.getSaves(),true);
+			this.includeSaves(document.getElementById("savelist"),this.getSaves(),true,"savepad");
 			document.getElementById("save_button").classList.add("sel");
 			document.getElementById("save").classList.toggle("d");
 			
@@ -460,10 +516,19 @@ function exapi() {
 				return;
 			}
 			else {
-				this.includeSaves(document.getElementById("loadlist"),o,false);
+				this.includeSaves(document.getElementById("loadlist"),o,false,"loadpad");
 				document.getElementById("load_button").classList.add("sel");
 				document.getElementById("load").classList.toggle("d");
 			}
+		}
+		else if (id == "export") {
+			document.getElementById("save_button").classList.add("sel");
+			document.getElementById("export").classList.toggle("d");
+			document.getElementsByClassName("ex_c")[0].value = JSON.stringify(project);
+		}
+		else if (id == "import") {
+			document.getElementById("load_button").classList.add("sel");
+			document.getElementById("import").classList.toggle("d");
 		}
 		else if (arg1 == "edit") {
 			var ec, exists = (document.getElementById(id) !== null);
@@ -576,8 +641,8 @@ function exapi() {
 		document.getElementById(id).classList.toggle("d");
 		if (id == "settings") document.getElementById("settings_button").classList.remove("sel");
 		else if (id == "side") document.getElementById("side_button").classList.remove("sel");
-		else if (id == "save") document.getElementById("save_button").classList.remove("sel");
-		else if (id == "load") document.getElementById("load_button").classList.remove("sel");
+		else if ((id == "save") || (id == "export")) document.getElementById("save_button").classList.remove("sel");
+		else if ((id == "load") || (id == "import")) document.getElementById("load_button").classList.remove("sel");
 		var i;
 		for (i=0; this.zindex[i]!=id; i++) {0;}
 		this.zindex.splice(i, 1);
@@ -694,7 +759,7 @@ function exapi() {
 		document.getElementById("st_debugInterval").value = this.settings.chInterval;
 		document.getElementById("st_debugCanvasSize").value = this.settings.canvasSize;
 		
-		for (i=0; i<document.getElementsByClassName("ac").length; i++) api.switchElemState(document.getElementsByClassName("ac")[i]);
+		for (i=0; i<document.getElementById('settings').getElementsByClassName("ac").length; i++) api.switchElemState(document.getElementById('settings').getElementsByClassName("ac")[i]);
 	}
 	
 	this.getSettings = function() {
@@ -757,6 +822,8 @@ function exapi() {
 			document.getElementById('m_strict').checked = project.settings.strict;
 			document.getElementById('m_propsize').checked = project.settings.proportional;
 		}
+		
+		for (i=0; i<document.getElementById('project').getElementsByClassName("ac").length; i++) api.switchElemState(document.getElementById('project').getElementsByClassName("ac")[i]);
 	}
 	
 	this.getMetas = function() {
@@ -920,6 +987,31 @@ function exapi() {
 			document.getElementById("bpad2").getElementsByTagName("table")[0].addEventListener("mouseout", function(event) {
 				api.enBSel = false;
 			});
+			
+			
+			document.getElementById("import").getElementsByClassName("im_c")[0].addEventListener("input", function(event) {
+				api.putMetaData(document.getElementById("import").getElementsByClassName("im_c")[0].value,document.getElementById("importpad"));
+			});
+			if('ondrop' in document.createElement('div')) {
+				document.getElementById("import").getElementsByClassName("im_c")[0].addEventListener('dragover', function (e) {
+					e.stopPropagation();
+					e.preventDefault();
+					e.dataTransfer.dropEffect = 'copy';
+				});
+				
+				document.getElementById("import").getElementsByClassName("im_c")[0].addEventListener('drop', function (e) {
+					e.stopPropagation();
+					e.preventDefault();
+
+					var file = e.dataTransfer.files[0];
+					var reader = new FileReader();
+					reader.onload = function() {
+						document.getElementById("import").getElementsByClassName("im_c")[0].value=reader.result;
+						api.putMetaData(document.getElementById("import").getElementsByClassName("im_c")[0].value,document.getElementById("importpad"))
+					}
+					reader.readAsText(file);
+				});
+			}
 			
 			window.onresize = function(){api.forceRedraw = true}
 		
