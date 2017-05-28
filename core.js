@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:43};
+	this.version = {g:"0.0.5", s:"alpha", b:44};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -116,80 +116,82 @@ function exapi() {
 		localStorage["fcm2.saves"] = JSON.stringify(s);
 	}
 	
-	this.includeElementsTLine = function (e, el, i) {
-		e.innerHTML += '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+el[i].name+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":el[i].val)+'</td></tr>';
+	this.includeElementsTLine = function (el, i) {
+		return '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+el[i].name+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":el[i].val)+'</td></tr>';
 	}
 		
 	this.includeElements = function (e,filter) {
 		var el = project.elements;
+		var s = '';
 		var ax = ((filter == -1)?"":" na")
 		
 		if (el.length == 0) {
-			e.innerHTML = '<tr class="headline"><td class="b fs na">Нет элементов</td></tr>';
+			s = '<tr class="headline b fs na"><td class="b fs na">Нет элементов</td></tr>';
 			return;
 		}
-		e.innerHTML = '<tr class="headline"><td class="b fs na sort0'+ax+'">ID</td><td class="b fs na sort1'+ax+'">Тип</td><td class="b fs na sort2">Имя</td><td class="b fs na sort3">Состояние</td><td class="b fs na sort4">Предельное</td><td class="b fs na sort5">Стоимость</td><td class="b fs na sort6">Эффективность</td></tr>';
+		s = '<tr class="headline"><td class="b fs na sort0'+ax+'">ID</td><td class="b fs na sort1'+ax+'">Тип</td><td class="b fs na sort2">Имя</td><td class="b fs na sort3">Состояние</td><td class="b fs na sort4">Предельное</td><td class="b fs na sort5">Стоимость</td><td class="b fs na sort6">Эффективность</td></tr>';
 		var i, j;
 		if (filter != -1) {
-			this.includeElementsTLine (e, el, project.bonds[filter].first);
-			for (i=0; i<cache.bonds[filter].elems.length; i++) this.includeElementsTLine (e, el, cache.bonds[filter].elems[i]);
-			this.includeElementsTLine (e, el, project.bonds[filter].second);
+			s += this.includeElementsTLine(el, project.bonds[filter].first);
+			for (i=0; i<cache.bonds[filter].elems.length; i++) s += this.includeElementsTLine (el, cache.bonds[filter].elems[i]);
+			s += this.includeElementsTLine (el, project.bonds[filter].second);
 		}
 		
 		else for (i=0; i<el.length; i++) {
 			if (el[i] == undefined) continue;
-			this.includeElementsTLine (e, el, i);
+			s += this.includeElementsTLine (el, i);
 		}
-		
+		e.innerHTML = s;
 	}
 	
-	this.includeBondsTLine = function (e, b, el, i) {
-		e.innerHTML += '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+'-'+b[i].second+'</td><td>'+b[i].val+'</td><td>'+el[b[i].first].name+'</td><td>'+el[b[i].second].name+'</td></tr>';
+	this.includeBondsTLine = function (b, el, i) {
+		return '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+'-'+b[i].second+'</td><td>'+b[i].val+'</td><td>'+el[b[i].first].name+'</td><td>'+el[b[i].second].name+'</td></tr>';
 	}
 		
 	this.includeBonds = function (e, filter) {
+		var s = '';
 		var el = project.elements;
 		var b = project.bonds;
 		
 		if (b.length == 0) {
-			e.innerHTML = '<tr class="headline"><td class="b fs na">Нет связей</td></tr>';
+			s = '<tr class="headline b fs na"><td class="b fs na">Нет связей</td></tr>';
 			return;
 		}
 		if ((filter != -1) && (cache.elements[filter].inbonds.length == 0) && (cache.elements[filter].outbonds.length == 0) && (el[filter].type != 4) && (el[filter].type != 5)) {
-			e.innerHTML = "Нет связей";
+			s = '<tr class="headline b fs na"><td class="b fs na">Нет связей</td></tr>';
 			return;
 		}
-		e.innerHTML = '<tr class="headline"><td class="b fs na">ID</td><td class="b fs na">Путь</div><td class="b fs na">Сила</td><td class="b fs na">Начало</td><td class="b fs na">Конец</td></tr>';
+		s = '<tr class="headline"><td class="b fs na">ID</td><td class="b fs na">Путь</div><td class="b fs na">Сила</td><td class="b fs na">Начало</td><td class="b fs na">Конец</td></tr>';
 		var i, j;
 		if (filter != -1) {
 			if ((el[filter].type == 4) || (el[filter].type == 5)) {
-				e.innerHTML += '<tr><td colspan="5">Родительская связь</td></tr>';
-				this.includeBondsTLine (e, b, el, el[filter].X);
+				s += '<tr class="headline b fs na"><td colspan="5">Родительская связь</td></tr>';
+				s += this.includeBondsTLine (b, el, el[filter].X);
 				return;
 			}
 			var t = true;
 			for (i=0; i<cache.elements[filter].inbonds.length; i++) {
 				if (t) {
 					t = false;
-					e.innerHTML += '<tr><td colspan="5">Входящие связи</td></tr>';
+					s += '<tr class="headline b fs na"><td colspan="5">Входящие связи</td></tr>';
 				}
-				this.includeBondsTLine (e, b, el, cache.elements[filter].inbonds[i]);
+				s += this.includeBondsTLine (b, el, cache.elements[filter].inbonds[i]);
 			}
 			var t = true;
 			for (i=0; i<cache.elements[filter].outbonds.length; i++) {
 				if (t) {
 					t = false;
-					e.innerHTML += '<tr><td colspan="5">Исходящие связи</td></tr>';
+					s += '<tr class="headline b fs na"><td colspan="5">Исходящие связи</td></tr>';
 				}
-				this.includeBondsTLine (e, b, el, cache.elements[filter].outbonds[i]);
+				s += this.includeBondsTLine (b, el, cache.elements[filter].outbonds[i]);
 			}
 		}
 		
 		else for (i=0; i<b.length; i++) {
 			if (b[i] == undefined) continue;
-			this.includeBondsTLine (e, b, el, i); //я случайно }:]
+			s += this.includeBondsTLine (b, el, i);
 		}
-		
+		e.innerHTML = s;
 	}
 	
 	this.includeSaves = function (el, a, addname, el2) {
@@ -217,9 +219,14 @@ function exapi() {
 	this.exportProject = function () {
 		var blob = new Blob([JSON.stringify(project)], {type: "application/json"});
 		var url = URL.createObjectURL(blob);
+		var c = document.querySelector('#export .exportlink');
+		c.innerHTML = '';
 		var a = document.createElement('a');
 		a.download = project.id+'.fcm';
 		a.href = url;
+		a.target = "_blank";
+		a.innerHTML = "Если загрузка не началась, нажмите сюда";
+		c.appendChild(a);
 		a.click();
 	}
 	
@@ -528,6 +535,7 @@ function exapi() {
 			document.getElementById("save_button").classList.add("sel");
 			document.getElementById("export").classList.toggle("d");
 			document.getElementsByClassName("ex_c")[0].value = JSON.stringify(project);
+			document.querySelector('#export .exportlink').innerHTML = '';
 		}
 		else if (id == "import") {
 			document.getElementById("load_button").classList.add("sel");
@@ -673,6 +681,7 @@ function exapi() {
 		this.settings.redGrid = true;
 		this.settings.autosave = 5;
 		this.settings.autoload = true;
+		this.settings.elemLabels = true;
 		
 		this.settings.chInterval = 33;
 		this.settings.canvasSize = 100;
@@ -758,6 +767,7 @@ function exapi() {
 		document.getElementById("st_transparency").checked = this.settings.transparency;
 		document.getElementById("st_autosave").value = this.settings.autosave;
 		document.getElementById("st_autoload").checked = this.settings.autoload;
+		document.getElementById("st_elemLabels").checked = this.settings.elemLabels;
 		
 		document.getElementById("st_debugInterval").value = this.settings.chInterval;
 		document.getElementById("st_debugCanvasSize").value = this.settings.canvasSize;
@@ -778,6 +788,7 @@ function exapi() {
 		this.settings.transparency = document.getElementById("st_transparency").checked;
 		this.settings.autosave = parseInt(document.getElementById("st_autosave").value);
 		this.settings.autoload = document.getElementById("st_autoload").checked;
+		this.settings.elemLabels = document.getElementById("st_elemLabels").checked;
 		
 		this.settings.chInterval = parseInt(document.getElementById("st_debugInterval").value);
 		this.settings.canvasSize = parseInt(document.getElementById("st_debugCanvasSize").value);
@@ -824,6 +835,7 @@ function exapi() {
 		if (project.settings != undefined) {
 			document.getElementById('m_strict').checked = project.settings.strict;
 			document.getElementById('m_propsize').checked = project.settings.proportional;
+			document.getElementById('m_propcolor').checked = project.settings.propColor;
 		}
 		
 		for (i=0; i<document.getElementById('project').getElementsByClassName("ac").length; i++) api.switchElemState(document.getElementById('project').getElementsByClassName("ac")[i]);
@@ -854,6 +866,7 @@ function exapi() {
 		project.settings  = {};
 		project.settings.strict = document.getElementById('m_strict').checked;
 		project.settings.proportional = document.getElementById('m_propsize').checked;
+		project.settings.propColor = document.getElementById('m_propcolor').checked;
 		this.closeWindow('project');
 		
 	}

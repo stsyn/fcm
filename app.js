@@ -1,7 +1,11 @@
 var project = {settings:{},elements:[],bonds:[],viewport:{}};
 var colorScheme = [
-{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",selected:"#00f",aconnections:"rgba(17,17,17,0)",aactconn:"rgba(136,255,136,0)"},
-{bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)"}];
+{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",
+selected:"#00f",aconnections:"rgba(17,17,17,0)",  aactconn:"rgba(136,255,136,0)",
+text:'#000',stext:'#fff',seltext:'#060'},
+{bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",
+selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)",    
+text:'#eee',stext:'#111',seltext:'#8f8'}];
 var ctx, tcx, zoomprop, linePattern;
 var doMoving = {};
 var currentBrush = {};
@@ -62,6 +66,20 @@ function translateOnBondCoordsY(b, ac) {
 	return project.elements[project.bonds[b].first].Y+((project.elements[project.bonds[b].second].Y-project.elements[project.bonds[b].first].Y)*ac);
 }
 
+function getColor(a) {
+	var c = a;
+	if (c<0) c=0; if (c>1) c=1;
+	if (c<0.5) return 'rgb('+parseInt(511*c)+',255,0)';
+	else return 'rgb(255,'+(255-parseInt(511*(c-0.5)))+',0)';
+}
+
+function agetColor(a) {
+	var c = a;
+	if (c<0) c=0; if (c>1) c=1;
+	if (c<0.5) return 'rgba('+parseInt(511*c)+',255,0,0)';
+	else return 'rgba(255,'+(255-parseInt(511*(c-0.5)))+',0,0)';
+}
+
 function deXSS(s) {
 	return s.replace(RegExp('<', 'g'), '&lt;').replace(RegExp('>', 'g'), '&gt;').replace(RegExp('"', 'g'), '&#34;').replace(RegExp("'", 'g'), '&#39;');
 }
@@ -88,33 +106,64 @@ function appDrawBond(el,b) {
 		var x2 = translateCoordsX(el[b[i].second].X), y2 = translateCoordsY(el[b[i].second].Y);
 		
 		var isSel = (tBond == i) || (api.showBSel == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("editb")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false);
-		if (api.settings.transparency) {
-			var grd=ctx.createLinearGradient(x1,y1,x2,y2);
-			if (isSel) {
-				grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aactconn);
-				grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].actconn);
-				ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;	
+		if (project.settings.propColor) {
+			if (api.settings.transparency) {
+				var grd=ctx.createLinearGradient(x1,y1,x2,y2);
+				if (isSel) {	
+					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aactconn);
+					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)].actconn);
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+				}
+				else {
+					grd.addColorStop(0,agetColor(b[i].val));
+					grd.addColorStop(0.3,getColor(b[i].val));
+					ctx.fillStyle=getColor(b[i].val);
+				}
+				ctx.strokeStyle=grd;
 			}
 			else {
-				grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aconnections);
-				grd.addColorStop(0.5,colorScheme[(api.settings.nightMode?1:0)].connections);
-				ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
+				if (isSel) {
+					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+				}
+				else {
+					ctx.strokeStyle=getColor(b[i].val);
+					ctx.fillStyle=getColor(b[i].val);
+				}
 			}
-			ctx.strokeStyle=grd;
 		}
 		else {
-			if (isSel) {
-				ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
-				ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+			if (api.settings.transparency) {
+				var grd=ctx.createLinearGradient(x1,y1,x2,y2);
+				if (isSel) {
+					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aactconn);
+					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)].actconn);
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;	
+				}
+				else {
+					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aconnections);
+					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)].connections);
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
+				}
+				ctx.strokeStyle=grd;
 			}
 			else {
-				ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
-				ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
+				if (isSel) {
+					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+				}
+				else {
+					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
+				}
 			}
 		}
 		ctx.beginPath();
 		ctx.moveTo(x1,y1);
 		ctx.lineTo(x2,y2);
+		ctx.closePath();
+		ctx.stroke();
+		ctx.beginPath();
 		var a = -3.14/2-Math.atan2(x1-x2, y1-y2);
 		var d = getSize(b[i].second);
 		var cx = x2 - d*Math.cos(a);
@@ -128,18 +177,23 @@ function appDrawBond(el,b) {
 		ctx.lineTo(cx,cy);
 		
 		ctx.closePath();
-		ctx.stroke();
 		ctx.fill();
+		ctx.stroke();
 	}	
 }
 
 function getSize(i) {
 	var ac;
+	if (project.elements[i] == undefined) return;
 	if (i == -1) ac = 1;
+	else if (project.elements[i].val == undefined) {
+		ac = project.elements[i].z;
+	}
 	else if (project.settings.proportional && (project.elements[i].val>0)) {
 		ac = project.elements[i].val;
-		if (ac > 1) 3-2/Math.log(ac);
-		else (ac+0.1)*3;
+		if (ac > 1) ac = 3-2/Math.log(ac);
+		else ac = (ac+0.1)*3;
+		ac/=2;
 	}
 	else ac = project.elements[i].z;
 	if (project.viewport.z>1) return api.settings.elemSize*ac/2;
@@ -150,19 +204,30 @@ function getSize(i) {
 }
 
 function appDrawElements(el) {
+	//пора разгребать
+	var size;
 	for (var i=0; i<el.length; i++) {
-		size = getSize(i);
+		//элемент существует
 		if (el[i] == undefined) continue;
+		
+		//получаем размер
+		size = getSize(i);
+		
+		//получаем коорды
 		var x = el[i].X, y = el[i].Y;
 		if ((el[i].type == 4) || (el[i].type == 5)) {
 			x = translateOnBondCoordsX(el[i].X, el[i].Y);
 			y = translateOnBondCoordsY(el[i].X, el[i].Y);
 		}
+		
+		//выбран ли?
 		var isSelected = (tElem == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("edite")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false) || (api.showElSel == i);
 		
+		//определяем цвет заливки
 		if (el[i].privateColor != "") ctx.fillStyle = el[i].privateColor;
 		else ctx.fillStyle = api.settings.color[el[i].type-1];
 		
+		//выбираем обводку
 		if ((api.brush == 99) && (AuxBonds == i)) ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].actconn;
 		if (isSelected) ctx.strokeStyle = api.settings.color[6];
 		if ((AuxBonds == i) && api.settings.tooltips) {
@@ -173,6 +238,8 @@ function appDrawElements(el) {
 			else if (api.brush == 99) document.getElementById("brush0").style.background=colorScheme[(api.settings.nightMode?1:0)].line;
 			else document.getElementById("brush0").style.background="";
 		}
+		
+		//рисуем на связи
 		if ((el[i].type == 4) || (el[i].type == 5)) {
 			var b = project.bonds;
 			var x1 = el[b[el[i].X].first].X;
@@ -200,6 +267,8 @@ function appDrawElements(el) {
 			ctx.drawImage(tcanvas,translateCoordsX(x)-size-5,translateCoordsY(y)-size-5);
 			
 		}
+		
+		//рисуем просто так
 		else {
 			ctx.beginPath();
 			ctx.arc(translateCoordsX(x),translateCoordsY(y), size, 0,6.28);
@@ -207,6 +276,26 @@ function appDrawElements(el) {
 			ctx.fill();
 			if ((((api.brush == 99) && (AuxBonds == i)) || isSelected) && api.settings.tooltips) ctx.stroke();
 		}
+		
+		//подписи
+		if (api.settings.elemLabels) {
+			ctx.font = 300+100*(api.settings.nightMode?0:1)+" "+12*api.settings.glFontSize/100+"pt 'Open Sans'";
+			if (isSelected) ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].seltext;
+			else ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].text;
+			ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].stext;
+			ctx.textAlign = 'center';
+			if (translateCoordsY(y) < ctx.canvas.height/2) {
+				ctx.textBaseline = 'top';
+				ctx.strokeText(el[i].name, translateCoordsX(x), translateCoordsY(y)+size*1.05);
+				ctx.fillText(el[i].name, translateCoordsX(x), translateCoordsY(y)+size*1.05);
+			}
+			else {
+				ctx.textBaseline = 'bottom';
+				ctx.strokeText(el[i].name, translateCoordsX(x), translateCoordsY(y)-size*1.05);
+				ctx.fillText(el[i].name, translateCoordsX(x), translateCoordsY(y)-size*1.05);
+			}
+		}
+		
 	}
 	
 	size = getSize(-1);
