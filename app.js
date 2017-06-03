@@ -69,15 +69,15 @@ function translateOnBondCoordsY(b, ac) {
 function getColor(a) {
 	var c = a;
 	if (c<0) c=0; if (c>1) c=1;
-	if (c<0.5) return 'rgb('+parseInt(511*c)+',255,0)';
-	else return 'rgb(255,'+(255-parseInt(511*(c-0.5)))+',0)';
+	if (c<0.5) return 'rgb('+parseInt(511*c/(api.settings.nightMode?1:1.5))+','+(api.settings.nightMode?255:170)+',0)';
+	else return 'rgb(255,'+parseInt((255-511*(c-0.5))/(api.settings.nightMode?1:1.5))+',0)';
 }
 
 function agetColor(a) {
 	var c = a;
 	if (c<0) c=0; if (c>1) c=1;
-	if (c<0.5) return 'rgba('+parseInt(511*c)+',255,0,0)';
-	else return 'rgba(255,'+(255-parseInt(511*(c-0.5)))+',0,0)';
+	if (c<0.5) return 'rgba('+parseInt(511*c/(api.settings.nightMode?1:1.5))+','+(api.settings.nightMode?255:170)+',0,0)';
+	else return 'rgba(255,'+parseInt((255-511*(c-0.5))/(api.settings.nightMode?1:1.5))+',0,0)';
 }
 
 function deXSS(s) {
@@ -184,8 +184,8 @@ function appDrawBond(el,b) {
 
 function getSize(i) {
 	var ac;
-	if (project.elements[i] == undefined) return;
 	if (i == -1) ac = 1;
+	else if (project.elements[i] == undefined) return 1;
 	else if (project.elements[i].val == undefined) {
 		ac = project.elements[i].z;
 	}
@@ -279,7 +279,7 @@ function appDrawElements(el) {
 		
 		//подписи
 		if (api.settings.elemLabels) {
-			ctx.font = 300+100*(api.settings.nightMode?0:1)+" "+12*api.settings.glFontSize/100+"pt 'Open Sans'";
+			ctx.font = 300+100*(api.settings.nightMode?0:1)+" "+12*api.settings.glFontSize/100+"pt "+(api.settings.cursor?"'Open Sans'":"'Verdana'");
 			if (isSelected) ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].seltext;
 			else ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].text;
 			ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].stext;
@@ -735,11 +735,11 @@ function AddElement(MouseX,MouseY,onBond) {
 	api.brush = 100;
 }
 
-function MoveElement(ActualElement,NewX,NewY) {
-	var x=gridCoords(NewX), y=gridCoords(NewY);
+function MoveElement(ActualElement,NewX,NewY,rec) {
+	var x=(rec?NewX:gridCoords(NewX)), y=(rec?NewY:gridCoords(NewY));
 	var i=x, i2=y;
 	if ((project.elements[ActualElement].type > 0) && (project.elements[ActualElement].type<=3) && (isElementThere(x,y,ActualElement))) return;
-	if ((project.elements[ActualElement].type == 4) || (project.elements[ActualElement].type == 5)) {
+	if ((project.elements[ActualElement].type == 4) || (project.elements[ActualElement].type == 5) && !rec) {
 		i = FindTheClosestBond(NewX,NewY,api.settings.elemSize);
         if (i != undefined) i2 = BondPositon(NewX,NewY,i);
 	}
@@ -913,6 +913,8 @@ function DrawRemoveSelector() {
 	else if (api.brush == -2) {
 		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize*3);
         if (el != undefined) {
+			tElemX = project.elements[el].X;
+			tElemY = project.elements[el].Y;
 			api.brush = 97;    	
             AuxMove=el;
 		}			
@@ -930,4 +932,18 @@ function DrawRemoveSelector() {
 	}
 	else if (api.brush == 97) MoveElement(AuxMove,translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y));
 	else AddElement(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y), false);
+}
+
+function rClickListener(e) {
+	if (api.brush == 99) {
+		api.brush = 0;
+		api.forceRedraw = true;
+		e.preventDefault();
+	}
+	else if (api.brush == 97) {
+		api.brush = -2;
+		MoveElement(AuxMove,tElemX,tElemY,true);
+		api.forceRedraw = true;
+		e.preventDefault();
+	}
 }

@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:44};
+	this.version = {g:"0.0.5", s:"alpha", b:45};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -23,6 +23,20 @@ function exapi() {
 		var e = document.getElementsByTagName("body")[0].classList;
 		if (e.contains(id) != (this.settings[variable] != reverse)) e.toggle(id);
 		if (rewrite) this.saveSettings();
+	}
+	
+	this.fontSwitch = function() {
+		var c = document.getElementById('font');
+		if ((c != undefined) && this.settings.cursor) return;
+		else if ((c != undefined) && !this.settings.cursor) c.parentNode.removeChild(c);
+		else if ((c == undefined) && !this.settings.cursor) return;
+		else {
+			c = document.createElement('link');
+			c.href = 'https://fonts.googleapis.com/css?family=Open+Sans:300,400,600&amp;subset=cyrillic';
+			c.id = 'font';
+			c.rel = 'stylesheet';
+			document.head.appendChild(c);
+		}
 	}
 	
 	this.topFontSize = function() {
@@ -696,6 +710,7 @@ function exapi() {
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
 		this.topFontSize();
 		this.glFontSize();
+		this.fontSwitch();
 		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
 		this.styleSwitch('night','nightMode',false,false,false);
@@ -814,6 +829,7 @@ function exapi() {
 		this.styleSwitch('customCursor','cursor',false,false,false);
 		this.topFontSize();
 		this.glFontSize();
+		this.fontSwitch();
 			
 		this.forceRedraw = true;
 	}
@@ -898,7 +914,10 @@ function exapi() {
 	
 	this.mouseClickListener = function(e) {
 		if (doMoving.act) return;
-		if (e.which == 2) return;
+		if (e.which == 3) {
+			rClickListener(e);
+			return;
+		}
 		for (var i=0; i<api.mouse.onclick.length; i++) api.mouse.onclick[i]();
 	}
 	
@@ -990,6 +1009,9 @@ function exapi() {
 			document.getElementById("c").addEventListener("click", function(event) {
 				api.mouseClickListener(event);
 			});
+			document.getElementById("c").addEventListener("contextmenu", function(event) {
+				api.mouseClickListener(event);
+			});
 			
 			document.getElementById("bpad1").getElementsByTagName("table")[0].addEventListener("mouseover", function() {
 				api.enElSel = true;
@@ -1051,6 +1073,7 @@ function exapi() {
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
 		this.topFontSize();
 		this.glFontSize();
+		this.fontSwitch();
 		this.styleSwitch('night','nightMode',false,false,false);
 		this.styleSwitch('bottomHidden','bottomHidden',false,false,false);
 		this.styleSwitch('debugEnabled','debug',false,false,false);
