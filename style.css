@@ -303,6 +303,8 @@ body.night #messages > span.red{
 	overflow-y:auto}
 #windows .cc.btns{height:calc(100% - 4.3em - 18px)}
 #windows .bt{padding:5px}
+#windows .bt.up {margin:0 3px}
+#windows .bt.up .t .b:first-child, #windows .bt.up .t .b:last-child{padding:0 calc(4px + .25em)}
 #windows .h, #windows .hc {
 	width:100%;
 	font-size:150%;

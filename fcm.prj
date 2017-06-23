@@ -1,0 +1,15 @@
+<NotepadPlus>
+    <Project name="fcm">
+        <Folder name="changelog">
+            <File name="changelog\nightly.txt" />
+            <File name="changelog\stable.txt" />
+        </Folder>
+        <File name="index.html" />
+        <File name="core.js" />
+        <File name="style.css" />
+        <File name="app.js" />
+        <File name="random.js" />
+        <File name="loadbar.css" />
+        <File name="legal.txt" />
+    </Project>
+</NotepadPlus>

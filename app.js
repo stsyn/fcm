@@ -23,6 +23,7 @@ function resetProject() {
 	project.meta.timeCreated = t.getTime();
 	project.meta.timeSaved = t.getTime();
 	project.meta.description = '';
+	project.cases = [];
 	update();
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
@@ -862,10 +863,84 @@ function BondPositon(MouseX,MouseY,key) {
 	Range=AuxRange/Range; 
 	return Range;
 }
+
+function getBondVal(el, caseid) {
+	var i, c = project.bonds[el].val;
+	for (i=0; i<cache.bonds[el].elems.length; i++) {
+		if (caseid >=0) if (project.cases[caseid].enabled[u] == undefined) project.cases[caseid].enabled[u] = true;
+		var u = cache.bonds[el].elems[i];
+		//console.log(project.elements[u].type);
+		var t = (project.elements[u].type == 4);
+		if (caseid == -2 && t) continue;		//не учитываем защитные меры, если все выключено
+		if (caseid == -1 && !t) continue;       //не учитываем дестабилизаторы, если все включено
+		if (caseid >= 0 && (project.cases[caseid].enabled[u] ^ t)) continue;
+		if (t) c *= (1 - project.elements[u].val);
+		else c = (1 - (1 - c) * (1 - project.elements[u].val));
+	}
+	return c;
+}
+
+function iteration(i, cur, val, roadmap) {
+	var c;
+	if (project.elements[cur].type == 3) {
+		if (api.settings.debug) console.log('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.');
+		if (cache.elements[cur].calcChance[roadmap[0]] == undefined) {
+			cache.elements[cur].calcChance[roadmap[0]] = [];
+			for (var j=0; j<val.length; j++) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];
+		}
+		else for (var j=0; j<val.length; j++) 		//досчитали
+			if (cache.elements[cur].calcChance[roadmap[0]][j]<val[j]) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
+		return;
+	}
+	for (c=0; c<cache.elements[cur].outbonds.length; c++) {
+		for (var i=0; i<roadmap.length; i++) if (roadmap[i] == cur) {
+			if (api.settings.debug) console.log('Вошли в цикл на итерации '+i+'. Текущий элемент №'+cur+', путь '+roadmap+'.');
+			continue;	//не зацикливаемся
+		}
+		if (api.settings.debug) console.log('Находимся на итерации '+i+'. Текущий элемент №'+cur+', пока что '+val+'.');
+		
+		var j=0;
+		for (j = -2; j<project.cases.length; j++) {
+			val[j+2] = (val[j+2]<getBondVal(cache.elements[cur].outbonds[c], j)?val[j+2]:getBondVal(cache.elements[cur].outbonds[c], j));
+		}
+		
+		iteration(i+1, 
+			project.bonds[cache.elements[cur].outbonds[c]].second, 				//следующий элемент
+			val,	//меньшую силу передаем
+			roadmap.concat(cur));
+	}
+}
+	
+function Recompile() {
+	Recalculate();
+	var uv = [];
+	if (project.cases == undefined) project.cases = [];
+	var c = project.cases.length+2;
+	while (c--) uv.push(999);
+	for (c=0; c<cache.types[2].length; c++) 
+		cache.elements[cache.types[2][c]].calcChance = [];
+	for (c=0; c<cache.types[0].length; c++)
+		iteration(0, cache.types[0][c], uv, []);
+	for (c=0; c<cache.types[2].length; c++) {
+		var e = cache.types[2][c];
+		if (cache.elements[e].calcChance.length > 0) {
+			project.elements[e].calcChance = [];
+			for (var j=-2; j<project.cases.length; j++) {
+				project.elements[e].calcChance[j+2] = 0;
+				for (var i=0; i<cache.elements[e].calcChance.length; i++) 
+					if (cache.elements[e].calcChance[i] != undefined)
+						if (project.elements[e].calcChance[j+2]<cache.elements[e].calcChance[i][j+2]) project.elements[e].calcChance[j+2] = cache.elements[e].calcChance[i][j+2];
+			}
+		}
+	}
+	api.closePopup();
+}
 	
 function Recalculate() {
 	var i,j,k;
 	cache.bonds = [];
+	cache.types = [];
+	for (i=0; i<6; i++) cache.types[i] = [];
 	for (i=0; i<project.bonds.length;i++) {
 		cache.bonds[i] = {};
 		cache.bonds[i].elems = [];
@@ -882,9 +957,11 @@ function Recalculate() {
 			   }
 		   }
 		   
-		   if ((project.elements[i].type == 4) || (project.elements[i].type == 5)) {
+		   if ((project.elements[i].type == 4) || (project.elements[i].type == 5)) {  //элементы на связях
 			   cache.bonds[project.elements[i].X].elems.push(i);
 		   }
+		   
+		   cache.types[project.elements[i].type-1].push(i);		//типы элементов
 	   }
 	}
 }

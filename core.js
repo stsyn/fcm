@@ -15,7 +15,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.5", s:"alpha", b:45};
+	this.version = {g:"0.0.6", s:"beta", b:46};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -481,6 +481,192 @@ function exapi() {
 		this.callPopup2(windows.sureDelete);
 	}
 	
+	this.renderCaseElem = function (caseid, elem, u) {
+		if (caseid>0 && elem>0) if (project.cases[caseid].enabled[elem] == undefined) project.cases[caseid].enabled[elem] = true;
+		var e = document.createElement('div');
+		var isEnabled = (elem == -1 ? false : (caseid == -2 ? false : (caseid == -1 ? true : project.cases[caseid].enabled[elem])));
+		e.classList = 't2 b fs'+(isEnabled ? (caseid>=0 ? ' sel stillsel' : ' sel') : (caseid>=0 ? '' : ' na'))+(elem == -1 ? ' na' : '');
+		e.value = caseid;
+		e.style = (elem == -1 ?'':'text-align:left');
+		e.elemId = elem;
+		
+		var c = document.createElement('div');
+		c.className = 't';
+		c.innerHTML = (elem == -1 ? 'Имя':project.elements[elem].name);
+		e.appendChild(c);
+		
+		c = document.createElement('div');
+		c.className = 't';
+		c.innerHTML = (elem == -1 ? 'Значение':project.elements[elem].val);
+		e.appendChild(c);
+		
+		c = document.createElement('div');
+		c.className = 't';
+		c.innerHTML = (elem == -1 ? 'Стоимость':project.elements[elem].cost);
+		e.appendChild(c);
+		
+		if (elem >= 0 && caseid >= 0) e.addEventListener("click", function() {
+			project.cases[this.value].enabled[this.elemId] = !project.cases[this.value].enabled[this.elemId];
+			api.renderCase(this.value);
+		});
+		
+		u.appendChild(e);
+	}
+	
+	this.requestDeletionCase = function() {
+		windows.deleteCase.buttons[0].functions = 'project.cases.splice('+api.selectedCase+',1);api.closePopup();api.drawCases()';
+		api.callPopup2(windows.deleteCase);
+	}
+	
+	this.renderCase = function(val) {
+		api.selectedCase = val;
+		document.getElementById('caseoptions').innerHTML = '<div class="table r"><div class="t3"></div></div>';
+		var i;
+		for (i=0; i<document.getElementById('caselist').getElementsByClassName('b').length; i++) 
+			document.getElementById('caselist').getElementsByClassName('b')[i].classList.remove('sel');
+		document.getElementById('caselist').getElementsByClassName('b')[val+2].classList.add('sel');
+		var u = document.getElementById('caseoptions').getElementsByClassName('t3')[0];
+		api.renderCaseElem(this.value, -1, u);
+		var sum = 0;
+		for (i=0; i<cache.types[3].length; i++) {
+			api.renderCaseElem(val, cache.types[3][i], u);
+			sum += (val >= 0? (project.cases[val].enabled[cache.types[3][i]]? project.elements[cache.types[3][i]].cost :0) : 
+				   (val == -1? project.elements[cache.types[3][i]].cost :0));
+		}
+		for (i=0; i<cache.types[4].length; i++) {
+			api.renderCaseElem(val, cache.types[4][i], u);
+			sum += (val >= 0? (project.cases[val].enabled[cache.types[4][i]]? project.elements[cache.types[4][i]].cost :0) : 
+				   (val == -1? project.elements[cache.types[4][i]].cost :0));
+		}
+		
+		document.getElementById('cs_name').value = (val >= 0?project.cases[val].name : (val == -1 ? 'Все включено' : 'Все отключено'));
+		document.getElementById('cs_name').disabled = !(val>=0);
+		if (val >= 0) {
+			document.getElementById('cs_name').classList.remove('na');
+			document.getElementById('cs_del').classList.remove('na');
+			document.getElementById('cs_del').addEventListener('click', api.requestDeletionCase);
+		}
+		else {
+			document.getElementById('cs_name').classList.add('na');
+			document.getElementById('cs_del').classList.add('na');
+			document.getElementById('cs_del').removeEventListener('click', api.requestDeletionCase);
+		}
+		document.getElementById('cs_cost').value = sum;
+	}
+	
+	this.drawCases = function(norefocus) {
+		if (project.cases == undefined) project.cases = [];
+		document.getElementById('caselist').innerHTML = '';
+		for (var i = -2; i<project.cases.length+1; i++) {
+			var s = '';
+			if (i == -2) s = 'Все отключено';
+			else if (i == -1) s = 'Все включено';
+			else if (i == project.cases.length) s = '<i>Добавить</i>';
+			else s = project.cases[i].name;
+			
+			var el = document.createElement('div');
+			el.classList = 'b fs';
+			el.innerHTML = s;
+			el.value = i;
+			if (i != project.cases.length) el.addEventListener("click",function() {
+				api.renderCase(this.value)});
+			else el.addEventListener("click",function() {
+				var c, j;
+				for (c=0; project.cases[c] != undefined; c++) 0;
+				project.cases[c] = {};
+				project.cases[c].name = 'Новый кейс '+c;
+				project.cases[c].enabled = [];
+				if (api.selectedCase >=0) {
+					for (j=0; j<cache.types[3].length; j++) project.cases[c].enabled[cache.types[3][j]] = project.cases[api.selectedCase].enabled[cache.types[3][j]];
+					for (j=0; j<cache.types[4].length; j++) project.cases[c].enabled[cache.types[4][j]] = project.cases[api.selectedCase].enabled[cache.types[3][j]];
+				}
+				else {
+					for (j=0; j<cache.types[3].length; j++) project.cases[c].enabled[cache.types[3][j]] = api.selectedCase == -1;
+					for (j=0; j<cache.types[4].length; j++) project.cases[c].enabled[cache.types[4][j]] = api.selectedCase == -1;
+					api.renderCase(c);
+					api.drawCases();
+				}
+				api.renderCase(c)
+			});
+			document.getElementById('caselist').appendChild(el);
+		}
+		if (!norefocus) this.renderCase(-2); 
+		else document.getElementById('caselist').getElementsByClassName('b')[api.selectedCase+2].classList.add('sel');
+	}
+	
+	this.renderEffect= function(val, target) {
+		var i;
+		for (i=-2; i<project.cases.length; i++)
+			document.getElementById('effectbutt'+target).getElementsByClassName('b')[i+2].classList.remove('sel');
+		document.getElementById('effectbutt'+target).getElementsByClassName('b')[val+2].classList.add('sel');
+		var u = document.getElementById('effectpad'+target);
+		u.innerHTML = '';
+		for (i=0; i<cache.types[2].length; i++) {
+			var c = document.createElement('div');
+			c.classList = 'line';
+			c.style = 'font-weight:700;font-size:120%;margin:8px 0';
+			c.innerHTML = project.elements[cache.types[2][i]].name;
+			u.appendChild(c);
+			for (var j=0; j<cache.types[0].length; j++) {
+				c = document.createElement('div');
+				c.classList = 'line';
+				c.innerHTML = cache.elements[cache.types[2][i]].calcChance[cache.types[0][j]][val+2];
+				u.appendChild(c);
+			}
+			c = document.createElement('div');
+			c.classList = 'line';
+			c.innerHTML = project.elements[cache.types[2][i]].calcChance[val+2];
+			u.appendChild(c);
+		}
+	}
+	
+	this.drawEffect = function() {
+		for (var j=1; j<3; j++) {
+			document.getElementById('effectbutt'+j).innerHTML = '<div class="table r"><div class="t3"><div class="t2"></div></div></div>';
+			document.getElementById('effectbutt'+j).getElementsByClassName('t2')[0].innerHTML = '';
+			for (var i = -2; i<project.cases.length; i++) {
+				var s = '';
+				if (i == -2) s = 'Все отключено';
+				else if (i == -1) s = 'Все включено';
+				else s = project.cases[i].name;
+				
+				var el2 = document.createElement('span');
+				el2.classList = 't';
+				
+				var el = document.createElement('span');
+				el.classList = 'b fs';
+				el.innerHTML = s;
+				el.value = i;
+				el.target = j;
+				el.addEventListener("click",function() {
+					api.renderEffect(this.value, this.target)});
+				el2.appendChild(el);
+				document.getElementById('effectbutt'+j).getElementsByClassName('t2')[0].appendChild(el2);
+			}
+		}
+		var l = document.getElementById('effectlist');
+		l.innerHTML = '';
+		for (i=0; i<cache.types[2].length; i++) {
+			var c = document.createElement('div');
+			c.classList = 'line';
+			c.style = 'font-weight:700;font-size:120%;margin:8px 0';
+			c.innerHTML = '&nbsp;';
+			l.appendChild(c);
+			for (j=0; j<cache.types[0].length; j++) {
+				c = document.createElement('div');
+				c.classList = 'line';
+				c.innerHTML = project.elements[cache.types[0][j]].name;
+				l.appendChild(c);
+			}
+			c = document.createElement('div');
+			c.classList = 'line';
+			c.innerHTML = '<i>Полный эффект</i>';
+			l.appendChild(c);
+		}
+		api.renderEffect(-2, 1);
+		api.renderEffect(-1, 2);
+	}
+	
 	this.callWindow = function(id,arg1,arg2,arg3) {
 		t = false;
 		tx = 0;
@@ -518,6 +704,15 @@ function exapi() {
 			this.putMetas();
 			document.getElementById("project_button").classList.add("del");
 			document.getElementById("project").classList.toggle("d");
+		}
+		else if (id == "cases") {
+			this.drawCases();
+			document.getElementById("cases").classList.toggle("d");
+		}
+		else if (id == "effect") {
+			Recompile();
+			this.drawEffect();
+			document.getElementById("effect").classList.toggle("d");
 		}
 		else if (id == "inst") {
 			document.getElementById("inst").classList.toggle("d");
@@ -1013,6 +1208,12 @@ function exapi() {
 				api.mouseClickListener(event);
 			});
 			
+			
+			document.getElementById("cs_name").addEventListener("input", function(event) {
+				project.cases[api.selectedCase].name = this.value;
+				api.drawCases(true);
+			});
+			
 			document.getElementById("bpad1").getElementsByTagName("table")[0].addEventListener("mouseover", function() {
 				api.enElSel = true;
 			});
@@ -1093,14 +1294,16 @@ function exapi() {
 		
 		windows.changelog = {header:'Список изменений',content:(this.locationName!='local'?('<iframe src="//stsyn.github.io/fcm/changelog/'+this.locationName+'.txt"></iframe>'):'<iframe src="changelog/stable.txt"></iframe>'),size:0,windowsize:'ifr'};
 		windows.legal = {header:' ',content:'<iframe src="legal.txt"></iframe>',size:0,windowsize:'ifr'};
-		windows.about = {header:'FCMBuilder2',content:'<div class="b fs" onclick="api.callPopup2(windows.legal)">Курсовой проект Бельского С.М. и Нафикова Д.И.</div><div class="b fs" onclick="api.callPopup2(windows.changelog)">Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')</div>',size:1,buttons:[{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
+		windows.about = {header:'FCMBuilder2',content:'<div class="b fs" onclick="api.callPopup2(windows.legal)">Дипломная работа Бельского С.М.</div><div class="b fs" onclick="api.callPopup2(windows.changelog)">Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')</div>',size:1,buttons:[{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:0,windowsize:'sm'};
 		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент и все, что на нем находится. Вы не сможете все это вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.deleteSave = {header:'Внимание!',content:'Подтвердите удаление этого слота.',size:2,buttons:[{red:true,functions:'api.deleteSave(undefined, false)',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
-
+		windows.deleteCase = {header:'Внимание!',content:'Подтвердите удаление этого кейса.',size:2,buttons:[{red:true,functions:'',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		windows.loader = {header:'Загружается...',content:'<div id="squaresWaveG" style="margin-bottom:24px"><div id="squaresWaveG_1" class="squaresWaveG"></div><div id="squaresWaveG_2" class="squaresWaveG"></div><div id="squaresWaveG_3" class="squaresWaveG"></div><div id="squaresWaveG_4" class="squaresWaveG"></div><div id="squaresWaveG_5" class="squaresWaveG"></div><div id="squaresWaveG_6" class="squaresWaveG"></div><div id="squaresWaveG_7" class="squaresWaveG"></div><div id="squaresWaveG_8" class="squaresWaveG"></div></div><div id="loadstring" style="font-size:150%"></div></div>',size:0,windowsize:'sm'};
+		
 		
 		windows.saveError = {header:'Ошибка!',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.loadError = {header:'Ошибка!',size:3,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'location.reload();',red:false,name:'Перезагрузить программу'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};

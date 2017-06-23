@@ -152,9 +152,15 @@
 						<div class="line">Сохранен: <input type="text" class="b i" id="m_ts_saved" style="width:10em" disabled></div>
 					</div>
 					<div class="pad" style="display:block">
+						<div class="bt"><div class="table r"><div class="t3"><div class="t2">
+							<span class="t"><span class="b fs" onclick="api.callWindow('cases')">Кейсы</span></span>
+							<span class="t"><span class="b fs na" onclick="api.callWindow('terms')">Термы</span></span>
+						</div></div></div></div>
+					</div>
+					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Настройки</div>
 						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="m_strict"> Строгий режим</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="m_propsize"> Пропорциональный размер элементов</label></div>
+						<div class="line debug"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="m_propsize"> Пропорциональный размер элементов</label></div>
 						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="m_propcolor"> Пропорциональный цвет связей</label></div>
 						<div class="line"><label class="b i stillsel ac na" style="font-weight:normal"><input type="checkbox" id="m_compress" disabled> Сжатие проекта</label></div>
 						<div class="line"><label class="b i stillsel ac na" style="font-weight:normal"><input type="checkbox" id="m_encrypt" disabled> Шифрование</label></div>
@@ -213,10 +219,10 @@
 					</div>
 					
 					<div id="pad3" class="pad" style="text-align:center">
-						<div class="line"><span class="b fs i na" onclick="api.selectWindow(0)">Граф</span>
-							<span class="b fs i na" onclick="api.selectWindow(1)">Матрица достижимости</span>
-							<span class="b fs i na" onclick="api.selectWindow(2)">Полный эффект</span>
-							<span class="b fs i na" onclick="api.selectWindow(3)">Общий риск</span>
+						<div class="line">
+							<span class="b fs i na" onclick="">Матрица достижимости</span>
+							<span class="b fs i" onclick="setTimeout(function() {api.callWindow('effect')},10);api.callPopup2(windows.loader)">Полный эффект</span>
+							<span class="b fs i na">Общий риск</span>
 						</div>
 						<div class="line">
 							<span class="b fs i" id="project_button" onclick="api.callWindow('project')">Настройки проекта</span>
@@ -243,6 +249,49 @@
 				</div></div></div></div>
 			</div>
 		</div>
+		
+		<div id="effect">
+			<div class="back"></div>
+			<div class="w huge">
+				<div class="hc">
+					<span>Полный эффект</span>
+				</div>
+				<div class="close" onclick="api.closeWindow('effect')">X</div>
+				<div class="bt up">
+					<div style="float:left;width:calc(15em - 8px);white-space:pre-wrap;word-wrap:break-word;padding:4px">&nbsp;</div>
+					<div id="effectbutt1" style="float:left;width:calc(50% - 7.5em);white-space:pre-wrap;word-wrap:break-word"></div>
+					<div id="effectbutt2" style="float:left;width:calc(50% - 7.5em);white-space:pre-wrap;word-wrap:break-word"></div>
+				</div>
+				<div class="cc btns" style="width:calc(100% - 8px)">
+					<div id="effectlist" class="pad selection" style="display:block;float:left;width:calc(15em - 8px);height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
+					<div id="effectpad1" class="pad" style="display:block;float:left;width:calc(50% - 7.5em - 12px);height:calc(100% - 8px)"></div>
+					<div id="effectpad2" class="pad" style="display:block;float:left;width:calc(50% - 7.5em - 12px);height:calc(100% - 8px)"></div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="cases">
+			<div class="back"></div>
+			<div class="w huge">
+				<div class="hc">
+					<span>Кейсы</span>
+				</div>
+				<div class="close" onclick="api.closeWindow('cases')">X</div>
+				<div class="cc btns">
+					<div id="caselist" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
+					<div id="caseoptions" class="pad selection" style="display:block;float:left;width:calc(100% - 40em - 24px);height:calc(100% - 8px)"></div>
+					<div id="caseinfo" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word">
+						<div class="line">Имя: <input type="text" class="b i" id="cs_name" style="width:10em"></div>
+						<div class="line">Суммарная стоимость: <input type="text" class="b i" id="cs_cost" style="width:6em"disabled></div>
+						<div class="line"><div class="b red" id="cs_del">Удалить</div></div>
+					</div>
+				</div>
+				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
+					<span class="t"><span class="b fs" onclick="api.closeWindow('cases')">Закрыть</span></span>
+				</div></div></div></div>
+			</div>
+		</div>
+		
 		
 		<div id="load">
 			<div class="back"></div>
