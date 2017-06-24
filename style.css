@@ -295,7 +295,7 @@ body.night #messages > span.red{
 	height:95vh;
 	top:2.5vh}
 #windows .w.side {
-	width:22em;
+	width:22em !important; 
 	left:calc(50vw - 11em);
 	height:50vh;
 	top:25vh}
