@@ -3,10 +3,12 @@ var windows = {};
 	
 function checkWindowPos(id) {
 	var el = document.getElementById(id).getElementsByClassName("w")[0];
-	/*el.style.marginTop = "calc(-50vh + "+(mY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
-	el.style.marginLeft = "calc(-50vw + "+(mX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";*/
 	el.style.top = (mY-ty)+"px";
 	el.style.left = (mX-tx)+"px";
+	if (mY-ty < 0) el.style.top = '0px';
+	if (mX-tx < 0) el.style.left = '0px';
+	if (mX-tx > document.body.clientWidth-parseInt(getComputedStyle(el).getPropertyValue('width'))) el.style.left = document.body.clientWidth-parseInt(getComputedStyle(el).getPropertyValue('width'))+'px';
+	if (mY-ty > document.body.clientHeight-parseInt(getComputedStyle(el).getPropertyValue('height'))) el.style.top = document.body.clientHeight-parseInt(getComputedStyle(el).getPropertyValue('height'))+'px';
 	if (t) setTimeout(checkWindowPos,16,id);
 }
 
@@ -832,6 +834,10 @@ function exapi() {
 				
 				el.style.top = (event.clientY-ty)+'px';
 				el.style.left = (event.clientX-tx)+'px';
+				if (event.clientY-ty < 0) el.style.top = '0px';
+				if (event.clientX-tx < 0) el.style.left = '0px';
+				if (event.clientX-tx > document.body.clientWidth-parseInt(getComputedStyle(el).getPropertyValue('width'))) el.style.left = document.body.clientWidth-parseInt(getComputedStyle(el).getPropertyValue('width'))+'px';
+				if (event.clientY-ty > document.body.clientHeight-parseInt(getComputedStyle(el).getPropertyValue('height'))) el.style.top = document.body.clientHeight-parseInt(getComputedStyle(el).getPropertyValue('height'))+'px';
 			});
 			
 			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mouseup", function() {
@@ -846,6 +852,10 @@ function exapi() {
 				
 				el.style.top = (event.clientY-ty)+'px';
 				el.style.left = (event.clientX-tx)+'px';
+				if (event.clientY-ty < 0) el.style.top = '0px';
+				if (event.clientX-tx < 0) el.style.left = '0px';
+				if (event.clientX-tx > document.body.clientWidth-parseInt(getComputedStyle(el).getPropertyValue('width'))) el.style.left = document.body.clientWidth-parseInt(getComputedStyle(el).getPropertyValue('width'))+'px';
+				if (event.clientY-ty > document.body.clientHeight-parseInt(getComputedStyle(el).getPropertyValue('height'))) el.style.top = document.body.clientHeight-parseInt(getComputedStyle(el).getPropertyValue('height'))+'px';
 			});
 			
 			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchend", function() {
@@ -876,8 +886,8 @@ function exapi() {
 	this.switchWindowState = function(id) {
 		var e = document.getElementById(id).getElementsByClassName('w')[0];
 		e.classList.toggle('hidd');
-		e.classList.toggle('xsm');
-		if (document.getElementById(id).getElementsByClassName('back') != null) document.getElementById(id).getElementsByClassName('back')[0].classList.toggle('hd');
+		if (id != 'xsm') e.classList.toggle('xsm');
+		if (document.getElementById(id).getElementsByClassName('back') != null && e.classList.contains('huge')) document.getElementById(id).getElementsByClassName('back')[0].classList.toggle('hd');
 		if (e.classList.contains('huge')) {
 			e.style.top = '';
 			e.style.left = '';

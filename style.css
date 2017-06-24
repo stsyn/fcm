@@ -329,6 +329,7 @@ body.night #messages > span.red{
 #windows .huge .hc, #windows #side .hc {display:block} 
 #windows .huge .h {display:none} 
 #windows .xsm .h {display:block}
+#windows .xsm .hc {display:none}
 #windows .h {cursor:move}
 #windows .a .hc {background:#f2f6f9}
 #windows .a .h {background:#f0f5ff}
