@@ -3,8 +3,10 @@ var windows = {};
 	
 function checkWindowPos(id) {
 	var el = document.getElementById(id).getElementsByClassName("w")[0];
-	el.style.marginTop = "calc(-50vh + "+(mY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
-	el.style.marginLeft = "calc(-50vw + "+(mX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";
+	/*el.style.marginTop = "calc(-50vh + "+(mY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
+	el.style.marginLeft = "calc(-50vw + "+(mX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";*/
+	el.style.top = (mY-ty)+"px";
+	el.style.left = (mX-tx)+"px";
 	if (t) setTimeout(checkWindowPos,16,id);
 }
 
@@ -15,7 +17,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.6", s:"beta", b:46};
+	this.version = {g:"0.0.6", s:"beta", b:47};
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -104,7 +106,7 @@ function exapi() {
 				return true;
 			}
 			if (p.meta != undefined) {
-				if (p.meta.description != undefined) el.innerHTML += p.meta.description+'<br>';
+				if (p.meta.description != undefined && p.meta.description != '' && p.meta.description != 'undefined') el.innerHTML += p.meta.description+'<br>';
 				var d = new Date(p.meta.timeCreated);
 				el.innerHTML += 'Создан: '+d.getDate()+'.'+d.getMonth()+'.'+d.getFullYear()+' '+d.getHours()+':'+d.getMinutes()+'<br>';
 				d = new Date(p.meta.timeSaved);
@@ -131,7 +133,7 @@ function exapi() {
 	}
 	
 	this.includeElementsTLine = function (el, i) {
-		return '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+el[i].name+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":el[i].val)+'</td></tr>';
+		return '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+getName(i)+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":el[i].val)+'</td></tr>';
 	}
 		
 	this.includeElements = function (e,filter) {
@@ -159,7 +161,7 @@ function exapi() {
 	}
 	
 	this.includeBondsTLine = function (b, el, i) {
-		return '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+'-'+b[i].second+'</td><td>'+b[i].val+'</td><td>'+el[b[i].first].name+'</td><td>'+el[b[i].second].name+'</td></tr>';
+		return '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+'-'+b[i].second+'</td><td>'+b[i].val+'</td><td>'+getName(b[i].first)+'</td><td>'+getName(b[i].second)+'</td></tr>';
 	}
 		
 	this.includeBonds = function (e, filter) {
@@ -441,7 +443,7 @@ function exapi() {
 	
 	this.closePopup = function() {
 		document.getElementById("popUp").classList.remove("d");
-		api.windowOnTop(api.zindex.pop());
+		if (api.zindex.length > 0) api.windowOnTop(api.zindex.pop());
 	}
 	
 	this.initWindowMove = function(e) {
@@ -492,7 +494,7 @@ function exapi() {
 		
 		var c = document.createElement('div');
 		c.className = 't';
-		c.innerHTML = (elem == -1 ? 'Имя':project.elements[elem].name);
+		c.innerHTML = (elem == -1 ? 'Имя':getName(elem));
 		e.appendChild(c);
 		
 		c = document.createElement('div');
@@ -605,7 +607,7 @@ function exapi() {
 			var c = document.createElement('div');
 			c.classList = 'line';
 			c.style = 'font-weight:700;font-size:120%;margin:8px 0';
-			c.innerHTML = project.elements[cache.types[2][i]].name;
+			c.innerHTML = getName(cache.types[2][i]);
 			u.appendChild(c);
 			for (var j=0; j<cache.types[0].length; j++) {
 				c = document.createElement('div');
@@ -655,7 +657,7 @@ function exapi() {
 			for (j=0; j<cache.types[0].length; j++) {
 				c = document.createElement('div');
 				c.classList = 'line';
-				c.innerHTML = project.elements[cache.types[0][j]].name;
+				c.innerHTML = getName(cache.types[0][j]);
 				l.appendChild(c);
 			}
 			c = document.createElement('div');
@@ -679,12 +681,15 @@ function exapi() {
 		}
 		if (this.windows[id]) 
 		{	
-			document.getElementById(id).getElementsByClassName("w")[0].style.marginTop = "0";
-			document.getElementById(id).getElementsByClassName("w")[0].style.marginLeft = "0";
+			var e = document.getElementById(id).getElementsByClassName("w")[0];
+			e.style.top = '';
+			e.style.left = '';
+			e.style.top = getComputedStyle(e).getPropertyValue("top");
+			e.style.left = getComputedStyle(e).getPropertyValue("left");
 			
 			if (id =="side") {
-				document.getElementById("side").getElementsByClassName("w")[0].style.marginLeft = "calc(50vw - 11em)";
-				document.getElementById("side").getElementsByClassName("w")[0].style.marginTop = "-20vh";
+				e.style.left = document.body.clientWidth-parseInt(getComputedStyle(e).getPropertyValue("width")) + 'px';
+				e.style.top = getComputedStyle(document.getElementById('top')).getPropertyValue("height");
 			}
 			this.windowOnTop(id);
 			return;
@@ -762,7 +767,6 @@ function exapi() {
 			
 			if (!exists) {
 				ec.getElementsByClassName("_сс_close2")[0].addEventListener("click", function() {api.closeWindow(id)});
-				ec.getElementsByClassName("close")[0].addEventListener("click", function() {api.closeWindow(id)});
 				ec.getElementsByClassName("_сс_apply")[0].addEventListener("click", function() {createAndAddElement(id,true);api.closeWindow(id)});
 				ec.getElementsByClassName("_сс_delete")[0].addEventListener("click", function() {api.requestDeletion(arg2)});
 				document.getElementById("windows").appendChild(ec);
@@ -780,7 +784,6 @@ function exapi() {
 			
 			if (!exists) {
 				ec.getElementsByClassName("_сс_close2")[0].addEventListener("click", function() {api.closeWindow(id)});
-				ec.getElementsByClassName("close")[0].addEventListener("click", function() {api.closeWindow(id)});
 				ec.getElementsByClassName("_сс_apply")[0].addEventListener("click", function() {createAndAddBond(id,true);api.closeWindow(id)});
 				ec.getElementsByClassName("_сс_delete")[0].addEventListener("click", function() {api.requestDeletionBond(arg2)});
 				document.getElementById("windows").appendChild(ec);
@@ -792,12 +795,14 @@ function exapi() {
 		}
 		tid = id;
 		this.windowOnTop(id);
-		document.getElementById(id).getElementsByClassName("w")[0].style.marginTop = "0";
-		document.getElementById(id).getElementsByClassName("w")[0].style.marginLeft = "0";
+		var e = document.getElementById(id).getElementsByClassName("w")[0];
+		e.style.top = getComputedStyle(e).getPropertyValue("top");
+		e.style.left = getComputedStyle(e).getPropertyValue("left");
 		if (id =="side") {
-			document.getElementById("side").getElementsByClassName("w")[0].style.marginLeft = "calc(50vw - 11em)";
-			document.getElementById("side").getElementsByClassName("w")[0].style.marginTop = "-20vh";
+			e.style.left = document.body.clientWidth-parseInt(getComputedStyle(e).getPropertyValue("width")) + 'px';
+			e.style.top = getComputedStyle(document.getElementById('top')).getPropertyValue("height");
 		}
+		
 		if (document.getElementById(id).getElementsByClassName("h")[0] != undefined) {
 			if (arg1 == "editb") {
 				document.getElementById(id).getElementsByClassName("elist")[0].getElementsByTagName("table")[0].addEventListener("mouseover", function() {
@@ -825,9 +830,8 @@ function exapi() {
 				if (t != this.parentNode.parentNode.id) return;
 				var el = document.getElementById(id).getElementsByClassName("w")[0];
 				
-				
-				el.style.marginTop = "calc(-50vh + "+(event.clientY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
-				el.style.marginLeft = "calc(-50vw + "+(event.clientX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";
+				el.style.top = (event.clientY-ty)+'px';
+				el.style.left = (event.clientX-tx)+'px';
 			});
 			
 			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mouseup", function() {
@@ -840,8 +844,8 @@ function exapi() {
 				if (t != this.parentNode.parentNode.id) return;
 				var el = document.getElementById(id).getElementsByClassName("w")[0];
 				
-				el.style.marginTop = "calc(-50vh + "+(event.changedTouches[0].pageY-ty)+"px + "+(parseInt(el.offsetHeight)/2)+"px)";
-				el.style.marginLeft = "calc(-50vw + "+(event.changedTouches[0].pageX-tx)+"px + "+(parseInt(el.offsetWidth)/2)+"px)";
+				el.style.top = (event.clientY-ty)+'px';
+				el.style.left = (event.clientX-tx)+'px';
 			});
 			
 			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("touchend", function() {
@@ -850,9 +854,53 @@ function exapi() {
 		}
 	}
 	
+	this.recalcWindows = function() {
+		for (var i=0; i<api.zindex.length; i++) {
+			if (document.getElementById(api.zindex[i]) != undefined) {
+				var el = document.getElementById(api.zindex[i]).getElementsByClassName('w')[0];
+				if (api.zindex[i] != 'side') {
+					el.style.top = parseInt(el.style.top)*document.body.clientHeight/api.windowHeight+'px';
+					el.style.left = parseInt(el.style.left)*document.body.clientWidth/api.windowWidth+'px';
+				}
+				else {el.style.left = '99999px'}
+				if (parseInt(el.style.top)+parseInt(getComputedStyle(el).getPropertyValue('height'))>document.body.clientHeight) 
+					el.style.top = document.body.clientHeight-parseInt(getComputedStyle(el).getPropertyValue('height')) + 'px';
+				if (parseInt(el.style.left)+parseInt(getComputedStyle(el).getPropertyValue('width'))>document.body.clientWidth) 
+					el.style.left = document.body.clientWidth-parseInt(getComputedStyle(el).getPropertyValue('width')) + 'px';
+			}
+		}
+		api.windowHeight = document.body.clientHeight;
+		api.windowWidth = document.body.clientWidth;
+	}
+	
+	this.switchWindowState = function(id) {
+		var e = document.getElementById(id).getElementsByClassName('w')[0];
+		e.classList.toggle('hidd');
+		e.classList.toggle('xsm');
+		if (document.getElementById(id).getElementsByClassName('back') != null) document.getElementById(id).getElementsByClassName('back')[0].classList.toggle('hd');
+		if (e.classList.contains('huge')) {
+			e.style.top = '';
+			e.style.left = '';
+			e.style.top = getComputedStyle(e).getPropertyValue("top");
+			e.style.left = getComputedStyle(e).getPropertyValue("left");
+		}
+	}
+	
+	this.switchWindowSize = function(id) {
+		var e = document.getElementById(id).getElementsByClassName('w')[0];
+		e.classList.toggle('huge');
+		if (id !== 'popUp') {
+			e.style.top = '';
+			e.style.left = '';
+			e.style.top = getComputedStyle(e).getPropertyValue("top");
+			e.style.left = getComputedStyle(e).getPropertyValue("left");
+			document.getElementById(id).getElementsByClassName('back')[0].classList.toggle('hd');
+		}
+	}
+	
 	this.rearrangeWindows = function() {
 		for (var i=0; i<this.zindex.length; i++) {
-			document.getElementById(this.zindex[i]).style.zIndex = i;
+			if (document.getElementById(this.zindex[i]) != undefined) document.getElementById(this.zindex[i]).style.zIndex = i;
 		}
 	}
 	
@@ -891,6 +939,7 @@ function exapi() {
 		this.settings.autosave = 5;
 		this.settings.autoload = true;
 		this.settings.elemLabels = true;
+		this.settings.actualNames = true;
 		
 		this.settings.chInterval = 33;
 		this.settings.canvasSize = 100;
@@ -978,6 +1027,7 @@ function exapi() {
 		document.getElementById("st_autosave").value = this.settings.autosave;
 		document.getElementById("st_autoload").checked = this.settings.autoload;
 		document.getElementById("st_elemLabels").checked = this.settings.elemLabels;
+		document.getElementById("st_actualNames").checked = this.settings.actualNames;
 		
 		document.getElementById("st_debugInterval").value = this.settings.chInterval;
 		document.getElementById("st_debugCanvasSize").value = this.settings.canvasSize;
@@ -999,6 +1049,7 @@ function exapi() {
 		this.settings.autosave = parseInt(document.getElementById("st_autosave").value);
 		this.settings.autoload = document.getElementById("st_autoload").checked;
 		this.settings.elemLabels = document.getElementById("st_elemLabels").checked;
+		this.settings.actualNames = document.getElementById("st_actualNames").checked;
 		
 		this.settings.chInterval = parseInt(document.getElementById("st_debugInterval").value);
 		this.settings.canvasSize = parseInt(document.getElementById("st_debugCanvasSize").value);
@@ -1027,6 +1078,7 @@ function exapi() {
 		this.fontSwitch();
 			
 		this.forceRedraw = true;
+		update();
 	}
 	
 	this.putMetas = function() {
@@ -1253,7 +1305,12 @@ function exapi() {
 				});
 			}
 			
-			window.onresize = function(){api.forceRedraw = true}
+			api.windowHeight = document.body.clientHeight;
+			api.windowWidth = document.body.clientWidth;
+			window.onresize = function(){
+				api.recalcWindows();
+				api.forceRedraw = true;
+			}
 		
 		
 			if (localStorage["hasSettings"] != "true") {
@@ -1286,15 +1343,14 @@ function exapi() {
 		this.popUp = "popUp";
 		this.colorMode(this.settings.palette);
 		
-		this.callWindow('side');
 		this.forceRedraw = true;
 		this.overDraw = false;
 		this.mouse.button = 0;
 		this.autosaveInterval = this.settings.autosave*1000*60;
 		
-		windows.changelog = {header:'Список изменений',content:(this.locationName!='local'?('<iframe src="//stsyn.github.io/fcm/changelog/'+this.locationName+'.txt"></iframe>'):'<iframe src="changelog/stable.txt"></iframe>'),size:0,windowsize:'ifr'};
-		windows.legal = {header:' ',content:'<iframe src="legal.txt"></iframe>',size:0,windowsize:'ifr'};
-		windows.about = {header:'FCMBuilder2',content:'<div class="b fs" onclick="api.callPopup2(windows.legal)">Дипломная работа Бельского С.М.</div><div class="b fs" onclick="api.callPopup2(windows.changelog)">Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')</div>',size:1,buttons:[{functions:'location.reload(true)',red:false,name:'Принудительный перезапуск'}],windowsize:'sm'};
+		windows.changelog = {header:'Список изменений',content:(this.locationName!='local'?('<iframe src="//stsyn.github.io/fcm/changelog/'+this.locationName+'.txt"></iframe>'):'<iframe src="changelog/stable.txt"></iframe>'),size:2,windowsize:'ifr',buttons:[{red:false,name:'Закрыть',functions:'api.callPopup2(windows.about)'},{red:false,name:'Развернуть',functions:'api.switchWindowSize(this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.id)'}]};
+		windows.legal = {header:' ',content:'<iframe src="legal.txt"></iframe>',size:2,windowsize:'ifr',buttons:[{red:false,name:'Закрыть',functions:'api.callPopup2(windows.about)'},{red:false,name:'Развернуть',functions:'api.switchWindowSize(this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.id)'}]};
+		windows.about = {header:'FCMBuilder2',content:'<div class="b fs" onclick="api.callPopup2(windows.legal)">Дипломная работа Бельского С.М.</div><div class="b fs" onclick="api.callPopup2(windows.changelog)">Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')</div>',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Закрыть'},{functions:'location.reload(true)',red:true,name:'Принудительный перезапуск'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
@@ -1313,7 +1369,8 @@ function exapi() {
 		if (this.error) return;
 		this.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1);
 		this.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
-		if (this.locationName == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,777);
+		setTimeout(function() {api.closePopup();api.callWindow('side');},777);
+		/*if (this.locationName == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,777);
 		else {
 			var tt = "";
 			if (this.locationName == "unknown") tt = 'Вы используете версию из неизвестного источника! Настоятельно рекомендуется использовать стабильную версию на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
@@ -1321,7 +1378,7 @@ function exapi() {
 			else if (this.locationName == "nightly") tt = 'Вы используете самую свежую промежуточную бета-версию. В ней могут содержаться ошибки и недоделанные возможности! В случае обнаружения ошибок и предложений убедительная просьба связаться с разрабочиками! Стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
 			
 			this.callPopup2({header:'Внимание!',content:tt,size:2,windowsize:'sm',buttons:[{functions:'api.settings.dontShowAlerts=true;api.closePopup();api.saveSettings()',name:'Больше не показывать'},{functions:'api.closePopup()',name:'Закрыть'}]});
-		}
+		}*/
 	}
 }
 

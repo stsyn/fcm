@@ -15,6 +15,24 @@ var AuxBonds, AuxBonds2, dAuxBonds;
 var AuxMove, tElemX, tElemY, tBond, tElem;
 
 
+function cCode(id, type) {
+	if (type == 1) return 'C(T)'+id; //treat
+	if (type == 2) return 'C(R)'+id;	//resource
+	if (type == 3) return 'C(A)'+id;	//aim
+	if (type == 4) return 'C(p)'+id;	//protector
+	if (type == 5) return 'C(c)'+id;	//chaos, lol
+	return 'C'+id;
+}
+
+function getCode(id) {
+	return cCode(id, project.elements[id].type);
+}
+
+function getName(id) {
+	if (api.settings.actualNames) return project.elements[id].name;
+	return getCode(id);
+}
+
 function resetProject() {
 	var t = new Date();
 	project = {meta:{},settings:{},elements:[],bonds:[],viewport:{}};
@@ -287,13 +305,13 @@ function appDrawElements(el) {
 			ctx.textAlign = 'center';
 			if (translateCoordsY(y) < ctx.canvas.height/2) {
 				ctx.textBaseline = 'top';
-				ctx.strokeText(el[i].name, translateCoordsX(x), translateCoordsY(y)+size*1.05);
-				ctx.fillText(el[i].name, translateCoordsX(x), translateCoordsY(y)+size*1.05);
+				ctx.strokeText(getName(i), translateCoordsX(x), translateCoordsY(y)+size*1.05);
+				ctx.fillText(getName(i), translateCoordsX(x), translateCoordsY(y)+size*1.05);
 			}
 			else {
 				ctx.textBaseline = 'bottom';
-				ctx.strokeText(el[i].name, translateCoordsX(x), translateCoordsY(y)-size*1.05);
-				ctx.fillText(el[i].name, translateCoordsX(x), translateCoordsY(y)-size*1.05);
+				ctx.strokeText(getName(i), translateCoordsX(x), translateCoordsY(y)-size*1.05);
+				ctx.fillText(getName(i), translateCoordsX(x), translateCoordsY(y)-size*1.05);
 			}
 		}
 		
@@ -665,11 +683,13 @@ function editElement(id) {
 	api.callWindow("","edit",id);
 	var e = document.getElementById("edite"+id);
 	var el = project.elements[id];
+	e.getElementsByClassName("h")[0].innerHTML = '<i>'+getName(id)+'</i>';
+	e.getElementsByClassName("hc")[0].innerHTML = '<i>'+getName(id)+'</i>';
 	e.getElementsByClassName("cc_id")[0].value = id;
 	e.getElementsByClassName("cc_X")[0].value = el.X;
 	e.getElementsByClassName("cc_Y")[0].value = el.Y;
 	e.getElementsByClassName("cc_type")[0].value = el.type;
-	e.getElementsByClassName("cc_color")[0].value = project.elements[id].privateColor;
+	e.getElementsByClassName("cc_color")[0].value = (project.elements[id].privateColor?project.elements[id].privateColor:api.settings.color[el.type-1]);
 	e.getElementsByClassName("cc_color2")[0].value = project.elements[id].privateColor;
 	e.getElementsByClassName("cc_color_check")[0].checked = project.elements[id].privateColor;
 	e.getElementsByClassName("cc_size")[0].value = project.elements[id].z*100;
@@ -682,6 +702,7 @@ function editElement(id) {
 	e.getElementsByClassName("cc_limit")[0].value = el.lim;
 	e.getElementsByClassName("cc_value")[0].value = el.val;
 	e.getElementsByClassName("cc_effect")[0].value = el.val;
+	e.getElementsByClassName("cc_code")[0].value = getCode(id);
 	
 	e.getElementsByClassName("_cc_initator")[0].style.display = (((el.type == 1) || (el.type == 2))?"block":"none");
 	e.getElementsByClassName("_cc_target")[0].style.display = ((el.type == 3)?"block":"none");
@@ -695,6 +716,8 @@ function editBond(id) {
 	api.callWindow("","editb",id);
 	var e = document.getElementById("editb"+id);
 	var el = project.bonds[id];
+	e.getElementsByClassName("h")[0].innerHTML = '<i>'+getName(el.first)+' — '+getName(el.second)+'</i>';
+	e.getElementsByClassName("hc")[0].innerHTML = '<i>'+getName(el.first)+' — '+getName(el.second)+'</i>';
 	e.getElementsByClassName("cc_id")[0].value = id;
 	e.getElementsByClassName("cc_first")[0].value = el.first;
 	e.getElementsByClassName("cc_second")[0].value = el.second;
@@ -722,13 +745,14 @@ function AddElement(MouseX,MouseY,onBond) {
 	e.getElementsByClassName("cc_size")[0].value = "100";
 	
 	e.getElementsByClassName("cc_desc")[0].value = "";
-	e.getElementsByClassName("cc_name")[0].value = "C"+(api.brush == 1?"(U)":(api.brush == 3?"(G)":(api.brush == 4?"(R)":(api.brush == 5?"(A)":""))))+i;
+	e.getElementsByClassName("cc_name")[0].value = cCode(i, api.brush);
 	e.getElementsByClassName("cc_cost")[0].value = "0";
 	e.getElementsByClassName("cc_cost2")[0].value = "0";
 	e.getElementsByClassName("cc_state")[0].value = "0";
 	e.getElementsByClassName("cc_limit")[0].value = "0";
 	e.getElementsByClassName("cc_value")[0].value = "0";
 	e.getElementsByClassName("cc_effect")[0].value = "0";
+	e.getElementsByClassName("cc_code")[0].value = cCode(i, api.brush);
 	
 	e.getElementsByClassName("_cc_initator")[0].style.display = (((api.brush == 1) || (api.brush == 2))?"block":"none");
 	e.getElementsByClassName("_cc_target")[0].style.display = ((api.brush == 3)?"block":"none");
@@ -751,6 +775,7 @@ function MoveElement(ActualElement,NewX,NewY,rec) {
 	api.forceRedraw = true;
 	api.changed = true;
 	api.brush = -2;
+	Recalculate();
 }
 
 function RemoveBond(ActualBond) {
@@ -912,7 +937,7 @@ function iteration(i, cur, val, roadmap) {
 }
 	
 function Recompile() {
-	Recalculate();
+	if (api.compiled) return;
 	var uv = [];
 	if (project.cases == undefined) project.cases = [];
 	var c = project.cases.length+2;
@@ -933,6 +958,7 @@ function Recompile() {
 			}
 		}
 	}
+	api.compiled = true;
 	api.closePopup();
 }
 	
@@ -964,6 +990,7 @@ function Recalculate() {
 		   cache.types[project.elements[i].type-1].push(i);		//типы элементов
 	   }
 	}
+	api.compiled = false;
 }
 
 function DrawRemoveSelector() {

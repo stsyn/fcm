@@ -74,28 +74,34 @@
 				<div class="h">
 					<span>Настройки</span>
 				</div>
-				<div class="close" onclick="api.closeWindow('settings')">X</div>
-				<div class="cc btns" style="text-align:center">
+				<div class="controls">
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+				</div>
+				<div class="cc btns" style="">
 					<div class="pad" style="display:block">
-						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Интерфейс</div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_labels"> Подписи у иконок</label></div>
+						<div class="line" style="text-align:center;font-weight:700;font-size:120%;margin-bottom:8px">Интерфейс</div>
 						<div class="line">Размер шрифта верхнего меню (0.8 - 2.5): <input type="text" class="b i" id="st_topfontsize" style="width:1.5em">em</div>
 						<div class="line">Общий размер шрифта (25% - 200%): <input type="text" class="b i" id="st_glfontsize" style="width:2em">%</div>
 						<div class="line">Размеры элементов (7px - 100px): <input type="text" class="b i" id="st_elemsize" style="width:2em">px</div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_elemLabels"> Подписи у элементов</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_grid"> Отображать сетку</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_redGrid"> Отображать красные "нулевые" линии</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_cursor"> Собственный курсор и шрифты</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_transparency"> Полупрозрачность неактивных окон</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_debug"> Режим отладки</label></div>
+						<div class="pad" style="width:calc(60% - 10px);display:inline-block;text-align:left;border:none">
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_grid"> Сетка</label></div>
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_redGrid"> Красные "нулевые" линии</label></div>
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_cursor"> Собственный курсор и шрифты</label></div>
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_transparency"> Полупрозрачность неактивных окон</label></div>
+						</div>
+						<div class="pad" style="width:calc(40% - 10px);display:inline-block;text-align:left;border:none">
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_labels"> Подписи у иконок</label></div>
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_elemLabels"> Подписи у элементов</label></div>
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_actualNames"> Имена вместо кодов</label></div>
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_debug"> Режим отладки</label></div>
+						</div>
 					</div>
 					<div class="pad" style="display:block">
-						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Цвета элементов</div>
+						<div class="line" style="text-align:center;font-weight:700;font-size:120%;margin-bottom:8px">Цвета элементов</div>
 						<div class="table r line"><div class="t3"><div class="t2">
 							<span class="t"><span class="b fs colorMode" onclick="api.colorMode(true)">Палитра</span></span>
 							<span class="t"><span class="b fs colorMode" onclick="api.colorMode(false)">#RGB</span></span>
 						</div></div></div>
-						Элементы
 						<div class="table r"><div class="t3">
 							<div class="t2"><span class="t de">Угрозы</span><span class="t"><input class="b i fs color" type="color" style="min-width:140px"><input class="b i fs color2" type="text"></span></div>
 							<div class="t2"><span class="t de">Ресурсы</span><span class="t"><input class="b i fs color" type="color"><input class="b i fs color2" type="text"></span></div>
@@ -107,13 +113,15 @@
 						</div></div>
 					</div>
 					<div class="pad" style="display:block">
-						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Поведение</div>
+						<div class="line" style="text-align:center;font-weight:700;font-size:120%;margin-bottom:8px">Поведение</div>
 						<div class="line">Интервал автосохранения (0 - отключить): <input type="text" class="b i" id="st_autosave" style="width:1.5em">мин</div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_autoload"> Автооткрытие последнего проекта</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_tooltips"> Подсвечивать действия</label></div>
+						<div class="line">
+							<label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_autoload"> Автооткрытие последнего проекта</label>
+							<label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="st_tooltips"> Подсвечивать действия</label>
+						</div>
 					</div>
 					<div class="pad debug" style="display:block">
-						<div class="line red" style="font-weight:700;font-size:120%;margin-bottom:8px">Расширенные настройки</div>
+						<div class="line red" style="text-align:center;font-weight:700;font-size:120%;margin-bottom:8px">Расширенные настройки</div>
 						<div class="line red">Изменяйте с осторожностью!</div>
 						<div class="line">Интервал обновления: <input type="text" class="b i" id="st_debugInterval" style="width:1.5em">мс</div>
 						<div class="line">Размер холста: <input type="text" class="b i" id="st_debugCanvasSize" style="width:2em">%</div>
@@ -123,7 +131,7 @@
 							<div class="linebar" style="height:1.5em; line-height:1.5em;" title="Максимальный размер является приблизительным, и, в зависимости от браузера, может отличаться в большую сторону."><div class="sizes" style="font-size:70%"></div></div>
 						</div><div class="table r"><div class="t3"><div class="t2">
 							<span class="t"><span class="b fs red" onclick="api.loadDefault();api.putSettings();api.saveSettings()">Установить умолчания</span></span>
-							<span class="t"><span class="b fs red" onclick="api.callPopup2({header:'Сброс данных',content:'Внимание, абсолютно все сохраненные данные будут потеряны! Текущая сессия не будет завершена. Экспортированные данные не будут потеряны.',size:2,windowsize:'m',buttons:[{functions:'api.resetData();api.closePopup()',red:true,name:'Продолжить'},{functions:'api.closePopup()',name:'Отмена'}]})">Очистить хранилище</span></span>
+							<span class="t"><span class="b fs red" onclick="api.callPopup2({header:'Сброс данных',content:'Внимание, абсолютно все сохраненные данные будут потеряны! Текущая сессия будет завершена. Экспортированные данные не будут потеряны.',size:2,windowsize:'m',buttons:[{functions:'api.resetData();api.closePopup()',red:true,name:'Продолжить'},{functions:'api.closePopup()',name:'Отмена'}]})">Очистить хранилище</span></span>
 						</div></div></div>
 					</div>
 				</div>
@@ -138,9 +146,11 @@
 		<div id="project">
 			<div class="w tall">
 				<div class="h">
-					<span>Настройки</span>
+					<span>Проект</span>
 				</div>
-				<div class="close" onclick="api.closeWindow('project')">X</div>
+				<div class="controls">
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+				</div>
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Информация</div>
@@ -159,13 +169,17 @@
 					</div>
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Настройки</div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="m_strict"> Строгий режим</label></div>
-						<div class="line debug"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="m_propsize"> Пропорциональный размер элементов</label></div>
-						<div class="line"><label class="b i stillsel ac" style="font-weight:normal"><input type="checkbox" id="m_propcolor"> Пропорциональный цвет связей</label></div>
-						<div class="line"><label class="b i stillsel ac na" style="font-weight:normal"><input type="checkbox" id="m_compress" disabled> Сжатие проекта</label></div>
-						<div class="line"><label class="b i stillsel ac na" style="font-weight:normal"><input type="checkbox" id="m_encrypt" disabled> Шифрование</label></div>
-						<div class="line">Пароль: <input type="text" class="b i" id="m_pass1" style="width:10em" disabled></div> 
-						<div class="line">Повтор: <input type="text" class="b i" id="m_pass2" style="width:10em" disabled></div>
+						<div class="pad" style="width:calc(50% - 10px);display:inline-block;text-align:left;border:none">
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_strict"> Строгий режим</label></div>
+							<div class="line hd"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_propsize"> Пропорциональный размер элементов</label></div>
+							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_propcolor"> Пропорциональный цвет связей</label></div>
+							<div class="line">Пароль: <input type="text" class="b i" id="m_pass1" style="width:10em" disabled></div> 
+						</div>
+						<div class="pad" style="width:calc(50% - 10px);display:inline-block;text-align:left;border:none">
+							<div class="line"><label class="b i stillsel ac na fs" style="font-weight:normal"><input type="checkbox" id="m_compress" disabled> Сжатие проекта</label></div>
+							<div class="line"><label class="b i stillsel ac na fs" style="font-weight:normal"><input type="checkbox" id="m_encrypt" disabled> Шифрование</label></div>
+							<div class="line">Повтор: <input type="text" class="b i" id="m_pass2" style="width:10em" disabled></div>
+						</div>
 					</div>
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
@@ -177,10 +191,13 @@
 		
 		<div id="side">
 			<div class="w side">
-				<div class="h">
+				<div class="hc">
 					<span>Инструменты</span>
 				</div>
-				<div class="close" onclick="api.closeWindow('side')">X</div>
+				<div class="controls">
+					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+				</div>
 				<div class="cc">
 					<div class="table ps"><div class="t3"><div class="t2">
 						<span class="t"><span class="b fs" onclick="api.changeSidePad(0)">Проект</span></span>
@@ -238,7 +255,9 @@
 				<div class="hc">
 					<span>Сохранить</span>
 				</div>
-				<div class="close" onclick="api.closeWindow('save')">X</div>
+				<div class="controls">
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+				</div>
 				<div class="cc btns">
 					<div id="savelist" class="pad selection" style="display:block;float:left;width:calc(100% - 30em - 16px);height:calc(100% - 8px)"></div>
 					<div id="savepad" class="pad" style="display:block;float:left;width:30em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
@@ -256,7 +275,9 @@
 				<div class="hc">
 					<span>Полный эффект</span>
 				</div>
-				<div class="close" onclick="api.closeWindow('effect')">X</div>
+				<div class="controls">
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+				</div>
 				<div class="bt up">
 					<div style="float:left;width:calc(15em - 8px);white-space:pre-wrap;word-wrap:break-word;padding:4px">&nbsp;</div>
 					<div id="effectbutt1" style="float:left;width:calc(50% - 7.5em);white-space:pre-wrap;word-wrap:break-word"></div>
@@ -273,10 +294,12 @@
 		<div id="cases">
 			<div class="back"></div>
 			<div class="w huge">
-				<div class="hc">
-					<span>Кейсы</span>
+				<div class="h"><span>Кейсы</span></div>
+				<div class="hc"><span>Кейсы</span></div>
+				<div class="controls">
+					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
 				</div>
-				<div class="close" onclick="api.closeWindow('cases')">X</div>
 				<div class="cc btns">
 					<div id="caselist" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
 					<div id="caseoptions" class="pad selection" style="display:block;float:left;width:calc(100% - 40em - 24px);height:calc(100% - 8px)"></div>
@@ -299,7 +322,9 @@
 				<div class="hc">
 					<span>Открыть</span>
 				</div>
-				<div class="close" onclick="api.closeWindow('load')">X</div>
+				<div class="controls">
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+				</div>
 				<div class="cc btns">
 					<div id="loadlist" class="pad selection" style="display:block;float:left;width:calc(100% - 30em - 16px);height:calc(100% - 8px)"></div>
 					<div id="loadpad" class="pad" style="display:block;float:left;width:30em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
@@ -315,12 +340,14 @@
 		<div id="export">
 			<div class="back"></div>
 			<div class="w m">
-				<div class="hc">
-					<span>Экспорт</span>
+				<div class="hc"><span>Экспорт</span></div>
+				<div class="h"><span>Экспорт</span></div>
+				<div class="controls">
+					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)">[ ]</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
 				</div>
-				<div class="close" onclick="api.closeWindow('export')">X</div>
 				<div class="cc btns">
-					<textarea type="text" class="b i ex_c" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:24em;height:50%"></textarea>
+					<textarea type="text" class="b i ex_c" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:90%;height:70%"></textarea>
 					<div class="line exportlink"></div>
 					<div class="line">Скопируйте содержимое блока сверху и вручную создайте текстовый файл с ним. <br>Также можете нажать кнопку "Скачать" и получить готовый файл. Возможно, сохранить его придется вручную.</div>
 				</div>
@@ -334,12 +361,14 @@
 		<div id="import">
 			<div class="back"></div>
 			<div class="w m">
-				<div class="hc">
-					<span>Импорт</span>
+				<div class="hc"><span>Импорт</span></div>
+				<div class="h"><span>Импорт</span></div>
+				<div class="controls">
+					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)">[ ]</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
 				</div>
-				<div class="close" onclick="api.closeWindow('import')">X</div>
 				<div class="cc btns">
-					<textarea type="text" class="b i im_c" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:24em;height:50%"></textarea>
+					<textarea type="text" class="b i im_c" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:90%;height:70%"></textarea>
 					<div class="line">Скопируйте код проекта в блок сверху или просто перетащите файл с проектом.</div>
 					<div class="line" id="importpad"></div>
 				</div>
@@ -360,8 +389,9 @@
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:30%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
-							<div class="t de" style="width:70%">Название: <input type="text" class="b i cc_name" style="width:12em"></div>
+							<div class="t de" style="width:17%">ID: <input type="text" class="b i cc_id" style="width:1.7em" disabled></div>
+							<div class="t de" style="width:58%">Имя: <input type="text" class="b i cc_name" style="width:12em"></div>
+							<div class="t de" style="width:25%">Код: <input type="text" class="b i cc_code" style="width:3.5em" disabled></div>
 						</div></div></div>
 						<div class="line de">Детальное описание: <textarea type="text" class="b i cc_desc" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
 					</div>
@@ -430,19 +460,23 @@
 	</div>
 	<div id="data" style="display:none">
 		<div id="_editb_template_">
+			<div class="back hd"></div>
 			<div class="w sm2">
-				<div class="h">
-					<span>Связь</span>
+				<div class="h"><span>Связь</span></div>
+				<div class="hc"><span>Связь</span></div>
+				<div class="controls">
+					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
+					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)">[ ]</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
 				</div>
-				<div class="close">X</div>
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:31%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
-							<div class="t de" style="width:35%">Начало: <input type="text" class="b i cc_first" style="width:3em" disabled></div>
-							<div class="t de" style="width:34%">Конец: <input type="text" class="b i cc_second" style="width:3em" disabled></div>
+							<div class="t de" style="width:25%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
+							<div class="t de" style="width:25%">Начало: <input type="text" class="b i cc_first" style="width:3em" disabled></div>
+							<div class="t de" style="width:25%">Конец: <input type="text" class="b i cc_second" style="width:3em" disabled></div>
+							<div class="t de" style="width:25%">Сила: <input type="text" class="b i cc_v" style="width:3em" disabled></div>
 						</div></div></div>
-						<div class="line de">Сила: <input type="text" class="b i cc_v" style="width:4em"></div>
 					</div>
 					<div class="pad selection elist" style="display:block"><table class="r" cellspacing="0" rules="all">
 						
@@ -457,17 +491,22 @@
 		</div>
 	
 		<div id="_edit_template_">
+			<div class="back hd"></div>
 			<div class="w vsm">
-				<div class="h">
-					<span>Свойства</span>
+				<div class="h"><span>Свойства</span></div>
+				<div class="hc"><span>Свойства</span></div>
+				<div class="controls">
+					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
+					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)">[ ]</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
 				</div>
-				<div class="close">X</div>
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:30%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
-							<div class="t de" style="width:70%">Название: <input type="text" class="b i cc_name" style="width:12em"></div>
+							<div class="t de" style="width:17%">ID: <input type="text" class="b i cc_id" style="width:1.7em" disabled></div>
+							<div class="t de" style="width:58%">Имя: <input type="text" class="b i cc_name" style="width:12em"></div>
+							<div class="t de" style="width:25%">Код: <input type="text" class="b i cc_code" style="width:3.5em" disabled></div>
 						</div></div></div>
 						<div class="line de">Детальное описание: <textarea type="text" class="b i cc_desc" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
 					</div>
