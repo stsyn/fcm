@@ -325,7 +325,7 @@ body.night #messages > span.red{
 	overflow-x:hidden;
 	color:#68a}
 #windows .hc {display:none}
-#windows .huge .hc {display:block} 
+#windows .huge .hc, #windows #side .hc {display:block} 
 #windows .huge .h {display:none} 
 #windows .xsm .h {display:block}
 #windows .h {cursor:move}
