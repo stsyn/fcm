@@ -19,7 +19,8 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.6", s:"beta", b:47};
+	this.version = {g:"0.0.6", s:"beta", b:49};
+	this.defTerms = [{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -137,7 +138,7 @@ function exapi() {
 	this.includeElementsTLine = function (el, i) {
 		return '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+getName(i)+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":el[i].val)+'</td></tr>';
 	}
-		
+	
 	this.includeElements = function (e,filter) {
 		var el = project.elements;
 		var s = '';
@@ -165,7 +166,7 @@ function exapi() {
 	this.includeBondsTLine = function (b, el, i) {
 		return '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+'-'+b[i].second+'</td><td>'+b[i].val+'</td><td>'+getName(b[i].first)+'</td><td>'+getName(b[i].second)+'</td></tr>';
 	}
-		
+
 	this.includeBonds = function (e, filter) {
 		var s = '';
 		var el = project.elements;
@@ -365,7 +366,7 @@ function exapi() {
 			
 		for (i=0; i<this.zindex.length; i++) if (this.zindex[i] == id) break;
 		this.zindex.splice(i, 1);
-		this.zindex[this.zindex.length] = id;
+		this.zindex.push(id);
 		
 		this.activeWindow = id;
 		document.getElementById(id).style.zIndex = this.zindex.length-1;
@@ -373,8 +374,8 @@ function exapi() {
 		for (i=0; i<this.zindex.length; i++) if (this.zindex[i] != undefined) document.getElementById(this.zindex[i]).getElementsByClassName("w")[0].classList.remove("a");
 		document.getElementById(id).getElementsByClassName("w")[0].classList.add("a");
 		
-		if (api.settings.tooltips) api.forceRedraw = true;
-		api.rearrangeWindows();
+		if (this.settings.tooltips) this.forceRedraw = true;
+		this.rearrangeWindows();
 	}
 	
 	this.trySave = function() {
@@ -530,7 +531,7 @@ function exapi() {
 			document.getElementById('caselist').getElementsByClassName('b')[i].classList.remove('sel');
 		document.getElementById('caselist').getElementsByClassName('b')[val+2].classList.add('sel');
 		var u = document.getElementById('caseoptions').getElementsByClassName('t3')[0];
-		api.renderCaseElem(this.value, -1, u);
+		api.renderCaseElem(val, -1, u);
 		var sum = 0;
 		for (i=0; i<cache.types[3].length; i++) {
 			api.renderCaseElem(val, cache.types[3][i], u);
@@ -587,15 +588,189 @@ function exapi() {
 				else {
 					for (j=0; j<cache.types[3].length; j++) project.cases[c].enabled[cache.types[3][j]] = api.selectedCase == -1;
 					for (j=0; j<cache.types[4].length; j++) project.cases[c].enabled[cache.types[4][j]] = api.selectedCase == -1;
-					api.renderCase(c);
-					api.drawCases();
 				}
-				api.renderCase(c)
+				api.renderCase(c);
+				api.drawCases();
 			});
 			document.getElementById('caselist').appendChild(el);
 		}
 		if (!norefocus) this.renderCase(-2); 
 		else document.getElementById('caselist').getElementsByClassName('b')[api.selectedCase+2].classList.add('sel');
+	}
+	
+	
+	this.renderTermElem = function (caseid, elem, x) {
+		var e = document.createElement('div');
+		var isEnabled = (elem == -1 ? false : (caseid == -2 ? false : (caseid == -1 ? true : project.cases[caseid].enabled[elem])));
+		e.classList = 't2 ';
+		e.value = caseid;
+		e.style = (elem == -1 ?'':'text-align:left');
+		e.elemId = elem;
+		var et = (caseid == -1?'div':'input');
+		var t = (elem>=0?(caseid<0?api.defTerms[caseid+2]:project.terms[caseid]):api.defTerms[0]);
+		var cl = ((caseid < 0 || elem == t.terms.length-1)?' na':'');
+		
+		var u;
+		var c = document.createElement('div');
+		c.className = 't';
+		if (elem == t.terms.length) {
+			if (caseid >= 0) {
+				u = document.createElement('div');
+				u.className = 'b fs';
+				u.innerHTML = '<i>Добавить</i>';
+				u.addEventListener('click', function() {
+					var uc = project.terms[project.settings.term].terms.length-1;
+					project.terms[project.settings.term].terms.push({term:'Терм '+(uc+1),lim:1});
+					api.renderTerm(project.settings.term);
+				});
+				c.appendChild(u);
+				e.appendChild(c);
+			}
+		}
+		else {
+			if (elem == -1) c.innerHTML = 'Имя';
+			else {
+				u = document.createElement('input');
+				u.className = 'b i fs'+(caseid < 0?' na':'');
+				if (caseid < 0) u.disabled = true;
+				u.value = t.terms[elem].term;
+				u.addEventListener("input",function() {
+					project.terms[project.settings.term].terms[this.parentNode.parentNode.elemId].term = this.value;
+				});
+				c.appendChild(u);
+			}
+			e.appendChild(c);
+			
+			c = document.createElement('div');
+			c.className = 't';
+			if (elem == -1) c.innerHTML = 'Нижний предел';
+			else {
+				u = document.createElement('input');
+				u.className = 'b i fs na';
+				u.disabled = true;
+				u.value = (elem >0?t.terms[elem-1].lim:0);
+				c.appendChild(u);
+			}
+			e.appendChild(c);
+			
+			c = document.createElement('div');
+			c.className = 't';
+			if (elem == -1) c.innerHTML = 'Верхний предел';
+			else {
+				u = document.createElement('input');
+				u.className = 'b i fs'+cl;
+				if (caseid < 0 || elem == t.terms.length-1) u.disabled = true;
+				u.value = t.terms[elem].lim;
+				u.addEventListener("change",function() {
+					this.value = this.value.replace(",",".");
+					this.value = parseFloat(this.value);
+					var min = (this.parentNode.parentNode.elemId == 0? 0 : project.terms[this.parentNode.parentNode.value].terms[this.parentNode.parentNode.elemId-1].lim);
+					if (isNaN(this.value)) this.value = 0;
+					if (this.value>1) this.value = 1;
+					if (this.value<min) this.value = min;
+					project.terms[this.parentNode.parentNode.value].terms[this.parentNode.parentNode.elemId].lim = this.value;
+					this.parentNode.parentNode.nextElementSibling.getElementsByClassName('b')[1].value = this.value;
+				});
+				c.appendChild(u);
+			}
+			e.appendChild(c);
+			
+			c = document.createElement('div');
+			c.className = 't';
+			if (elem == -1) c.innerHTML = ' ';
+			else {
+				u = document.createElement('div');
+				u.className = 'b red i fs'+cl;
+				if (caseid < 0 || elem == t.terms.length-1) u.disabled = true;
+				else {
+					u.addEventListener("click",function() {
+						var v = this.parentNode.parentNode.value;
+						var e = this.parentNode.parentNode.elemId;
+						var n = (e == 0? 0: project.terms[v].terms[e-1].lim);
+						this.parentNode.parentNode.nextElementSibling.getElementsByClassName('b')[1].value = n;
+						project.terms[v].terms.splice(e, 1);
+						api.renderTerm(v);
+					});
+				}
+				u.innerHTML = 'Удалить';
+				c.appendChild(u);
+			}
+			e.appendChild(c);
+		}
+		
+		x.appendChild(e);
+	}
+	
+	this.renderTerm = function(val) {
+		project.settings.term = val;
+		document.getElementById('termoptions').innerHTML = '<div class="table r"><div class="t3"></div></div>';
+		var i;
+		for (i=0; i<document.getElementById('termlist').getElementsByClassName('b').length; i++) 
+			document.getElementById('termlist').getElementsByClassName('b')[i].classList.remove('sel');
+		document.getElementById('termlist').getElementsByClassName('b')[val+2].classList.add('sel');
+		var u = document.getElementById('termoptions').getElementsByClassName('t3')[0];
+		api.renderTermElem(val, -1, u);
+		if (val >= 0 && project.terms[val].terms.length == 0) {
+			project.terms[val].terms[0] = {};
+			project.terms[val].terms[0].name = 'Терм';
+			project.terms[val].terms[0].lim = 'Терм';
+		}
+		var t = (val<0?api.defTerms[val+2]:project.terms[val]);
+		for (i=0; i<=t.terms.length; i++) {
+			api.renderTermElem(val, i, u);
+		}
+		
+		document.getElementById('t_name').value = (val >= 0?project.terms[val].name : (val == -1 ? api.defTerms[1].name : api.defTerms[0].name));
+		document.getElementById('t_name').disabled = !(val>=0);
+		if (val >= 0) {
+			document.getElementById('t_name').classList.remove('na');
+			document.getElementById('t_del').classList.remove('na');
+			//document.getElementById('t_del').addEventListener('click', api.requestDeletionCase);
+		}
+		else {
+			document.getElementById('t_name').classList.add('na');
+			document.getElementById('t_del').classList.add('na');
+			//document.getElementById('t_del').removeEventListener('click', api.requestDeletionCase);
+		}
+	}
+	
+	this.drawTerms = function(norefocus) {
+		if (project.terms == undefined) project.terms = [];
+		document.getElementById('termlist').innerHTML = '';
+		for (var i = -2; i<project.terms.length+1; i++) {
+			var u, t;
+			if (i < 0) {
+				u = i+2;
+				t = api.defTerms;
+			}
+			else {
+				u = i;
+				t = project.terms;
+			}
+			
+			var el = document.createElement('div');
+			el.classList = 'b fs';
+			if (i !=project.terms.length) el.innerHTML = t[u].name;
+			else el.innerHTML = '<i>Новый набор</i>';
+			el.value = i;
+			if (i != project.terms.length) el.addEventListener("click",function() {
+				api.renderTerm(this.value)});
+			else el.addEventListener("click",function() {
+				var c, j;
+				for (c=0; project.terms[c] != undefined; c++) 0;
+				project.terms[c] = {};
+				project.terms[c].name = 'Новый набор '+c;
+				project.terms[c].terms = [];
+				project.terms[c].terms[0] = {};
+				project.terms[c].terms[0].term = 'Терм 0';
+				project.terms[c].terms[0].lim = 1;
+				api.drawTerms();
+				api.renderTerm(c)
+			});
+			document.getElementById('termlist').appendChild(el);
+		}
+		if (!norefocus) this.renderTerm(-2); 
+		else document.getElementById('termlist').getElementsByClassName('b')[project.settings.term+2].classList.add('sel');
 	}
 	
 	this.renderEffect= function(val, target) {
@@ -716,6 +891,10 @@ function exapi() {
 			this.drawCases();
 			document.getElementById("cases").classList.toggle("d");
 		}
+		else if (id == "terms") {
+			this.drawTerms();
+			document.getElementById("terms").classList.toggle("d");
+		}
 		else if (id == "effect") {
 			Recompile();
 			this.drawEffect();
@@ -805,6 +984,11 @@ function exapi() {
 			e.style.top = getComputedStyle(document.getElementById('top')).getPropertyValue("height");
 		}
 		
+		
+		document.getElementById(id).getElementsByClassName("w")[0].addEventListener("mousedown", function() {
+			api.windowOnTop(this.parentNode.id);
+		});
+		
 		if (document.getElementById(id).getElementsByClassName("h")[0] != undefined) {
 			if (arg1 == "editb") {
 				document.getElementById(id).getElementsByClassName("elist")[0].getElementsByTagName("table")[0].addEventListener("mouseover", function() {
@@ -823,10 +1007,6 @@ function exapi() {
 				});
 			}
 			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousedown", this.initWindowMove);
-			
-			document.getElementById(id).getElementsByClassName("w")[0].addEventListener("mousedown", function() {
-				api.windowOnTop(this.parentNode.id);
-			});
 			
 			document.getElementById(id).getElementsByClassName("h")[0].addEventListener("mousemove", function(event) {
 				if (t != this.parentNode.parentNode.id) return;
@@ -1274,6 +1454,11 @@ function exapi() {
 			document.getElementById("cs_name").addEventListener("input", function(event) {
 				project.cases[api.selectedCase].name = this.value;
 				api.drawCases(true);
+			});
+			
+			document.getElementById("t_name").addEventListener("input", function(event) {
+				project.terms[project.settings.term].name = this.value;
+				api.drawTerms(true);
 			});
 			
 			document.getElementById("bpad1").getElementsByTagName("table")[0].addEventListener("mouseover", function() {

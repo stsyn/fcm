@@ -164,7 +164,7 @@
 					<div class="pad" style="display:block">
 						<div class="bt"><div class="table r"><div class="t3"><div class="t2">
 							<span class="t"><span class="b fs" onclick="api.callWindow('cases')">Кейсы</span></span>
-							<span class="t"><span class="b fs na" onclick="api.callWindow('terms')">Термы</span></span>
+							<span class="t"><span class="b fs" onclick="api.callWindow('terms')">Термы</span></span>
 						</div></div></div></div>
 					</div>
 					<div class="pad" style="display:block">
@@ -311,6 +311,30 @@
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
 					<span class="t"><span class="b fs" onclick="api.closeWindow('cases')">Закрыть</span></span>
+				</div></div></div></div>
+			</div>
+		</div>
+		
+		<div id="terms">
+			<div class="back"></div>
+			<div class="w huge defhuge">
+				<div class="h"><span>Термы</span></div>
+				<div class="hc"><span>Термы</span></div>
+				<div class="controls">
+					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+				</div>
+				<div class="cc btns">
+					<div id="termlist" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
+					<div id="termoptions" class="pad selection" style="display:block;float:left;width:calc(100% - 40em - 24px);height:calc(100% - 8px)"></div>
+					<div id="terminfo" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word">
+						<div class="line">Имя: <input type="text" class="b i" id="t_name" style="width:10em"></div>
+						<div class="line"><div class="b" id="t_export">Экспорт</div><div class="b" id="t_import">Импорт</div></div>
+						<div class="line"><div class="b red" id="t_del">Удалить</div></div>
+					</div>
+				</div>
+				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
+					<span class="t"><span class="b fs" onclick="api.closeWindow('terms')">Закрыть</span></span>
 				</div></div></div></div>
 			</div>
 		</div>

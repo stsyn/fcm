@@ -42,6 +42,8 @@ function resetProject() {
 	project.meta.timeSaved = t.getTime();
 	project.meta.description = '';
 	project.cases = [];
+	project.terms = [];
+	project.settings.term = -2;
 	update();
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
