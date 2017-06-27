@@ -84,16 +84,16 @@
 						<div class="line">Общий размер шрифта (25% - 200%): <input type="text" class="b i" id="st_glfontsize" style="width:2em">%</div>
 						<div class="line">Размеры элементов (7px - 100px): <input type="text" class="b i" id="st_elemsize" style="width:2em">px</div>
 						<div class="pad" style="width:calc(60% - 10px);display:inline-block;text-align:left;border:none">
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_grid"> Сетка</label></div>
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_redGrid"> Красные "нулевые" линии</label></div>
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_cursor"> Собственный курсор и шрифты</label></div>
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_transparency"> Полупрозрачность неактивных окон</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_grid"> Сетка</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_redGrid"> Красные "нулевые" линии</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_cursor"> Собственный курсор и шрифты</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_transparency"> Полупрозрачность неактивных окон</label></div>
 						</div>
 						<div class="pad" style="width:calc(40% - 10px);display:inline-block;text-align:left;border:none">
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_labels"> Подписи у иконок</label></div>
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_elemLabels"> Подписи у элементов</label></div>
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_actualNames"> Имена вместо кодов</label></div>
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_debug"> Режим отладки</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_labels"> Подписи у иконок</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_elemLabels"> Подписи у элементов</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_actualNames"> Имена вместо кодов</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_debug"> Режим отладки</label></div>
 						</div>
 					</div>
 					<div class="pad" style="display:block">
@@ -170,14 +170,14 @@
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Настройки</div>
 						<div class="pad" style="width:calc(50% - 10px);display:inline-block;text-align:left;border:none">
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_strict"> Строгий режим</label></div>
-							<div class="line hd"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_propsize"> Пропорциональный размер элементов</label></div>
-							<div class="line"><label class="b i stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_propcolor"> Пропорциональный цвет связей</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_strict"> Строгий режим</label></div>
+							<div class="line hd"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_propsize"> Пропорциональный размер элементов</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_propcolor"> Пропорциональный цвет связей</label></div>
 							<div class="line">Пароль: <input type="text" class="b i" id="m_pass1" style="width:10em" disabled></div> 
 						</div>
 						<div class="pad" style="width:calc(50% - 10px);display:inline-block;text-align:left;border:none">
-							<div class="line"><label class="b i stillsel ac na fs" style="font-weight:normal"><input type="checkbox" id="m_compress" disabled> Сжатие проекта</label></div>
-							<div class="line"><label class="b i stillsel ac na fs" style="font-weight:normal"><input type="checkbox" id="m_encrypt" disabled> Шифрование</label></div>
+							<div class="line"><label class="b ilb stillsel ac na fs" style="font-weight:normal"><input type="checkbox" id="m_compress" disabled> Сжатие проекта</label></div>
+							<div class="line"><label class="b ilb stillsel ac na fs" style="font-weight:normal"><input type="checkbox" id="m_encrypt" disabled> Шифрование</label></div>
 							<div class="line">Повтор: <input type="text" class="b i" id="m_pass2" style="width:10em" disabled></div>
 						</div>
 					</div>
@@ -237,12 +237,12 @@
 					
 					<div id="pad3" class="pad" style="text-align:center">
 						<div class="line">
-							<span class="b fs i na" onclick="">Матрица достижимости</span>
-							<span class="b fs i" onclick="setTimeout(function() {api.callWindow('effect')},10);api.callPopup2(windows.loader)">Полный эффект</span>
-							<span class="b fs i na">Общий риск</span>
+							<span class="b fs na" onclick="">Матрица достижимости</span>
+							<span class="b fs" onclick="setTimeout(function() {api.callWindow('effect')},10);api.callPopup2(windows.loader)">Полный эффект</span>
+							<span class="b fs na">Общий риск</span>
 						</div>
 						<div class="line">
-							<span class="b fs i" id="project_button" onclick="api.callWindow('project')">Настройки проекта</span>
+							<span class="b fs" id="project_button" onclick="api.callWindow('project')">Настройки проекта</span>
 						</div>
 					</div>
 				</div>
@@ -297,7 +297,6 @@
 				<div class="h"><span>Кейсы</span></div>
 				<div class="hc"><span>Кейсы</span></div>
 				<div class="controls">
-					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
 					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
 				</div>
 				<div class="cc btns">
@@ -321,7 +320,6 @@
 				<div class="h"><span>Термы</span></div>
 				<div class="hc"><span>Термы</span></div>
 				<div class="controls">
-					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
 					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
 				</div>
 				<div class="cc btns">
@@ -329,7 +327,6 @@
 					<div id="termoptions" class="pad selection" style="display:block;float:left;width:calc(100% - 40em - 24px);height:calc(100% - 8px)"></div>
 					<div id="terminfo" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word">
 						<div class="line">Имя: <input type="text" class="b i" id="t_name" style="width:10em"></div>
-						<div class="line"><div class="b" id="t_export">Экспорт</div><div class="b" id="t_import">Импорт</div></div>
 						<div class="line"><div class="b red" id="t_del">Удалить</div></div>
 					</div>
 				</div>
@@ -434,13 +431,16 @@
 					<div class="pad _cc_control" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost2" style="width:4em"></div>
-							<div class="t de" style="width:50%">Эффективность: <input type="text" class="b i cc_effect" style="width:4em"></div>
+							<div class="t de" style="width:50%">Эффективность: 
+								<input type="text" class="b i cc_effect" style="width:4em">
+								<select size="1" class="b ilb cc_vsel"></select>
+							</div>
 						</div></div></div>
 					</div>
 					<div class="pad debug" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:38%">Позиция X: <input type="text" class="b i cc_X" style="width:4em"></div>
-							<div class="t de" style="width:38%">Позиция Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
+							<div class="t de" style="width:38%">X: <input type="text" class="b i cc_X" style="width:4em"></div>
+							<div class="t de" style="width:38%">Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
 							<div class="t de" style="width:24%">Тип: <input type="text" class="b i cc_type" style="width:2em" disabled></div>
 						</div></div></div>
 					</div>
@@ -471,7 +471,10 @@
 							<div class="t de" style="width:35%">Начало: <input type="text" class="b i cc_first" style="width:3em" disabled></div>
 							<div class="t de" style="width:34%">Конец: <input type="text" class="b i cc_second" style="width:8em" disabled></div>
 						</div></div></div>
-						<div class="line de">Сила: <input type="text" class="b i cc_v" style="width:4em"></div>
+						<div class="line de">Сила: 
+							<input type="text" class="b i cc_v" style="width:4em">
+							<select size="1" class="b ilb cc_vsel"></select>
+						</div>
 					</div>
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
@@ -499,7 +502,10 @@
 							<div class="t de" style="width:25%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
 							<div class="t de" style="width:25%">Начало: <input type="text" class="b i cc_first" style="width:3em" disabled></div>
 							<div class="t de" style="width:25%">Конец: <input type="text" class="b i cc_second" style="width:3em" disabled></div>
-							<div class="t de" style="width:25%">Сила: <input type="text" class="b i cc_v" style="width:3em" disabled></div>
+							<div class="t de" style="width:25%">Сила: 
+								<input type="text" class="b i cc_v" style="width:3em" disabled>
+								<select size="1" class="b ilb cc_vsel"></select>
+							</div>
 						</div></div></div>
 					</div>
 					<div class="pad selection elist" style="display:block"><table class="r" cellspacing="0" rules="all">
@@ -549,13 +555,16 @@
 					<div class="pad _cc_control">
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost2" style="width:4em"></div>
-							<div class="t de" style="width:50%">Эффективность: <input type="text" class="b i cc_effect" style="width:4em"></div>
+							<div class="t de" style="width:50%">Эффективность: 
+								<input type="text" class="b i cc_effect" style="width:4em">
+								<select size="1" class="b ilb cc_vsel"></select>
+							</div>
 						</div></div></div>
 					</div>
 					<div class="pad debug" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:38%">Позиция X: <input type="text" class="b i cc_X" style="width:4em"></div>
-							<div class="t de" style="width:38%">Позиция Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
+							<div class="t de" style="width:38%">X: <input type="text" class="b i cc_X" style="width:4em"></div>
+							<div class="t de" style="width:38%">Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
 							<div class="t de" style="width:24%">Тип: &nbsp;<input type="text" class="b i cc_type" style="width:2em" disabled></div>
 						</div></div></div>
 					</div>

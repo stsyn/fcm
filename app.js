@@ -16,7 +16,7 @@ var AuxMove, tElemX, tElemY, tBond, tElem;
 
 
 function cCode(id, type) {
-	if (type == 1) return 'C(T)'+id; //treat
+	if (type == 1) return 'C(T)'+id; 	//treat
 	if (type == 2) return 'C(R)'+id;	//resource
 	if (type == 3) return 'C(A)'+id;	//aim
 	if (type == 4) return 'C(p)'+id;	//protector
@@ -43,7 +43,7 @@ function resetProject() {
 	project.meta.description = '';
 	project.cases = [];
 	project.terms = [];
-	project.settings.term = -2;
+	project.settings.term = -3;
 	update();
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
@@ -615,6 +615,10 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	else if ((type == 4) || (type == 5)) {
 		if (e.getElementsByClassName("cc_cost2")[0].value !== "") project.elements[id].cost = parseFloat(e.getElementsByClassName("cc_cost2")[0].value); else project.elements[id].cost = 0;
 		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].val = parseFloat(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].val = 0;	
+		
+		
+		if (project.settings.term != -3) project.elements[id].val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+		
 		if (project.settings.strict) {
 			if (project.elements[id].val < 0) project.elements[id].val = 0;
 			if (project.elements[id].val > 1) project.elements[id].val = 1;
@@ -633,6 +637,10 @@ function createAndAddBond(el, isNew) {
 	project.bonds[id].val = parseFloat(e.getElementsByClassName("cc_v")[0].value);
 	if (project.bonds[id].val < 0) project.bonds[id].val = 0;
 	if (project.bonds[id].val > 1) project.bonds[id].val = 1;
+	
+	
+	if (project.settings.term != -3) project.elements[id].val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+		
 	if (!isNew) api.brush = 0;
 	update();
 }
@@ -666,7 +674,13 @@ function includeNeighbours(id, e) {
 			t = false;
 		}
 		ec = project.bonds[cache.elements[id].inbonds[i]].first;
-		e.innerHTML += '<div class="b i" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+	}
+	if ((project.elements[id].type == 4) || (project.elements[id].type == 5)) {
+		e.innerHTML = '<div class="line">Предыдущий элемент:<br>';
+		ec = project.bonds[project.elements[id].X].first;
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+		t = false;
 	}
 	if (!t) e.innerHTML += '</div>';
 	t = true;
@@ -676,9 +690,35 @@ function includeNeighbours(id, e) {
 			t = false;
 		}
 		ec = project.bonds[cache.elements[id].outbonds[i]].second;
-		e.innerHTML += '<div class="b i" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+	}
+	if ((project.elements[id].type == 4) || (project.elements[id].type == 5)) {
+		e.innerHTML += '<div class="line">Следующий элемент:<br>';
+		ec = project.bonds[project.elements[id].X].second;
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+		t = false;
 	}
 	if (!t) e.innerHTML += '</div>';
+}
+
+function getTermInterval(val) {
+	var t, i;
+	t = api.getTermsPattern(project.settings.term);
+	
+	for (var i=0; i<t.terms.length; i++) if (val <= t.terms[i].lim) return i;
+}
+
+function getValueOfTerm(val) {
+	var t = api.getTermsPattern(project.settings.term);
+	if (val == 0) return t.terms[0].lim/2;
+	else return (t.terms[val].lim-t.terms[val-1].lim)/2+t.terms[val-1].lim;
+}
+
+function getTermName(val) {
+	var t;
+	t = api.getTermsPattern(project.settings.term);
+	
+	return t.terms[getTermInterval(val)].term;
 }
 
 function editElement(id) {
@@ -706,6 +746,26 @@ function editElement(id) {
 	e.getElementsByClassName("cc_effect")[0].value = el.val;
 	e.getElementsByClassName("cc_code")[0].value = getCode(id);
 	
+	if (project.settings.term == -3) {
+		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
+		e.getElementsByClassName("cc_effect")[0].classList.remove('hd');
+	}
+	else {
+		e.getElementsByClassName("cc_effect")[0].classList.add('hd');
+		var u = e.getElementsByClassName("cc_vsel")[0];
+		u.classList.remove('hd');
+		u.innerHTML = '';
+		
+		var t = api.getTermsPattern(project.settings.term);
+		for (var i=0; i<t.terms.length; i++) {
+			var c = document.createElement('option');
+			c.selected = (i == getTermInterval(el.val));
+			c.innerHTML = t.terms[i].term;
+			c.value = i;
+			u.appendChild(c);
+		}
+	}
+	
 	e.getElementsByClassName("_cc_initator")[0].style.display = (((el.type == 1) || (el.type == 2))?"block":"none");
 	e.getElementsByClassName("_cc_target")[0].style.display = ((el.type == 3)?"block":"none");
 	e.getElementsByClassName("_cc_control")[0].style.display = (((el.type == 4) || (el.type == 5))?"block":"none");
@@ -724,6 +784,26 @@ function editBond(id) {
 	e.getElementsByClassName("cc_first")[0].value = el.first;
 	e.getElementsByClassName("cc_second")[0].value = el.second;
 	e.getElementsByClassName("cc_v")[0].value = el.val;
+	
+	if (project.settings.term == -3) {
+		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
+		e.getElementsByClassName("cc_v")[0].classList.remove('hd');
+	}
+	else {
+		e.getElementsByClassName("cc_v")[0].classList.add('hd');
+		var u = e.getElementsByClassName("cc_vsel")[0];
+		u.classList.remove('hd');
+		u.innerHTML = '';
+		
+		var t = api.getTermsPattern(project.settings.term);
+		for (var i=0; i<t.terms.length; i++) {
+			var c = document.createElement('option');
+			c.selected = (i == getTermInterval(el.val));
+			c.innerHTML = t.terms[i].term;
+			c.value = i;
+			u.appendChild(c);
+		}
+	}
 	api.includeElements(e.getElementsByClassName("elist")[0].getElementsByTagName("table")[0], id);
 }
 
@@ -742,7 +822,7 @@ function AddElement(MouseX,MouseY,onBond) {
 	e.getElementsByClassName("cc_Y")[0].value = y;
 	e.getElementsByClassName("cc_type")[0].value = api.brush;
 	e.getElementsByClassName("cc_color_check")[0].checked = false;
-	e.getElementsByClassName("cc_color")[0].value = "";
+	e.getElementsByClassName("cc_color")[0].value = api.settings.color[api.brush-1];
 	e.getElementsByClassName("cc_color2")[0].value = "";
 	e.getElementsByClassName("cc_size")[0].value = "100";
 	
@@ -753,8 +833,27 @@ function AddElement(MouseX,MouseY,onBond) {
 	e.getElementsByClassName("cc_state")[0].value = "0";
 	e.getElementsByClassName("cc_limit")[0].value = "0";
 	e.getElementsByClassName("cc_value")[0].value = "0";
-	e.getElementsByClassName("cc_effect")[0].value = "0";
+	e.getElementsByClassName("cc_effect")[0].value = "0.5";
 	e.getElementsByClassName("cc_code")[0].value = cCode(i, api.brush);
+	
+	if (project.settings.term == -3) {
+		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
+		e.getElementsByClassName("cc_effect")[0].classList.remove('hd');
+	}
+	else {
+		e.getElementsByClassName("cc_effect")[0].classList.add('hd');
+		var u = e.getElementsByClassName("cc_vsel")[0];
+		u.classList.remove('hd');
+		u.innerHTML = '';
+		
+		var t = api.getTermsPattern(project.settings.term);
+		for (var i=0; i<t.terms.length; i++) {
+			var c = document.createElement('option');
+			c.innerHTML = t.terms[i].term;
+			c.value = i;
+			u.appendChild(c);
+		}
+	}
 	
 	e.getElementsByClassName("_cc_initator")[0].style.display = (((api.brush == 1) || (api.brush == 2))?"block":"none");
 	e.getElementsByClassName("_cc_target")[0].style.display = ((api.brush == 3)?"block":"none");
@@ -797,6 +896,25 @@ function AddBond(FirstElement,SecondElement) {
 	e.getElementsByClassName("cc_first")[0].value = FirstElement;
 	e.getElementsByClassName("cc_second")[0].value = SecondElement;
 	e.getElementsByClassName("cc_v")[0].value = "0.5";
+	
+	if (project.settings.term == -3) {
+		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
+		e.getElementsByClassName("cc_v")[0].classList.remove('hd');
+	}
+	else {
+		e.getElementsByClassName("cc_v")[0].classList.add('hd');
+		var u = e.getElementsByClassName("cc_vsel")[0];
+		u.classList.remove('hd');
+		u.innerHTML = '';
+		
+		var t = api.getTermsPattern(project.settings.term);
+		for (var i=0; i<t.terms.length; i++) {
+			var c = document.createElement('option');
+			c.innerHTML = t.terms[i].term;
+			c.value = i;
+			u.appendChild(c);
+		}
+	}
 	api.brush = 100;
 }
 
@@ -893,6 +1011,7 @@ function BondPositon(MouseX,MouseY,key) {
 
 function getBondVal(el, caseid) {
 	var i, c = project.bonds[el].val;
+	if (project.settings.term != -3) c = getValueOfTerm(getTermInterval(c));
 	for (i=0; i<cache.bonds[el].elems.length; i++) {
 		if (caseid >=0) if (project.cases[caseid].enabled[u] == undefined) project.cases[caseid].enabled[u] = true;
 		var u = cache.bonds[el].elems[i];
@@ -901,8 +1020,10 @@ function getBondVal(el, caseid) {
 		if (caseid == -2 && t) continue;		//не учитываем защитные меры, если все выключено
 		if (caseid == -1 && !t) continue;       //не учитываем дестабилизаторы, если все включено
 		if (caseid >= 0 && (project.cases[caseid].enabled[u] ^ t)) continue;
-		if (t) c *= (1 - project.elements[u].val);
-		else c = (1 - (1 - c) * (1 - project.elements[u].val));
+		var uv = project.elements[u].val;
+		if (project.settings.term != -3) uv = getValueOfTerm(getTermInterval(uv));
+		if (t) c *= (1 - uv);
+		else c = (1 - (1 - c) * (1 - uv));
 	}
 	return c;
 }
@@ -926,20 +1047,26 @@ function iteration(i, cur, val, roadmap) {
 		}
 		if (api.settings.debug) console.log('Находимся на итерации '+i+'. Текущий элемент №'+cur+', пока что '+val+'.');
 		
+		var axval = [];
+		for (i = 0; i<val.length; i++) axval.push(val[i]);
+		
 		var j=0;
 		for (j = -2; j<project.cases.length; j++) {
-			val[j+2] = (val[j+2]<getBondVal(cache.elements[cur].outbonds[c], j)?val[j+2]:getBondVal(cache.elements[cur].outbonds[c], j));
+			axval[j+2] = (axval[j+2]<getBondVal(cache.elements[cur].outbonds[c], j)?axval[j+2]:getBondVal(cache.elements[cur].outbonds[c], j));
 		}
 		
 		iteration(i+1, 
 			project.bonds[cache.elements[cur].outbonds[c]].second, 				//следующий элемент
-			val,	//меньшую силу передаем
+			axval,	//меньшую силу передаем
 			roadmap.concat(cur));
 	}
 }
 	
 function Recompile() {
-	if (api.compiled) return;
+	if (api.compiled) {
+		api.closePopup();
+		return;
+	}
 	var uv = [];
 	if (project.cases == undefined) project.cases = [];
 	var c = project.cases.length+2;

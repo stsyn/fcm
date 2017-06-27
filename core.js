@@ -19,8 +19,8 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.6", s:"beta", b:49};
-	this.defTerms = [{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
+	this.version = {g:"0.0.7", s:"beta", b:50};
+	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
@@ -136,7 +136,9 @@ function exapi() {
 	}
 	
 	this.includeElementsTLine = function (el, i) {
-		return '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+getName(i)+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":el[i].val)+'</td></tr>';
+		var u = el[i].val;
+		if ((project.settings.term != -3) && (u != undefined) && (u <= 1) && (u >= 0)) u = getTermName(u);
+		return '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+getName(i)+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":u)+'</td></tr>';
 	}
 	
 	this.includeElements = function (e,filter) {
@@ -164,7 +166,9 @@ function exapi() {
 	}
 	
 	this.includeBondsTLine = function (b, el, i) {
-		return '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+'-'+b[i].second+'</td><td>'+b[i].val+'</td><td>'+getName(b[i].first)+'</td><td>'+getName(b[i].second)+'</td></tr>';
+		var u = b[i].val;
+		if (project.settings.term != -3 && u != undefined) u = getTermName(u);
+		return '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+'-'+b[i].second+'</td><td>'+u+'</td><td>'+getName(b[i].first)+'</td><td>'+getName(b[i].second)+'</td></tr>';
 	}
 
 	this.includeBonds = function (e, filter) {
@@ -186,6 +190,7 @@ function exapi() {
 			if ((el[filter].type == 4) || (el[filter].type == 5)) {
 				s += '<tr class="headline b fs na"><td colspan="5">Родительская связь</td></tr>';
 				s += this.includeBondsTLine (b, el, el[filter].X);
+				e.innerHTML = s;
 				return;
 			}
 			var t = true;
@@ -255,6 +260,7 @@ function exapi() {
 			this.addMessage('Проект не может быть импортирован','red');
 		}
 		project = JSON.parse(c);
+		if (project.settings.term == undefined) project.settings.term = -3;
 		update();
 		this.changed = false;
 		this.closeWindow('import');
@@ -314,6 +320,7 @@ function exapi() {
 		try {
 			if (api.settings.debug) console.log("Loading ", name);
 			project = JSON.parse(localStorage[name]);
+			if (project.settings.term == undefined) project.settings.term = -3;
 			if (!silent) {
 				this.closeWindow("load");
 				this.closePopup();
@@ -523,6 +530,11 @@ function exapi() {
 		api.callPopup2(windows.deleteCase);
 	}
 	
+	this.requestDeletionTerm = function() {
+		windows.deleteTerm.buttons[0].functions = 'project.terms.splice('+api.selectedTerm+',1);api.closePopup();api.drawTerms()';
+		api.callPopup2(windows.deleteTerm);
+	}
+	
 	this.renderCase = function(val) {
 		api.selectedCase = val;
 		document.getElementById('caseoptions').innerHTML = '<div class="table r"><div class="t3"></div></div>';
@@ -599,15 +611,19 @@ function exapi() {
 	}
 	
 	
+	this.getTermsPattern = function(val) {
+		if (val < 0) return this.defTerms[val+3];
+		return project.terms[val];
+	}
+	
 	this.renderTermElem = function (caseid, elem, x) {
 		var e = document.createElement('div');
-		var isEnabled = (elem == -1 ? false : (caseid == -2 ? false : (caseid == -1 ? true : project.cases[caseid].enabled[elem])));
 		e.classList = 't2 ';
 		e.value = caseid;
 		e.style = (elem == -1 ?'':'text-align:left');
 		e.elemId = elem;
 		var et = (caseid == -1?'div':'input');
-		var t = (elem>=0?(caseid<0?api.defTerms[caseid+2]:project.terms[caseid]):api.defTerms[0]);
+		var t = (elem>=0?(caseid<0?api.defTerms[caseid+3]:project.terms[caseid]):api.defTerms[0]);
 		var cl = ((caseid < 0 || elem == t.terms.length-1)?' na':'');
 		
 		var u;
@@ -619,9 +635,9 @@ function exapi() {
 				u.className = 'b fs';
 				u.innerHTML = '<i>Добавить</i>';
 				u.addEventListener('click', function() {
-					var uc = project.terms[project.settings.term].terms.length-1;
-					project.terms[project.settings.term].terms.push({term:'Терм '+(uc+1),lim:1});
-					api.renderTerm(project.settings.term);
+					var uc = project.terms[api.selectedTerm].terms.length-1;
+					project.terms[api.selectedTerm].terms.push({term:'Терм '+(uc+1),lim:1});
+					api.renderTerm(api.selectedTerm);
 				});
 				c.appendChild(u);
 				e.appendChild(c);
@@ -635,7 +651,7 @@ function exapi() {
 				if (caseid < 0) u.disabled = true;
 				u.value = t.terms[elem].term;
 				u.addEventListener("input",function() {
-					project.terms[project.settings.term].terms[this.parentNode.parentNode.elemId].term = this.value;
+					project.terms[api.selectedTerm].terms[this.parentNode.parentNode.elemId].term = this.value;
 				});
 				c.appendChild(u);
 			}
@@ -680,7 +696,7 @@ function exapi() {
 			if (elem == -1) c.innerHTML = ' ';
 			else {
 				u = document.createElement('div');
-				u.className = 'b red i fs'+cl;
+				u.className = 'b red fs'+cl;
 				if (caseid < 0 || elem == t.terms.length-1) u.disabled = true;
 				else {
 					u.addEventListener("click",function() {
@@ -702,45 +718,58 @@ function exapi() {
 	}
 	
 	this.renderTerm = function(val) {
-		project.settings.term = val;
+		api.selectedTerm = val;
 		document.getElementById('termoptions').innerHTML = '<div class="table r"><div class="t3"></div></div>';
 		var i;
 		for (i=0; i<document.getElementById('termlist').getElementsByClassName('b').length; i++) 
 			document.getElementById('termlist').getElementsByClassName('b')[i].classList.remove('sel');
-		document.getElementById('termlist').getElementsByClassName('b')[val+2].classList.add('sel');
+		document.getElementById('termlist').getElementsByClassName('b')[val+3].classList.add('sel');
 		var u = document.getElementById('termoptions').getElementsByClassName('t3')[0];
-		api.renderTermElem(val, -1, u);
-		if (val >= 0 && project.terms[val].terms.length == 0) {
-			project.terms[val].terms[0] = {};
-			project.terms[val].terms[0].name = 'Терм';
-			project.terms[val].terms[0].lim = 'Терм';
+		var p = document.createElement('div');
+		p.className = 'pad';
+		p.style = 'display:block';
+		p.innerHTML = '';
+		if (val == -3) {
+			p.innerHTML = 'В данном режиме отствует возможность выбрать или создать терм. Вместо этого используется явное цифровое обозначение.<br><br>';
 		}
-		var t = (val<0?api.defTerms[val+2]:project.terms[val]);
-		for (i=0; i<=t.terms.length; i++) {
-			api.renderTermElem(val, i, u);
+		else {
+			api.renderTermElem(val, -1, u);
+			if (val >= 0 && project.terms[val].terms.length == 0) {
+				project.terms[val].terms[0] = {};
+				project.terms[val].terms[0].name = 'Терм';
+				project.terms[val].terms[0].lim = 'Терм';
+			}
+			var t = (val<0?api.defTerms[val+3]:project.terms[val]);
+			for (i=0; i<=t.terms.length; i++) {
+				api.renderTermElem(val, i, u);
+			}
 		}
 		
-		document.getElementById('t_name').value = (val >= 0?project.terms[val].name : (val == -1 ? api.defTerms[1].name : api.defTerms[0].name));
+		p.innerHTML += 'Изменения сохраняются автоматически. Используется терм, который был открыт последним. <b>Все значения элементов и связей корректируются после закрытия редактирования исходя из используемого терма!</b>';
+		document.getElementById('termoptions').appendChild(p);
+		document.getElementById('t_name').value = (val >= 0?project.terms[val].name : (val == -1 ? api.defTerms[2].name : (val == -2 ?api.defTerms[1].name: api.defTerms[0].name)));
 		document.getElementById('t_name').disabled = !(val>=0);
 		if (val >= 0) {
 			document.getElementById('t_name').classList.remove('na');
 			document.getElementById('t_del').classList.remove('na');
-			//document.getElementById('t_del').addEventListener('click', api.requestDeletionCase);
+			document.getElementById('t_del').addEventListener('click', api.requestDeletionTerm);
 		}
 		else {
 			document.getElementById('t_name').classList.add('na');
 			document.getElementById('t_del').classList.add('na');
-			//document.getElementById('t_del').removeEventListener('click', api.requestDeletionCase);
+			document.getElementById('t_del').removeEventListener('click', api.requestDeletionTerm);
 		}
 	}
 	
 	this.drawTerms = function(norefocus) {
 		if (project.terms == undefined) project.terms = [];
+		
+		if (api.selectedTerm == undefined) api.selectedTerm = -3;
 		document.getElementById('termlist').innerHTML = '';
-		for (var i = -2; i<project.terms.length+1; i++) {
+		for (var i = -3; i<project.terms.length+1; i++) {
 			var u, t;
 			if (i < 0) {
-				u = i+2;
+				u = i+3;
 				t = api.defTerms;
 			}
 			else {
@@ -759,18 +788,29 @@ function exapi() {
 				var c, j;
 				for (c=0; project.terms[c] != undefined; c++) 0;
 				project.terms[c] = {};
-				project.terms[c].name = 'Новый набор '+c;
-				project.terms[c].terms = [];
-				project.terms[c].terms[0] = {};
-				project.terms[c].terms[0].term = 'Терм 0';
-				project.terms[c].terms[0].lim = 1;
+				var x = project.terms[c];
+				x.name = 'Новый набор '+c;
+				x.terms = [];
+				if (api.selectedTerm == -3) {
+					x.terms[0] = {};
+					x.terms[0].term = 'Терм 0';
+					x.terms[0].lim = 1;
+				}
+				else {
+					var u;
+					if (api.selectedTerm < 0) u = api.defTerms[api.selectedTerm+3];
+					else u = project.terms[api.selectedTerm];
+					for (j=0; j<u.terms.length; j++) {
+						x.terms.push({term:u.terms[j].term, lim:u.terms[j].lim});
+					}
+				}
 				api.drawTerms();
 				api.renderTerm(c)
 			});
 			document.getElementById('termlist').appendChild(el);
 		}
-		if (!norefocus) this.renderTerm(-2); 
-		else document.getElementById('termlist').getElementsByClassName('b')[project.settings.term+2].classList.add('sel');
+		if (!norefocus) this.renderTerm(project.settings.term); 
+		else document.getElementById('termlist').getElementsByClassName('b')[api.selectedTerm+3].classList.add('sel');
 	}
 	
 	this.renderEffect= function(val, target) {
@@ -790,11 +830,13 @@ function exapi() {
 				c = document.createElement('div');
 				c.classList = 'line';
 				c.innerHTML = cache.elements[cache.types[2][i]].calcChance[cache.types[0][j]][val+2];
+				if (project.settings.term != -3) c.innerHTML = getTermName(c.innerHTML);
 				u.appendChild(c);
 			}
 			c = document.createElement('div');
 			c.classList = 'line';
 			c.innerHTML = project.elements[cache.types[2][i]].calcChance[val+2];
+			if (project.settings.term != -3) c.innerHTML = getTermName(c.innerHTML);
 			u.appendChild(c);
 		}
 	}
@@ -859,7 +901,7 @@ function exapi() {
 		if (this.windows[id]) 
 		{	
 			var e = document.getElementById(id).getElementsByClassName("w")[0];
-			e.style.top = '';
+			/*e.style.top = '';
 			e.style.left = '';
 			e.style.top = getComputedStyle(e).getPropertyValue("top");
 			e.style.left = getComputedStyle(e).getPropertyValue("left");
@@ -867,7 +909,7 @@ function exapi() {
 			if (id =="side") {
 				e.style.left = document.body.clientWidth-parseInt(getComputedStyle(e).getPropertyValue("width")) + 'px';
 				e.style.top = getComputedStyle(document.getElementById('top')).getPropertyValue("height");
-			}
+			}*/
 			this.windowOnTop(id);
 			return;
 		}
@@ -977,6 +1019,8 @@ function exapi() {
 		tid = id;
 		this.windowOnTop(id);
 		var e = document.getElementById(id).getElementsByClassName("w")[0];
+		e.style.top = '';
+		e.style.left = '';
 		e.style.top = getComputedStyle(e).getPropertyValue("top");
 		e.style.left = getComputedStyle(e).getPropertyValue("left");
 		if (id =="side") {
@@ -1094,10 +1138,53 @@ function exapi() {
 		}
 	}
 	
+	this.unvokeTermUpdate = function() {
+		for (var i=0; i<api.zindex.length; i++) {
+			if (api.zindex[i].startsWith('editb') || api.zindex[i].startsWith('edite')) {
+				var e = document.getElementById(api.zindex[i]);
+				var uz = (api.zindex[i].startsWith('editb')?"cc_v":"cc_effect");
+				var us = e.getElementsByClassName(uz)[0];
+				us.value = parseFloat(us.value);
+				if (us.value < 0) us.value = 0;
+				if (us.value > 1) us.value = 1;
+				if (project.settings.term == -3) {
+					e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
+					us.classList.remove('hd');
+					us.value = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+				}
+				else {
+					us.classList.add('hd');
+					var u = e.getElementsByClassName("cc_vsel")[0];
+					u.classList.remove('hd');
+					u.innerHTML = '';
+					
+					var t = api.getTermsPattern(project.settings.term);
+					for (var j=0; j<t.terms.length; j++) {
+						var c = document.createElement('option');
+						c.selected = (j == getTermInterval(parseFloat(us.value)));
+						c.innerHTML = t.terms[j].term;
+						c.value = j;
+						u.appendChild(c);
+					}
+				}
+				var id = e.getElementsByClassName('cc_id')[0].value;
+				if (api.zindex[i].startsWith('edite')) api.includeBonds(e.getElementsByClassName("blist")[0].getElementsByTagName("table")[0],id);
+				else api.includeElements(e.getElementsByClassName("elist")[0].getElementsByTagName("table")[0], id);
+			}
+		}
+		update();
+		api.closePopup();
+	}
+	
 	this.closeWindow = function(id) {
 		if (this.windows[id] == undefined) return;
 		document.getElementById(id).classList.toggle("d");
 		if (id == "settings") document.getElementById("settings_button").classList.remove("sel");
+		else if (id == "terms") {
+			setTimeout(api.unvokeTermUpdate, 10);
+			this.callPopup2(windows.loader);
+			project.settings.term = api.selectedTerm;
+		}
 		else if (id == "side") document.getElementById("side_button").classList.remove("sel");
 		else if ((id == "save") || (id == "export")) document.getElementById("save_button").classList.remove("sel");
 		else if ((id == "load") || (id == "import")) document.getElementById("load_button").classList.remove("sel");
@@ -1316,7 +1403,7 @@ function exapi() {
 		project.meta.compress = document.getElementById('m_compress').checked;
 		project.meta.encrypt = document.getElementById('m_encrypt').checked;
 		if (project.meta.encrypt) project.meta.password = document.getElementById('m_pass1').value;
-		project.settings  = {};
+		project.settings = {term:project.settings.term};
 		project.settings.strict = document.getElementById('m_strict').checked;
 		project.settings.proportional = document.getElementById('m_propsize').checked;
 		project.settings.propColor = document.getElementById('m_propcolor').checked;
@@ -1457,7 +1544,7 @@ function exapi() {
 			});
 			
 			document.getElementById("t_name").addEventListener("input", function(event) {
-				project.terms[project.settings.term].name = this.value;
+				project.terms[api.selectedTerm].name = this.value;
 				api.drawTerms(true);
 			});
 			
@@ -1553,6 +1640,7 @@ function exapi() {
 		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент и все, что на нем находится. Вы не сможете все это вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.deleteSave = {header:'Внимание!',content:'Подтвердите удаление этого слота.',size:2,buttons:[{red:true,functions:'api.deleteSave(undefined, false)',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.deleteCase = {header:'Внимание!',content:'Подтвердите удаление этого кейса.',size:2,buttons:[{red:true,functions:'',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		windows.deleteTerm = {header:'Внимание!',content:'Подтвердите удаление этого терма.',size:2,buttons:[{red:true,functions:'',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.loader = {header:'Загружается...',content:'<div id="squaresWaveG" style="margin-bottom:24px"><div id="squaresWaveG_1" class="squaresWaveG"></div><div id="squaresWaveG_2" class="squaresWaveG"></div><div id="squaresWaveG_3" class="squaresWaveG"></div><div id="squaresWaveG_4" class="squaresWaveG"></div><div id="squaresWaveG_5" class="squaresWaveG"></div><div id="squaresWaveG_6" class="squaresWaveG"></div><div id="squaresWaveG_7" class="squaresWaveG"></div><div id="squaresWaveG_8" class="squaresWaveG"></div></div><div id="loadstring" style="font-size:150%"></div></div>',size:0,windowsize:'sm'};
 		
 		
@@ -1564,7 +1652,8 @@ function exapi() {
 		if (this.error) return;
 		this.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1);
 		this.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
-		setTimeout(function() {api.closePopup();api.callWindow('side');},777);
+		setTimeout(function() {api.closePopup();},(api.settings.debug?100:777));
+		setTimeout(function() {api.callWindow('side');},(api.settings.debug?80:666));
 		/*if (this.locationName == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,777);
 		else {
 			var tt = "";

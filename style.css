@@ -46,7 +46,12 @@ body.customCursor #c {cursor: url('cur.cur'), crosshair;}
 	margin-top:2px}
 #bottom .nothide {display:none}
 .bl {display:block !important}
-.il {display:inline !important}
+.il {
+	display:inline !important;
+	float:none !important}
+.ilb {
+	display:inline-block !important;
+	float:none !important}
 .hd {display:none !important}
 
 .b img, .b svg, .b input {
@@ -66,6 +71,7 @@ body.customCursor #c {cursor: url('cur.cur'), crosshair;}
 	padding:0 .25em;}
 .b.i {
 	float:none;
+	cursor:text;
 	display:inline-block;}
 #top .b.in {
 	float: none;
@@ -388,7 +394,7 @@ body.night #windows .controls > div:hover {background: #033;}
 body.night #windows .controls .close {
 	background:#d00; 
 	color:#300}	
-body.night #windows .controls .close:hover {background:#600;}	
+body.night #windows .controls .close:hover {background:#900;}	
 .night_nothide{display:none !important}
 body.night .night_nothide{display:inline !important}
 body.night .night_hide{display:none}
