@@ -237,7 +237,7 @@
 					
 					<div id="pad3" class="pad" style="text-align:center">
 						<div class="line">
-							<span class="b fs na" onclick="">Матрица достижимости</span>
+							<span class="b fs" onclick="api.callWindow('matrix')">Матрица достижимости</span>
 							<span class="b fs" onclick="setTimeout(function() {api.callWindow('effect')},10);api.callPopup2(windows.loader)">Полный эффект</span>
 							<span class="b fs na">Общий риск</span>
 						</div>
@@ -287,6 +287,24 @@
 					<div id="effectlist" class="pad selection" style="display:block;float:left;width:calc(15em - 8px);height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
 					<div id="effectpad1" class="pad" style="display:block;float:left;width:calc(50% - 7.5em - 12px);height:calc(100% - 8px)"></div>
 					<div id="effectpad2" class="pad" style="display:block;float:left;width:calc(50% - 7.5em - 12px);height:calc(100% - 8px)"></div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="matrix">
+			<div class="back"></div>
+			<div class="w huge">
+				<div class="hc">
+					<span>Матрица достижимости</span>
+				</div>
+				<div class="controls">
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+				</div>
+				<div class="bt up">
+					<div id="matrixbutt" style="float:left;width:100%);white-space:pre-wrap;word-wrap:break-word"> </div>
+				</div>
+				<div class="cc btns" style="width:calc(100% - 8px)">
+					<div id="matrixpad" class="pad" style="display:block;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
 				</div>
 			</div>
 		</div>
@@ -403,7 +421,7 @@
 		<div id="inst">
 			<div class="back"></div>
 			<div class="w tall">
-				<div class="hc">
+				<div class="h">
 					<span>Создать</span>
 				</div>
 				<div class="cc btns" style="text-align:center">
@@ -436,6 +454,12 @@
 								<select size="1" class="b ilb cc_vsel"></select>
 							</div>
 						</div></div></div>
+						<div class="line" style="font-size:120%">
+							Копия <select size="1" class="b ilb cc_alias"></select>
+						</div>
+						<div class="line">
+							Если выбрано, все остальные настройки будут приведены к элементу-исходнику.
+						</div>
 					</div>
 					<div class="pad debug" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
@@ -534,9 +558,9 @@
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:17%">ID: <input type="text" class="b i cc_id" style="width:1.7em" disabled></div>
-							<div class="t de" style="width:58%">Имя: <input type="text" class="b i cc_name" style="width:12em"></div>
-							<div class="t de" style="width:25%">Код: <input type="text" class="b i cc_code" style="width:3.5em" disabled></div>
+							<div class="t de" style="width:15%">ID: <input type="text" class="b i cc_id" style="width:calc(100% - 3em)" disabled></div>
+							<div class="t de" style="width:58%">Имя: <input type="text" class="b i cc_name" style="width:calc(100% - 4em)"></div>
+							<div class="t de" style="width:27%">Код: <input type="text" class="b i cc_code" style="width:calc(100% - 4em)" disabled></div>
 						</div></div></div>
 						<div class="line de">Детальное описание: <textarea type="text" class="b i cc_desc" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
 					</div>
@@ -554,12 +578,24 @@
 					</div>
 					<div class="pad _cc_control">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost2" style="width:4em"></div>
-							<div class="t de" style="width:50%">Эффективность: 
+							<div class="t de" style="width:40%">Стоимость: <input type="text" class="b i cc_cost2" style="width:4em"></div>
+							<div class="t de" style="width:60%">Эффективность: 
 								<input type="text" class="b i cc_effect" style="width:4em">
 								<select size="1" class="b ilb cc_vsel"></select>
 							</div>
 						</div></div></div>
+						<div class="pad bl">
+							<div class="line" style="font-size:120%">
+								Копия <select size="1" class="b ilb cc_alias"></select>
+							</div>
+							<div class="line">
+								Если выбрано, все остальные настройки будут приведены к элементу-исходнику.<br>
+								Настройки копий этого элемента будут обновлены автоматически.
+							</div>
+							<div class="pad coplist" style="display:block">
+						
+							</div>
+						</div>
 					</div>
 					<div class="pad debug" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">

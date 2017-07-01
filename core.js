@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.7", s:"beta", b:50};
+	this.version = {g:"0.0.8", s:"beta", b:51};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -168,7 +168,7 @@ function exapi() {
 	this.includeBondsTLine = function (b, el, i) {
 		var u = b[i].val;
 		if (project.settings.term != -3 && u != undefined) u = getTermName(u);
-		return '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+'-'+b[i].second+'</td><td>'+u+'</td><td>'+getName(b[i].first)+'</td><td>'+getName(b[i].second)+'</td></tr>';
+		return '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+' — '+b[i].second+'</td><td>'+u+'</td><td>'+getName(b[i].first)+'</td><td>'+getName(b[i].second)+'</td></tr>';
 	}
 
 	this.includeBonds = function (e, filter) {
@@ -546,11 +546,13 @@ function exapi() {
 		api.renderCaseElem(val, -1, u);
 		var sum = 0;
 		for (i=0; i<cache.types[3].length; i++) {
+			if (project.elements[cache.types[3][i]].alias > -1) continue;
 			api.renderCaseElem(val, cache.types[3][i], u);
 			sum += (val >= 0? (project.cases[val].enabled[cache.types[3][i]]? project.elements[cache.types[3][i]].cost :0) : 
 				   (val == -1? project.elements[cache.types[3][i]].cost :0));
 		}
 		for (i=0; i<cache.types[4].length; i++) {
+			if (project.elements[cache.types[4][i]].alias > -1) continue;
 			api.renderCaseElem(val, cache.types[4][i], u);
 			sum += (val >= 0? (project.cases[val].enabled[cache.types[4][i]]? project.elements[cache.types[4][i]].cost :0) : 
 				   (val == -1? project.elements[cache.types[4][i]].cost :0));
@@ -888,6 +890,85 @@ function exapi() {
 		api.renderEffect(-1, 2);
 	}
 	
+	this.renderMatrix= function(val) {
+		var i;
+		for (i=-2; i<project.cases.length; i++)
+			document.getElementById('matrixbutt').getElementsByClassName('b')[i+2].classList.remove('sel');
+		document.getElementById('matrixbutt').getElementsByClassName('b')[val+2].classList.add('sel');
+		
+		var u = document.getElementById('matrixpad');
+		u.innerHTML = '<div class="table r"><div class="t3"></div></div>';
+		
+		var ut3 = u.getElementsByClassName('t3')[0];
+		for (i=-1; i<project.elements.length; i++) {
+			if ((i>-1) && (project.elements[i] == undefined)) continue;
+			var ut2 = document.createElement('div');
+			ut2.className = 't2';
+			if ((i != -1) && ((project.elements[i].type == 4) || (project.elements[i].type == 5))) ut2.classList.add('hd');
+			for (var j=-1; j<project.elements.length; j++) {
+				if ((j>-1) && (project.elements[j] == undefined)) continue;
+				var ut = document.createElement('div');
+				ut.className = 't';
+				if ((j != -1) && ((project.elements[j].type == 4) || (project.elements[j].type == 5))) ut.classList.add('hd');
+				if ((i == -1) && (j!= -1)) {
+					ut.innerHTML = getCode(j);
+					ut.title = getName(j);
+				}
+				else if ((i != -1) && (j == -1)) {
+					ut.innerHTML = getCode(i);
+					ut.title = getName(i);
+				}
+				else ut.innerHTML = '—';
+				ut.row = i;
+				ut.column = j;
+				ut.addEventListener('mouseover',api.matrixRefreshHighLight);
+				ut2.appendChild(ut);
+			}
+			ut3.appendChild(ut2);
+		}
+		
+		for (i = 0; i<project.bonds.length; i++) {
+			var x = ut3.getElementsByClassName('t2')[project.bonds[i].first+1].getElementsByClassName('t')[project.bonds[i].second+1];
+			if (project.settings.term == -3) x.innerHTML = getBondVal(i, val);
+			else x.innerHTML = getTermName(getBondVal(i, val));
+		}
+	}
+	
+	this.matrixRefreshHighLight = function() {
+		for (var i=0; i<=project.elements.length; i++) {
+			document.getElementById('matrixpad').getElementsByClassName('t2')[0].getElementsByClassName('t')[i].classList.remove('lit');
+			document.getElementById('matrixpad').getElementsByClassName('t2')[i].getElementsByClassName('t')[0].classList.remove('lit');
+		}
+		document.getElementById('matrixpad').getElementsByClassName('t2')[0].getElementsByClassName('t')[this.column+1].classList.add('lit');
+		document.getElementById('matrixpad').getElementsByClassName('t2')[this.row+1].getElementsByClassName('t')[0].classList.add('lit');
+	}
+	
+	this.drawMatrix = function() {
+		api.hoveredMatrixColumn = -1;
+		api.hoveredMatrixRow = -1;
+		document.getElementById('matrixbutt').innerHTML = '<div class="table r"><div class="t3"><div class="t2"></div></div></div>';
+		document.getElementById('matrixbutt').getElementsByClassName('t2')[0].innerHTML = '';
+		for (var i = -2; i<project.cases.length; i++) {
+			var s = '';
+			if (i == -2) s = 'Все отключено';
+			else if (i == -1) s = 'Все включено';
+			else s = project.cases[i].name;
+			
+			var el2 = document.createElement('span');
+			el2.classList = 't';
+			
+			var el = document.createElement('span');
+			el.classList = 'b fs';
+			el.innerHTML = s;
+			el.value = i;
+			el.addEventListener("click",function() {
+				api.renderMatrix(this.value)});
+			el2.appendChild(el);
+			document.getElementById('matrixbutt').getElementsByClassName('t2')[0].appendChild(el2);
+		}
+		api.renderMatrix(-2);
+	}
+	
 	this.callWindow = function(id,arg1,arg2,arg3) {
 		t = false;
 		tx = 0;
@@ -936,6 +1017,10 @@ function exapi() {
 		else if (id == "terms") {
 			this.drawTerms();
 			document.getElementById("terms").classList.toggle("d");
+		}
+		else if (id == "matrix") {
+			this.drawMatrix();
+			document.getElementById("matrix").classList.toggle("d");
 		}
 		else if (id == "effect") {
 			Recompile();

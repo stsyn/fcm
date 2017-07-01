@@ -358,7 +358,8 @@ body.night #messages > span.red{
 	color: #f00;}
 #windows .controls .close:hover {
 	background: #b22;}
-
+.lit {background: #ccc} 
+	
 body.night #windows .w.ifr iframe {
 	filter:invert(100%);
 	-webkit-filter:invert(100%)}
@@ -402,6 +403,7 @@ body.night input:checked + label, body.night input:checked + label .b{background
 body.night input:disabled.b {
 	background: #222 !important;
 	color: #888}
+body.night .lit {background: #144} 
 
 .sizes {text-align:center}
 

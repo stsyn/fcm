@@ -25,7 +25,17 @@ function cCode(id, type) {
 }
 
 function getCode(id) {
-	return cCode(id, project.elements[id].type);
+	var s='';
+	var e = project.elements[id];
+	if (e.alias > -1) {
+		for (var i=0; i<cache.elements[e.alias].aliases.length; i++) 
+			if (cache.elements[e.alias].aliases == id) {
+				s = '['+i+']';
+				break;
+			}
+		id = e.alias;
+	}
+	return cCode(id, e.type)+s;
 }
 
 function getName(id) {
@@ -587,44 +597,83 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	var e = document.getElementById(el);
 	var id = parseInt(e.getElementsByClassName("cc_id")[0].value);
 	project.elements[id] = {};
-	project.elements[id].X = parseFloat(e.getElementsByClassName("cc_X")[0].value);
-	project.elements[id].Y = parseFloat(e.getElementsByClassName("cc_Y")[0].value);
+	var elem = project.elements[id];
+	elem.X = parseFloat(e.getElementsByClassName("cc_X")[0].value);
+	elem.Y = parseFloat(e.getElementsByClassName("cc_Y")[0].value);
 	var type = parseInt(e.getElementsByClassName("cc_type")[0].value);
-	project.elements[id].type = type;
-	project.elements[id].desc = deXSS(e.getElementsByClassName("cc_desc")[0].value);
-	project.elements[id].name = deXSS(e.getElementsByClassName("cc_name")[0].value);
+	elem.type = type;
+	elem.desc = deXSS(e.getElementsByClassName("cc_desc")[0].value);
+	elem.name = deXSS(e.getElementsByClassName("cc_name")[0].value);
 	if (api.settings.palette) {
 		if (e.getElementsByClassName("cc_color_check")[0].checked) 
-			project.elements[id].privateColor = deXSS(e.getElementsByClassName("cc_color")[0].value);
-		else project.elements[id].privateColor = 0;
+			elem.privateColor = deXSS(e.getElementsByClassName("cc_color")[0].value);
+		else elem.privateColor = 0;
 	}
-	else project.elements[id].privateColor = deXSS(e.getElementsByClassName("cc_color2")[0].value);
-	if (e.getElementsByClassName("cc_size")[0].value !== "") project.elements[id].z = parseInt(e.getElementsByClassName("cc_size")[0].value)/100; 
-	else project.elements[id].z = 1;
-	if (project.elements[id].z > 3) project.elements[id].z = 3;
-	if (project.elements[id].z < 0.6) project.elements[id].z = 0.6;
+	else elem.privateColor = deXSS(e.getElementsByClassName("cc_color2")[0].value);
+	if (e.getElementsByClassName("cc_size")[0].value !== "") elem.z = parseInt(e.getElementsByClassName("cc_size")[0].value)/100; 
+	else elem.z = 1;
+	if (elem.z > 3) elem.z = 3;
+	if (elem.z < 0.6) elem.z = 0.6;
 	
 	if ((type == 1) || (type == 2)) {
-		if (e.getElementsByClassName("cc_state")[0].value !== "") project.elements[id].state = parseFloat(e.getElementsByClassName("cc_state")[0].value); else project.elements[id].state = 0;
-		if (e.getElementsByClassName("cc_limit")[0].value !== "") project.elements[id].lim = parseFloat(e.getElementsByClassName("cc_limit")[0].value); else project.elements[id].lim = 0;
+		if (e.getElementsByClassName("cc_state")[0].value !== "") elem.state = parseFloat(e.getElementsByClassName("cc_state")[0].value); else elem.state = 0;
+		if (e.getElementsByClassName("cc_limit")[0].value !== "") elem.lim = parseFloat(e.getElementsByClassName("cc_limit")[0].value); else elem.lim = 0;
 	}
 	else if (type == 3) {
-		if (e.getElementsByClassName("cc_cost")[0].value !== "") project.elements[id].cost = parseFloat(e.getElementsByClassName("cc_cost")[0].value); else project.elements[id].cost = 0;
-		if (e.getElementsByClassName("cc_value")[0].value !== "") project.elements[id].val = parseFloat(e.getElementsByClassName("cc_value")[0].value); else project.elements[id].val = 0;
+		if (e.getElementsByClassName("cc_cost")[0].value !== "") elem.cost = parseFloat(e.getElementsByClassName("cc_cost")[0].value); else elem.cost = 0;
+		if (e.getElementsByClassName("cc_value")[0].value !== "") elem.val = parseFloat(e.getElementsByClassName("cc_value")[0].value); else elem.val = 0;
 	}
 	else if ((type == 4) || (type == 5)) {
-		if (e.getElementsByClassName("cc_cost2")[0].value !== "") project.elements[id].cost = parseFloat(e.getElementsByClassName("cc_cost2")[0].value); else project.elements[id].cost = 0;
-		if (e.getElementsByClassName("cc_effect")[0].value !== "") project.elements[id].val = parseFloat(e.getElementsByClassName("cc_effect")[0].value); else project.elements[id].val = 0;	
+		if (e.getElementsByClassName("cc_cost2")[0].value !== "") elem.cost = parseFloat(e.getElementsByClassName("cc_cost2")[0].value); else elem.cost = 0;
+		if (e.getElementsByClassName("cc_effect")[0].value !== "") elem.val = parseFloat(e.getElementsByClassName("cc_effect")[0].value); else elem.val = 0;	
 		
 		
-		if (project.settings.term != -3) project.elements[id].val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+		if (project.settings.term != -3) elem.val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
 		
 		if (project.settings.strict) {
-			if (project.elements[id].val < 0) project.elements[id].val = 0;
-			if (project.elements[id].val > 1) project.elements[id].val = 1;
+			if (elem.val < 0) elem.val = 0;
+			if (elem.val > 1) elem.val = 1;
 		}
+		
+		elem.alias = parseInt(e.getElementsByClassName("cc_alias")[0].value);
+		var u = elem.alias;
+		if (u != -1) {
+			var a;
+			for (a = 0; a<cache.elements[u].aliases.length; a++) if (cache.elements[u].aliases[a] == id) break;
+			var x = project.elements[u];
+			if (a == cache.elements[u].aliases.length) cache.elements[u].aliases.push(id);
+			for (var i=0; i<cache.elements[id].aliases.length; i++) cache.elements[u].aliases.push(cache.elements[id].aliases[i]);
+			elem.cost = x.cost;
+			elem.val = x.val;
+			elem.privateColor = x.privateColor;
+			elem.name = x.name+' ['+(a+1)+']';
+			elem.desc = x.desc;
+			elem.z = x.z;
+		}
+		
 	}
 	if (!isNew) api.brush = type;
+	
+	
+	var tx = project.elements[id].alias, ax = id;
+	while (tx > -1) {
+		ax = tx;
+		tx = project.elements[ax].alias;
+	}
+	var x = project.elements[ax];
+
+	if (isNew && !(tx<0 && ax==id)) {
+		for (var i=0; i<cache.elements[ax].aliases.length; i++) {
+			var ux = project.elements[cache.elements[ax].aliases[i]];
+			ux.cost = x.cost;
+			ux.val = x.val;
+			ux.privateColor = x.privateColor;
+			ux.name = x.name+' ['+(i+1)+']';
+			ux.desc = x.desc;
+			ux.z = x.z;
+			ux.alias = ax;
+		}
+	}
 	update();
 }
 
@@ -674,12 +723,12 @@ function includeNeighbours(id, e) {
 			t = false;
 		}
 		ec = project.bonds[cache.elements[id].inbonds[i]].first;
-		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+getName(ec)+'<br>';
 	}
 	if ((project.elements[id].type == 4) || (project.elements[id].type == 5)) {
 		e.innerHTML = '<div class="line">Предыдущий элемент:<br>';
 		ec = project.bonds[project.elements[id].X].first;
-		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+getName(ec)+'<br>';
 		t = false;
 	}
 	if (!t) e.innerHTML += '</div>';
@@ -690,15 +739,26 @@ function includeNeighbours(id, e) {
 			t = false;
 		}
 		ec = project.bonds[cache.elements[id].outbonds[i]].second;
-		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+getName(ec)+'<br>';
 	}
 	if ((project.elements[id].type == 4) || (project.elements[id].type == 5)) {
 		e.innerHTML += '<div class="line">Следующий элемент:<br>';
 		ec = project.bonds[project.elements[id].X].second;
-		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+project.elements[ec].name+'<br>';
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+getName(ec)+'<br>';
 		t = false;
 	}
 	if (!t) e.innerHTML += '</div>';
+}
+
+function includeAliases(id, e) {
+	e.innerHTML = "";
+	if (project.elements[id].alias > -1) {
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+project.elements[id].alias+')">'+getName(project.elements[id].alias)+'<br>';
+	}
+	for (i=0; i<cache.elements[id].aliases.length;i++) {
+		var ec = cache.elements[id].aliases[i];
+		e.innerHTML += '<div class="b ilb" onclick="editElement('+ec+')">'+getName(ec)+'<br>';
+	}
 }
 
 function getTermInterval(val) {
@@ -766,12 +826,72 @@ function editElement(id) {
 		}
 	}
 	
+	var u = e.getElementsByClassName("cc_alias")[0];
+	u.innerHTML = '';
+	var c = document.createElement('option');
+	c.selected = (-1 == el.alias);
+	c.innerHTML = '[Не выбрано]';
+	c.value = -1;
+	u.appendChild(c);
+	for (var i=0; i<cache.types[el.type-1].length; i++) {
+		var un = cache.types[el.type-1][i];
+		if (un == id) continue;
+		if (project.elements[un].alias > -1) continue;
+		c = document.createElement('option');
+		c.selected = (un == el.alias);
+		c.innerHTML = getName(un);
+		c.value = un;
+		u.appendChild(c);
+	}
+	
+	if (el.alias <0) {
+		e.getElementsByClassName("cc_color")[0].classList.remove('na');
+		e.getElementsByClassName("cc_color")[0].disabled = false;
+		e.getElementsByClassName("cc_color2")[0].classList.remove('na');
+		e.getElementsByClassName("cc_color2")[0].disabled = false;
+		e.getElementsByClassName("cc_color_check")[0].classList.remove('na');
+		e.getElementsByClassName("cc_color_check")[0].disabled = false;
+		e.getElementsByClassName("cc_desc")[0].classList.remove('na');
+		e.getElementsByClassName("cc_desc")[0].disabled = false;
+		e.getElementsByClassName("cc_name")[0].classList.remove('na');
+		e.getElementsByClassName("cc_name")[0].disabled = false;
+		e.getElementsByClassName("cc_effect")[0].classList.remove('na');
+		e.getElementsByClassName("cc_effect")[0].disabled = false;
+		e.getElementsByClassName("cc_cost2")[0].classList.remove('na');
+		e.getElementsByClassName("cc_cost2")[0].disabled = false;
+		e.getElementsByClassName("cc_vsel")[0].classList.remove('na');
+		e.getElementsByClassName("cc_vsel")[0].disabled = false;
+		e.getElementsByClassName("cc_size")[0].classList.remove('na');
+		e.getElementsByClassName("cc_size")[0].disabled = false;
+	}
+	else {
+		e.getElementsByClassName("cc_color")[0].classList.add('na');
+		e.getElementsByClassName("cc_color")[0].disabled = true;
+		e.getElementsByClassName("cc_color2")[0].classList.add('na');
+		e.getElementsByClassName("cc_color2")[0].disabled = true;
+		e.getElementsByClassName("cc_color_check")[0].classList.add('na');
+		e.getElementsByClassName("cc_color_check")[0].disabled = true;
+		e.getElementsByClassName("cc_desc")[0].classList.add('na');
+		e.getElementsByClassName("cc_desc")[0].disabled = true;
+		e.getElementsByClassName("cc_name")[0].classList.add('na');
+		e.getElementsByClassName("cc_name")[0].disabled = true;
+		e.getElementsByClassName("cc_effect")[0].classList.add('na');
+		e.getElementsByClassName("cc_effect")[0].disabled = true;
+		e.getElementsByClassName("cc_cost2")[0].classList.add('na');
+		e.getElementsByClassName("cc_cost2")[0].disabled = true;
+		e.getElementsByClassName("cc_vsel")[0].classList.add('na');
+		e.getElementsByClassName("cc_vsel")[0].disabled = true;
+		e.getElementsByClassName("cc_size")[0].classList.add('na');
+		e.getElementsByClassName("cc_size")[0].disabled = true;
+	}
+	
 	e.getElementsByClassName("_cc_initator")[0].style.display = (((el.type == 1) || (el.type == 2))?"block":"none");
 	e.getElementsByClassName("_cc_target")[0].style.display = ((el.type == 3)?"block":"none");
 	e.getElementsByClassName("_cc_control")[0].style.display = (((el.type == 4) || (el.type == 5))?"block":"none");
 	
 	api.includeBonds(e.getElementsByClassName("blist")[0].getElementsByTagName("table")[0],id);
 	includeNeighbours(id, e.getElementsByClassName("ellist")[0]);
+	includeAliases(id, e.getElementsByClassName("coplist")[0]);
 }
 
 function editBond(id) {
@@ -853,6 +973,22 @@ function AddElement(MouseX,MouseY,onBond) {
 			c.value = i;
 			u.appendChild(c);
 		}
+	}
+	
+	var u = e.getElementsByClassName("cc_alias")[0];
+	u.innerHTML = '';
+	var c = document.createElement('option');
+	c.selected = true;
+	c.innerHTML = '[Не выбрано]';
+	c.value = -1;
+	u.appendChild(c);
+	for (var i=0; i<cache.types[api.brush-1].length; i++) {
+		var un = cache.types[api.brush-1][i];
+		if (project.elements[un].alias > -1) continue;
+		c = document.createElement('option');
+		c.innerHTML = getName(un);
+		c.value = un;
+		u.appendChild(c);
 	}
 	
 	e.getElementsByClassName("_cc_initator")[0].style.display = (((api.brush == 1) || (api.brush == 2))?"block":"none");
@@ -992,6 +1128,15 @@ function checkBonds() {
 }
 
 function RemoveElement(ActualElement, tryCheckBonds) {
+	if (cache.elements[ActualElement].aliases.length > 0) {
+		var n = cache.elements[ActualElement].aliases[0];
+		project.elements[n].alias = -1;
+		project.elements[n].name = project.elements[ActualElement].name;
+		for (var i=1; i<cache.elements[ActualElement].aliases.length; i++) {
+			project.elements[cache.elements[ActualElement].aliases[i]].name = project.elements[n].name+' ['+i+']';
+			project.elements[cache.elements[ActualElement].aliases[i]].alias = n;
+		}
+	}
 	delete project.elements[ActualElement];
 	if (tryCheckBonds) checkBonds();
 	update();
@@ -1013,9 +1158,10 @@ function getBondVal(el, caseid) {
 	var i, c = project.bonds[el].val;
 	if (project.settings.term != -3) c = getValueOfTerm(getTermInterval(c));
 	for (i=0; i<cache.bonds[el].elems.length; i++) {
-		if (caseid >=0) if (project.cases[caseid].enabled[u] == undefined) project.cases[caseid].enabled[u] = true;
 		var u = cache.bonds[el].elems[i];
-		//console.log(project.elements[u].type);
+		if (project.elements[u].alias > -1) u = project.elements[u].alias;
+		
+		if (caseid >=0) if (project.cases[caseid].enabled[u] == undefined) project.cases[caseid].enabled[u] = true;
 		var t = (project.elements[u].type == 4);
 		if (caseid == -2 && t) continue;		//не учитываем защитные меры, если все выключено
 		if (caseid == -1 && !t) continue;       //не учитываем дестабилизаторы, если все включено
@@ -1025,7 +1171,7 @@ function getBondVal(el, caseid) {
 		if (t) c *= (1 - uv);
 		else c = (1 - (1 - c) * (1 - uv));
 	}
-	return c;
+	return +c.toFixed(4);
 }
 
 function iteration(i, cur, val, roadmap) {
@@ -1100,24 +1246,34 @@ function Recalculate() {
 		cache.bonds[i] = {};
 		cache.bonds[i].elems = [];
 	}
+	for (i=0; i<project.elements.length;i++) {
+		cache.elements[i] = {};
+		cache.elements[i].aliases=[];
+	}
 	for (i=0; i<project.elements.length;i++) { //входящие и исходящие связи
-	   if (project.elements[i] != undefined) {
-		   cache.elements[i] = {};
-		   cache.elements[i].outbonds=[];
-		   cache.elements[i].inbonds=[];
-		   for (j=0; j<project.bonds.length;j++) {
-			   if (project.bonds[j] != undefined) {
-				   if (project.bonds[j].first == i) cache.elements[i].outbonds.push(j);
-				   if (project.bonds[j].second == i) cache.elements[i].inbonds.push(j);
-			   }
-		   }
+		if (project.elements[i] != undefined) {
+			cache.elements[i].outbonds=[];
+			cache.elements[i].inbonds=[];
+			for (j=0; j<project.bonds.length;j++) {
+				if (project.bonds[j] != undefined) {
+					if (project.bonds[j].first == i) cache.elements[i].outbonds.push(j);
+					if (project.bonds[j].second == i) cache.elements[i].inbonds.push(j);
+				}
+			}
 		   
-		   if ((project.elements[i].type == 4) || (project.elements[i].type == 5)) {  //элементы на связях
-			   cache.bonds[project.elements[i].X].elems.push(i);
-		   }
+			if ((project.elements[i].type == 4) || (project.elements[i].type == 5)) {  //элементы на связях
+				cache.bonds[project.elements[i].X].elems.push(i);
+			}
 		   
-		   cache.types[project.elements[i].type-1].push(i);		//типы элементов
-	   }
+			var x = project.elements[i].alias, ax = i;
+			while (x > -1) {
+				ax = x;
+				x = project.elements[ax].alias;
+			}
+			if (project.elements[i].alias > -1) cache.elements[ax].aliases.push(i);
+		   
+			cache.types[project.elements[i].type-1].push(i);		//типы элементов
+		}
 	}
 	api.compiled = false;
 }
