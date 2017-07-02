@@ -1219,6 +1219,14 @@ function Recompile() {
 	while (c--) uv.push(999);
 	for (c=0; c<cache.types[2].length; c++) {
 		cache.elements[cache.types[2][c]].calcChance = [];
+		project.elements[cache.types[2][c]].calcChance = [];
+		for (var k=0; k<cache.types[0].length; k++)  {
+			cache.elements[cache.types[2][c]].calcChance.push([]);
+			for (var j=-2; j<project.cases.length; j++)
+				cache.elements[cache.types[2][c]].calcChance[k].push(0);
+		}
+		for (var j=-2; j<project.cases.length; j++)
+			project.elements[cache.types[2][c]].calcChance.push(0);
 		cache.elements[cache.types[2][c]].costs = [];
 	}
 	for (c=0; c<cache.types[0].length; c++)
