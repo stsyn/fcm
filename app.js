@@ -844,7 +844,7 @@ function editElement(id) {
 		u.appendChild(c);
 	}
 	
-	if (el.alias <0) {
+	if (!(el.alias>=0)) {
 		e.getElementsByClassName("cc_color")[0].classList.remove('na');
 		e.getElementsByClassName("cc_color")[0].disabled = false;
 		e.getElementsByClassName("cc_color2")[0].classList.remove('na');
@@ -864,7 +864,7 @@ function editElement(id) {
 		e.getElementsByClassName("cc_size")[0].classList.remove('na');
 		e.getElementsByClassName("cc_size")[0].disabled = false;
 	}
-	else {
+	else if ((el.type == 4) || (el.type == 5)) {
 		e.getElementsByClassName("cc_color")[0].classList.add('na');
 		e.getElementsByClassName("cc_color")[0].disabled = true;
 		e.getElementsByClassName("cc_color2")[0].classList.add('na');
@@ -1217,8 +1217,10 @@ function Recompile() {
 	if (project.cases == undefined) project.cases = [];
 	var c = project.cases.length+2;
 	while (c--) uv.push(999);
-	for (c=0; c<cache.types[2].length; c++) 
+	for (c=0; c<cache.types[2].length; c++) {
 		cache.elements[cache.types[2][c]].calcChance = [];
+		cache.elements[cache.types[2][c]].costs = [];
+	}
 	for (c=0; c<cache.types[0].length; c++)
 		iteration(0, cache.types[0][c], uv, []);
 	for (c=0; c<cache.types[2].length; c++) {
@@ -1231,6 +1233,11 @@ function Recompile() {
 					if (cache.elements[e].calcChance[i] != undefined)
 						if (project.elements[e].calcChance[j+2]<cache.elements[e].calcChance[i][j+2]) project.elements[e].calcChance[j+2] = cache.elements[e].calcChance[i][j+2];
 			}
+		}
+	}
+	for (c=0; c<cache.types[2].length; c++) {
+		for (var j=-2; j<project.cases.length; j++) {
+			cache.elements[cache.types[2][c]].costs[j+2] = project.elements[cache.types[2][c]].calcChance[j+2]*project.elements[cache.types[2][c]].cost;
 		}
 	}
 	api.compiled = true;

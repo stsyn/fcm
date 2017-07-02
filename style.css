@@ -173,6 +173,37 @@ table.r td {text-align:center}
 .selection input[type="radio"] {display:none}
 input:checked + label, input:checked + label .b{background:#cfc !important}
 
+.scale{
+	position:relative;
+	height:1.55em;
+	margin:0;
+}
+.scale > div{
+	top:0;
+	height:100%;
+	position:absolute;
+	padding-right:0.2em;
+	z-index:1;
+	border-right:1px solid #888;
+}
+.ax{
+	margin-top:-1px;
+	border-top:1px solid #888;
+}
+#graphlist .line {height:1.3em;}
+.scale > span{
+	position:relative;
+	height:90%;
+	display:block;
+	float:left;
+	text-align:right;
+	overflow:hidden;
+}
+.scale > span.c_b{background:#f00}
+body.night .scale > span.c_b{background:#800}
+.scale > span.c_c{background:#ff0}
+body.night .scale > span.c_c{background:#880}
+
 #messages {
 	position:fixed;
 	top:2em;
@@ -419,6 +450,9 @@ body.debugEnabled .debug {display:block !important}
 .transparentActive #windows .w {opacity:.5}
 .transparentActive #windows .a, .transparentActive #windows #popUp .w {opacity:1}
 
-.b.i.color {display:none}
+.b.i.color {
+	display:none;
+	cursor:pointer;
+}
 .palette .b.i.color {display:inline}
 .palette .b.i.color2 {display:none}

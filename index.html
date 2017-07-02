@@ -239,7 +239,7 @@
 						<div class="line">
 							<span class="b fs" onclick="api.callWindow('matrix')">Матрица достижимости</span>
 							<span class="b fs" onclick="setTimeout(function() {api.callWindow('effect')},10);api.callPopup2(windows.loader)">Полный эффект</span>
-							<span class="b fs na">Общий риск</span>
+							<span class="b fs" onclick="setTimeout(function() {api.callWindow('graphs')},10);api.callPopup2(windows.loader)">Общий риск</span>
 						</div>
 						<div class="line">
 							<span class="b fs" id="project_button" onclick="api.callWindow('project')">Настройки проекта</span>
@@ -418,6 +418,22 @@
 			</div>
 		</div>
 		
+		<div id="graphs">
+			<div class="back"></div>
+			<div class="w huge">
+				<div class="hc"><span>Общий риск</span></div>
+				<div class="controls">
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+				</div>
+				<div class="cc">
+					<div class="pad bl scale" id="graphscale" style="margin-left:calc(20em + 6px);width:calc(100% - 20em - 12px);border:none"></div>
+					<div class="pad bl" id="graphlist" style="width:20em;border:none;float:left;padding:0 0 0 6px"></div>
+					<div class="pad bl" id="graphpad" style="width:calc(100% - 20em - 6px);padding:0;border:none;float:left"></div>
+					<div class="pad bl" style="float:left">Красным цветом обозначены риски; желтым или рыжим — затраты на защитные меры или нейтрализацию дестабилизаторов.</div>
+				</div>
+			</div>
+		</div>
+		
 		<div id="inst">
 			<div class="back"></div>
 			<div class="w tall">
@@ -436,14 +452,14 @@
 					</div>
 					<div class="pad _cc_initator">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i cc_state" style="width:3em"></div>
-							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i cc_limit" style="width:3em"></div>
+							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i cc_state na" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i cc_limit na" style="width:3em" disabled></div>
 						</div></div></div>
 					</div>
 					<div class="pad _cc_target" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost" style="width:4em"></div>
-							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i cc_value" style="width:4em"></div>
+							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i cc_value na" style="width:4em" disabled></div>
 						</div></div></div>
 					</div>
 					<div class="pad _cc_control" style="display:block">
@@ -566,14 +582,14 @@
 					</div>
 					<div class="pad _cc_initator">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i cc_state" style="width:3em"></div>
-							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i cc_limit" style="width:3em"></div>
+							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i cc_state na" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i cc_limit na" style="width:3em" disabled></div>
 						</div></div></div>
 					</div>
 					<div class="pad _cc_target">
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost" style="width:4em"></div>
-							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i cc_value" style="width:4em"></div>
+							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i cc_value na" style="width:4em" disabled></div>
 						</div></div></div>
 					</div>
 					<div class="pad _cc_control">

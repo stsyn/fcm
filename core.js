@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.0.8", s:"beta", b:51};
+	this.version = {g:"0.9", s:"RC1", b:52};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -534,6 +534,29 @@ function exapi() {
 		windows.deleteTerm.buttons[0].functions = 'project.terms.splice('+api.selectedTerm+',1);api.closePopup();api.drawTerms()';
 		api.callPopup2(windows.deleteTerm);
 	}
+
+	this.calcSum = function(val) {
+		var sum=0;
+		for (i=0; i<cache.types[3].length; i++) {
+			sum += (val >= 0? (project.cases[val].enabled[cache.types[3][i]]? project.elements[cache.types[3][i]].cost :0) : 
+				   (val == -1? project.elements[cache.types[3][i]].cost :0));
+		}
+		for (i=0; i<cache.types[4].length; i++) {
+			sum += (val >= 0? (project.cases[val].enabled[cache.types[4][i]]? project.elements[cache.types[4][i]].cost :0) : 
+				   (val == -1? project.elements[cache.types[4][i]].cost :0));
+		}
+		return sum;
+	}
+	
+	this.calcCSum = function(val) {
+		var sum = 0;
+		for (var c=0; c<cache.types[2].length; c++) sum+=cache.elements[cache.types[2][c]].costs[val+2];
+		return sum;
+	}
+	
+	this.calcTSum = function(val) {
+		return this.calcSum(val) + this.calcCSum(val);
+	}
 	
 	this.renderCase = function(val) {
 		api.selectedCase = val;
@@ -544,18 +567,13 @@ function exapi() {
 		document.getElementById('caselist').getElementsByClassName('b')[val+2].classList.add('sel');
 		var u = document.getElementById('caseoptions').getElementsByClassName('t3')[0];
 		api.renderCaseElem(val, -1, u);
-		var sum = 0;
 		for (i=0; i<cache.types[3].length; i++) {
 			if (project.elements[cache.types[3][i]].alias > -1) continue;
 			api.renderCaseElem(val, cache.types[3][i], u);
-			sum += (val >= 0? (project.cases[val].enabled[cache.types[3][i]]? project.elements[cache.types[3][i]].cost :0) : 
-				   (val == -1? project.elements[cache.types[3][i]].cost :0));
 		}
 		for (i=0; i<cache.types[4].length; i++) {
 			if (project.elements[cache.types[4][i]].alias > -1) continue;
 			api.renderCaseElem(val, cache.types[4][i], u);
-			sum += (val >= 0? (project.cases[val].enabled[cache.types[4][i]]? project.elements[cache.types[4][i]].cost :0) : 
-				   (val == -1? project.elements[cache.types[4][i]].cost :0));
 		}
 		
 		document.getElementById('cs_name').value = (val >= 0?project.cases[val].name : (val == -1 ? 'Все включено' : 'Все отключено'));
@@ -570,7 +588,7 @@ function exapi() {
 			document.getElementById('cs_del').classList.add('na');
 			document.getElementById('cs_del').removeEventListener('click', api.requestDeletionCase);
 		}
-		document.getElementById('cs_cost').value = sum;
+		document.getElementById('cs_cost').value = api.calcSum(val);
 	}
 	
 	this.drawCases = function(norefocus) {
@@ -890,6 +908,121 @@ function exapi() {
 		api.renderEffect(-1, 2);
 	}
 	
+	this.drawGraphs = function() {
+		var el2 = document.getElementById('graphlist');
+		var gel = document.getElementById('graphpad');
+		el2.innerHTML = '';
+		gel.innerHTML = '';
+		var maxsum = 0;
+		
+		var el3 = document.createElement('div');
+		el3.classList = 'line scale ax';
+		el3.innerHTML = 'Общий риск';
+		gel.appendChild(el3);
+		for (var j=0; j<=4; j++) {
+			el = document.createElement('div');
+			el.innerHTML = '&nbsp';
+			el.style.right = (4-j)*25+'%'; 
+			el3.appendChild(el);
+		}
+		
+		var el = document.createElement('div');
+		el.classList = 'line ax';
+		el.innerHTML = '&nbsp';
+		el2.appendChild(el);
+		
+		for (var i = -2; i<project.cases.length; i++) {
+			var s = '';
+			if (i == -2) s = 'Все отключено';
+			else if (i == -1) s = 'Все включено';
+			else s = project.cases[i].name;
+			
+			el = document.createElement('div');
+			el.classList = 'line';
+			el.innerHTML = s;
+			el2.appendChild(el);
+			
+			if (maxsum < api.calcTSum(i)) maxsum = api.calcTSum(i);
+		}
+		var el4 = document.getElementById('graphscale');
+		el4.innerHTML = '';
+		for (i = 0; i<=4; i++) {
+			el = document.createElement('div');
+			el.innerHTML = parseInt(maxsum*i/4);
+			el.style.right = (4-i)*25+'%'; 
+			el4.appendChild(el);
+		}
+		for (i = -2; i<project.cases.length; i++) {
+			el3 = document.createElement('div');
+			el3.classList = 'line scale';
+			gel.appendChild(el3);
+			
+			for (var j=0; j<=4; j++) {
+				el = document.createElement('div');
+				el.innerHTML = '&nbsp';
+				el.style.right = (4-j)*25+'%'; 
+				el3.appendChild(el);
+			}
+			
+			el = document.createElement('span');
+			el.className = 'c_b';
+			el.innerHTML = api.calcCSum(i);
+			el.style.width = 100*(api.calcCSum(i)/maxsum)+'%';
+			el3.appendChild(el);
+			
+			el = document.createElement('span');
+			el.className = 'c_c';
+			el.innerHTML = api.calcTSum(i);
+			el.style.width = 100*(api.calcSum(i)/maxsum)+'%';
+			el3.appendChild(el);
+		}
+		
+		for (var k=0; k<cache.types[2].length; k++) {
+			var n = cache.types[2][k];
+			el3 = document.createElement('div');
+			el3.classList = 'line scale ax';
+			el3.innerHTML = getName(n);
+			gel.appendChild(el3);
+			for (var j=0; j<=4; j++) {
+				el = document.createElement('div');
+				el.innerHTML = '&nbsp';
+				el.style.right = (4-j)*25+'%'; 
+				el3.appendChild(el);
+			}
+			
+			el = document.createElement('div');
+			el.classList = 'line ax';
+			el.innerHTML = '&nbsp';
+			el2.appendChild(el);
+			for (var i = -2; i<project.cases.length; i++) {
+				var s = '';
+				if (i == -2) s = 'Все отключено';
+				else if (i == -1) s = 'Все включено';
+				else s = project.cases[i].name;
+				el = document.createElement('div');
+				el.classList = 'line';
+				el.innerHTML = s;
+				el2.appendChild(el);
+			
+				el3 = document.createElement('div');
+				el3.classList = 'line scale';
+				gel.appendChild(el3);
+				for (var j=0; j<=4; j++) {
+					el = document.createElement('div');
+					el.innerHTML = '&nbsp';
+					el.style.right = (4-j)*25+'%'; 
+					el3.appendChild(el);
+				}
+				
+				el = document.createElement('span');
+				el.className = 'c_b';
+				el.innerHTML = (cache.elements[n].costs[i+2]);
+				el.style.width = 100*((cache.elements[n].costs[i+2])/maxsum)+'%';
+				el3.appendChild(el);
+			}
+		}
+	}
+	
 	this.renderMatrix= function(val) {
 		var i;
 		for (i=-2; i<project.cases.length; i++)
@@ -948,6 +1081,7 @@ function exapi() {
 		api.hoveredMatrixRow = -1;
 		document.getElementById('matrixbutt').innerHTML = '<div class="table r"><div class="t3"><div class="t2"></div></div></div>';
 		document.getElementById('matrixbutt').getElementsByClassName('t2')[0].innerHTML = '';
+		if (project.cases == undefined) project.cases = [];
 		for (var i = -2; i<project.cases.length; i++) {
 			var s = '';
 			if (i == -2) s = 'Все отключено';
@@ -1026,6 +1160,11 @@ function exapi() {
 			Recompile();
 			this.drawEffect();
 			document.getElementById("effect").classList.toggle("d");
+		}
+		else if (id == "graphs") {
+			Recompile();
+			this.drawGraphs();
+			document.getElementById("graphs").classList.toggle("d");
 		}
 		else if (id == "inst") {
 			document.getElementById("inst").classList.toggle("d");

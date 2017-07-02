@@ -6,6 +6,8 @@
 
 Научный руководитель: Кудрявцева Р.Т.
 
+Рекомендуется эксплуатировать с помощью браузеров Google Chrome или Mozilla Firefox актуальной версии.
+
 ---
 
 Используется шрифт Open Sans: https://fonts.google.com/specimen/Open+Sans
