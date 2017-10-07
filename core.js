@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9", s:"RC1", b:54};
+	this.version = {g:"0.9", s:"RC1", b:55};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -1602,6 +1602,17 @@ function exapi() {
 			document.getElementById('m_propcolor').checked = project.settings.propColor;
 		}
 		
+		var ec = document.getElementById('m_calcfunc');
+		for (var i=0; i<ec.querySelectorAll('.acr').length; i++) {
+			if (i == project.settings.calcFunc) {
+				ec.querySelectorAll('.acr input')[i].checked = true;
+				api.switchRadioElemState(ec.querySelectorAll('.acr')[i]);
+			}
+			else {
+				ec.querySelectorAll('.acr')[i].checked = false;
+			}
+		}
+		
 		for (i=0; i<document.getElementById('project').getElementsByClassName("ac").length; i++) api.switchElemState(document.getElementById('project').getElementsByClassName("ac")[i]);
 	}
 	
@@ -1631,6 +1642,15 @@ function exapi() {
 		project.settings.strict = document.getElementById('m_strict').checked;
 		project.settings.proportional = document.getElementById('m_propsize').checked;
 		project.settings.propColor = document.getElementById('m_propcolor').checked;
+		var ec = document.getElementById('m_calcfunc'), t=0;
+		for (var i=0; i<ec.querySelectorAll('.acr').length; i++) {
+			if (ec.querySelectorAll('.acr input')[i].checked) {
+				t=i;
+				break;
+			}
+		}
+		project.settings.calcFunc = t;
+		api.compiled = false;
 		this.closeWindow('project');
 		
 	}
@@ -1704,8 +1724,18 @@ function exapi() {
 	}
 	
 	this.switchElemState = function(e) {
+		if (!e.classList.contains('ac')) e = e.parentNode;
 		if (e.getElementsByTagName("input")[0].checked) e.classList.add("sel");
 		else e.classList.remove("sel");
+	}
+	
+	this.switchRadioElemState = function(e) {
+		if (!e.classList.contains('acr')) e = e.parentNode;
+		for (var i=0; i<e.parentNode.childNodes.length; i++) {
+			if (e.parentNode.childNodes[i].classList != undefined)
+				if (e.parentNode.childNodes[i].classList.contains('acr')) e.parentNode.childNodes[i].classList.remove('sel');
+		}
+		e.classList.add("sel");
 	}
 	
 	this.init = function(fatal) {
@@ -1829,8 +1859,13 @@ function exapi() {
 			}
 			
 			var ele = document.getElementsByClassName("ac");
-			for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function() {
-				api.switchElemState(this);
+			for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function(e) {
+				api.switchElemState(e.target);
+			});
+			
+			ele = document.getElementsByClassName("acr");
+			for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function(e) {
+				api.switchRadioElemState(e.target);
 			});
 		}
 		

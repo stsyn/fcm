@@ -1207,8 +1207,46 @@ function iteration(i, cur, val, roadmap) {
 			roadmap.concat(cur));
 	}
 }
+
+function iteration2(i, cur, val, roadmap) {
+	//версия с умножением
+	var c;
+	if (project.elements[cur].type == 3) {
+		if (api.settings.debug) console.log('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.');
+		if (cache.elements[cur].calcChance[roadmap[0]] == undefined) {
+			cache.elements[cur].calcChance[roadmap[0]] = [];
+			for (var j=0; j<val.length; j++) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];
+		}
+		else for (var j=0; j<val.length; j++) 		//досчитали
+			if (cache.elements[cur].calcChance[roadmap[0]][j]<val[j]) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
+		return;
+	}
+	for (c=0; c<cache.elements[cur].outbonds.length; c++) {
+		for (var i=0; i<roadmap.length; i++) if (roadmap[i] == cur) {
+			if (api.settings.debug) console.log('Вошли в цикл на итерации '+i+'. Текущий элемент №'+cur+', путь '+roadmap+'.');
+			continue;	//не зацикливаемся
+		}
+		if (api.settings.debug) console.log('Находимся на итерации '+i+'. Текущий элемент №'+cur+', пока что '+val+'.');
+		
+		var axval = [];
+		for (i = 0; i<val.length; i++) axval.push(val[i]);
+		
+		var j=0;
+		for (j = -2; j<project.cases.length; j++) {
+			axval[j+2] *= getBondVal(cache.elements[cur].outbonds[c], j);
+		}
+		
+		iteration2(i+1, 
+			project.bonds[cache.elements[cur].outbonds[c]].second, 				//следующий элемент
+			axval,	
+			roadmap.concat(cur));
+	}
+}
 	
 function Recompile() {
+	var calcFuncs = [iteration, iteration2];
+	var inital = [999, 1];
+	if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
 	if (api.compiled) {
 		api.closePopup();
 		return;
@@ -1216,7 +1254,7 @@ function Recompile() {
 	var uv = [];
 	if (project.cases == undefined) project.cases = [];
 	var c = project.cases.length+2;
-	while (c--) uv.push(999);
+	while (c--) uv.push(inital[project.settings.calcFunc]);
 	for (c=0; c<cache.types[2].length; c++) {
 		cache.elements[cache.types[2][c]].calcChance = [];
 		project.elements[cache.types[2][c]].calcChance = [];
@@ -1230,7 +1268,7 @@ function Recompile() {
 		cache.elements[cache.types[2][c]].costs = [];
 	}
 	for (c=0; c<cache.types[0].length; c++)
-		iteration(0, cache.types[0][c], uv, []);
+		calcFuncs[project.settings.calcFunc](0, cache.types[0][c], uv, []);
 	for (c=0; c<cache.types[2].length; c++) {
 		var e = cache.types[2][c];
 		if (cache.elements[e].calcChance.length > 0) {
