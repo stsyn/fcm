@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9", s:"RC1", b:55};
+	this.version = {g:"0.9", s:"RC1", b:56};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -1673,6 +1673,78 @@ function exapi() {
 		document.getElementById("debug_viewport").innerHTML = parseInt(project.viewport.x)+':'+parseInt(project.viewport.y)+' '+parseInt(100/project.viewport.z)+'%';
 	}
 	
+	this.keyListener = function(e, ev) {
+		document.getElementById("debug_keyInfo").innerHTML = e;
+		var t, i;
+		t = document.getElementById('top');
+		if (document.querySelectorAll('#windows .d .back').length == 0) {
+			switch (e) {
+				case 79: ev.preventDefault(); t.getElementsByClassName('b')[3].click(); break;
+				case 83: ev.preventDefault(); t.getElementsByClassName('b')[5].click(); t.getElementsByClassName('b')[7].click(); document.querySelectorAll('#export .table .b')[1].click(); document.querySelectorAll('#export .table .b')[0].click(); break;
+				case 112: ev.preventDefault(); t.getElementsByClassName('b')[11].click(); break;
+				case 113: ev.preventDefault(); t.getElementsByClassName('b')[2].click(); break;
+				case 114: ev.preventDefault(); t.getElementsByClassName('b')[5].click(); break;
+				case 115: ev.preventDefault(); t.getElementsByClassName('b')[9].click(); document.querySelectorAll('.table.ps .b')[0].click(); break;
+				case 117: ev.preventDefault(); t.getElementsByClassName('b')[10].click(); break;
+				case 118: ev.preventDefault(); t.getElementsByClassName('b')[9].click(); document.querySelectorAll('.table.ps .b')[2].click(); break;
+			}
+		}
+		if (api.zindex == 'side' && document.querySelectorAll('#popUp.d').length == 0) {
+			if (document.getElementById('pad1').style.display == 'block') {
+				t = document.getElementById('pad1');
+				switch (e) {
+					case 27: document.getElementById('brush-1').click(); break;
+					case 192: document.getElementById('brush-3').click(); break;
+					case 48: document.getElementById('brush0').click(); break;
+					case 49: document.getElementById('brush1').click(); break;
+					case 50: document.getElementById('brush2').click(); break;
+					case 51: document.getElementById('brush6').click(); break;
+					case 52: document.getElementById('brush3').click(); break;
+					case 53: document.getElementById('brush4').click(); break;
+					case 54: document.getElementById('brush5').click(); break;
+				}
+			}
+		}
+		else {
+			t = document.getElementById(api.zindex[api.zindex.length-1]);
+			if (document.querySelectorAll('#popUp.d').length > 0) t = document.getElementById('popUp');
+			switch (e) {
+				case 27: 
+					for (i=0; i<t.querySelectorAll('.table .b').length; i++) {
+						if (t.querySelectorAll('.table .b')[i].innerHTML == 'Отмена') {
+							t.querySelectorAll('.table .b')[i].click();
+							break;
+						}
+					} 
+					break;	
+				case 13: 
+					for (i=0; i<t.querySelectorAll('.table .b').length; i++) {
+						var t2 = t.querySelectorAll('.table .b')[i].innerHTML;
+						if (t2 == 'ОК' || t2 == 'Открыть' || t2 == 'Сохранить' || t2 == 'Продолжить') {
+							t.querySelectorAll('.table .b')[i].click();
+							break;
+						}
+					} 
+					for (i=0; i<t.querySelectorAll('.table .b').length; i++) {
+						if (t.querySelectorAll('.table .b')[i].innerHTML == 'Применить') {
+							t.querySelectorAll('.table .b')[i].click();
+							break;
+						}
+					}
+					break;
+					
+				case 46: 
+					for (i=0; i<t.querySelectorAll('.table .b').length; i++) {
+						if (t.querySelectorAll('.table .b')[i].innerHTML == 'Удалить') {
+							t.querySelectorAll('.table .b')[i].click();
+							break;
+						}
+					} 
+					break;
+			}
+		}
+	}
+	
 	this.mouseWheelListener = function(e) {
 		if (e.deltaY > 0 && project.viewport.z<50) project.viewport.z*=1.25;
 		if (e.deltaY < 0 && project.viewport.z>0.0125) project.viewport.z/=1.25;
@@ -1751,6 +1823,10 @@ function exapi() {
 		appInit();
 		
 		if (fatal) {
+			document.getElementsByTagName("body")[0].addEventListener("keydown", function(event) {
+				api.keyListener(event.keyCode, event);
+			});
+			
 			document.getElementsByTagName("body")[0].addEventListener("mousemove", function(event) {
 				mX = event.clientX;
 				mY = event.clientY;
@@ -1895,7 +1971,7 @@ function exapi() {
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
-		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:0,windowsize:'sm'};
+		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:1,buttons:[{red:false,functions:'api.closePopup();',name:'Продолжить'}],windowsize:'sm'};
 		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент и все, что на нем находится. Вы не сможете все это вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.deleteSave = {header:'Внимание!',content:'Подтвердите удаление этого слота.',size:2,buttons:[{red:true,functions:'api.deleteSave(undefined, false)',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.deleteCase = {header:'Внимание!',content:'Подтвердите удаление этого кейса.',size:2,buttons:[{red:true,functions:'',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};

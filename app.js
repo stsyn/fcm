@@ -39,6 +39,7 @@ function getCode(id) {
 }
 
 function getName(id) {
+	if (project.elements[id] == undefined) return '[ERROR]';
 	if (api.settings.actualNames) return project.elements[id].name;
 	return getCode(id);
 }
@@ -1015,10 +1016,10 @@ function MoveElement(ActualElement,NewX,NewY,rec) {
 	Recalculate();
 }
 
-function RemoveBond(ActualBond) {
+function RemoveBond(ActualBond, afterElem) {
 	delete project.bonds[ActualBond];
 	checkOnBondElements();
-	update();
+	if (!afterElem) update();
 }
 
 function AddBond(FirstElement,SecondElement) {
@@ -1120,14 +1121,15 @@ function checkOnBondElements() {
 					RemoveElement(i, false);
 }
 
-function checkBonds() {
+function checkBonds(afterElem) {
 	for (var i=0; i<project.bonds.length; i++) 
-		if ((project.elements[project.bonds[i].first] == undefined) || (project.elements[project.bonds[i].second] == undefined))
-			RemoveBond(i);
+		if (project.bonds[i] != undefined)
+			if ((project.elements[project.bonds[i].first] == undefined) || (project.elements[project.bonds[i].second] == undefined))
+				RemoveBond(i, afterElem);
 	checkOnBondElements();
 }
 
-function RemoveElement(ActualElement, tryCheckBonds) {
+function RemoveElement(ActualElement, inital) {
 	if (cache.elements[ActualElement].aliases.length > 0) {
 		var n = cache.elements[ActualElement].aliases[0];
 		project.elements[n].alias = -1;
@@ -1138,8 +1140,10 @@ function RemoveElement(ActualElement, tryCheckBonds) {
 		}
 	}
 	delete project.elements[ActualElement];
-	if (tryCheckBonds) checkBonds();
-	update();
+	if (inital) {
+		checkBonds(true);
+		update();
+	}
 }
 
 function BondPositon(MouseX,MouseY,key) {
