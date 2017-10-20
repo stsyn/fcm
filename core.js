@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9", s:"RC1", b:56};
+	this.version = {g:"0.9", s:"RC1", b:57};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -1061,6 +1061,7 @@ function exapi() {
 		}
 		
 		for (i = 0; i<project.bonds.length; i++) {
+			if (project.bonds[i] == undefined) continue;
 			var x = ut3.getElementsByClassName('t2')[project.bonds[i].first+1].getElementsByClassName('t')[project.bonds[i].second+1];
 			if (project.settings.term == -3) x.innerHTML = getBondVal(i, val);
 			else x.innerHTML = getTermName(getBondVal(i, val));
