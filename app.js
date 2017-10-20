@@ -1187,7 +1187,11 @@ function iteration(i, cur, val, roadmap) {
 			for (var j=0; j<val.length; j++) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];
 		}
 		else for (var j=0; j<val.length; j++) 		//досчитали
-			if (cache.elements[cur].calcChance[roadmap[0]][j]<val[j]) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
+			if (cache.elements[cur].calcChance[roadmap[0]][j]<val[j]) {
+				cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
+				
+				cache.elements[cur].calcRoadMap[roadmap[0]][j] = roadmap;
+			}
 		return;
 	}
 	for (var u=0; u<roadmap.length; u++) if (roadmap[u] == cur) {
@@ -1223,7 +1227,11 @@ function iteration2(i, cur, val, roadmap) {
 			for (var j=0; j<val.length; j++) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];
 		}
 		else for (var j=0; j<val.length; j++) 		//досчитали
-			if (cache.elements[cur].calcChance[roadmap[0]][j]<val[j]) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
+			if (cache.elements[cur].calcChance[roadmap[0]][j]<val[j]) {
+				cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
+				
+				cache.elements[cur].calcRoadMap[roadmap[0]][j] = roadmap;
+		}
 		return;
 	}
 	
@@ -1264,9 +1272,11 @@ function Recompile() {
 	while (c--) uv.push(inital[project.settings.calcFunc]);
 	for (c=0; c<cache.types[2].length; c++) {
 		cache.elements[cache.types[2][c]].calcChance = [];
+		cache.elements[cache.types[2][c]].calcRoadMap = [];
 		project.elements[cache.types[2][c]].calcChance = [];
 		for (var k=0; k<cache.types[0].length; k++)  {
 			cache.elements[cache.types[2][c]].calcChance[cache.types[0][k]] = [];
+			cache.elements[cache.types[2][c]].calcRoadMap[cache.types[0][k]] = [];
 			for (var j=-2; j<project.cases.length; j++)
 				cache.elements[cache.types[2][c]].calcChance[cache.types[0][k]].push(0);
 		}
@@ -1281,13 +1291,13 @@ function Recompile() {
 	for (c=0; c<cache.types[2].length; c++) {
 		var e = cache.types[2][c];
 		if (cache.elements[e].calcChance.length > 0) {
-			project.elements[e].calcChance = [];
+			cache.elements[e].finCalcChance = [];
 			for (var j=-2; j<project.cases.length; j++) {
-				project.elements[e].calcChance[j+2] = 0;
+				cache.elements[e].finCalcChance[j+2] = 0;
 				for (var k=0; k<cache.types[0].length; k++) 
 					var i = cache.types[0][k];
 					if (cache.elements[e].calcChance[i] != undefined)
-						if (project.elements[e].calcChance[j+2]<cache.elements[e].calcChance[i][j+2]) project.elements[e].calcChance[j+2] = cache.elements[e].calcChance[i][j+2];
+						if (cache.elements[e].finCalcChance[j+2]<cache.elements[e].calcChance[i][j+2]) cache.elements[e].finCalcChance[j+2] = cache.elements[e].calcChance[i][j+2];
 			}
 		}
 	}
