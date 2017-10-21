@@ -1,9 +1,9 @@
 var project = {settings:{},elements:[],bonds:[],viewport:{}};
 var colorScheme = [
-{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",
+{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",badconn:"#f8f",
 selected:"#00f",aconnections:"rgba(17,17,17,0)",  aactconn:"rgba(136,255,136,0)",
 text:'#000',stext:'#fff',seltext:'#060'},
-{bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",
+{bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",badconn:"#ccc",
 selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)",    
 text:'#eee',stext:'#111',seltext:'#8f8'}];
 var ctx, tcx, zoomprop, linePattern;
@@ -56,6 +56,7 @@ function resetProject() {
 	project.terms = [];
 	project.settings.term = -3;
 	update();
+	api.initRTS();
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
 }
@@ -138,6 +139,7 @@ function appDrawBond(el,b) {
 		var x2 = translateCoordsX(el[b[i].second].X), y2 = translateCoordsY(el[b[i].second].Y);
 		
 		var isSel = (tBond == i) || (api.showBSel == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("editb")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false);
+		
 		if (project.settings.propColor) {
 			if (api.settings.transparency) {
 				var grd=ctx.createLinearGradient(x1,y1,x2,y2);
@@ -147,9 +149,9 @@ function appDrawBond(el,b) {
 					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
 				}
 				else {
-					grd.addColorStop(0,agetColor(b[i].val));
-					grd.addColorStop(0.3,getColor(b[i].val));
-					ctx.fillStyle=getColor(b[i].val);
+					grd.addColorStop(0,agetColor(getBondVal(i, project.settings.currentCase)));
+					grd.addColorStop(0.3,getColor(getBondVal(i, project.settings.currentCase)));
+					ctx.fillStyle=getColor(getBondVal(i, project.settings.currentCase));
 				}
 				ctx.strokeStyle=grd;
 			}
@@ -159,8 +161,8 @@ function appDrawBond(el,b) {
 					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
 				}
 				else {
-					ctx.strokeStyle=getColor(b[i].val);
-					ctx.fillStyle=getColor(b[i].val);
+					ctx.strokeStyle=getColor(getBondVal(i, project.settings.currentCase));
+					ctx.fillStyle=getColor(getBondVal(i, project.settings.currentCase));
 				}
 			}
 		}
@@ -239,6 +241,7 @@ function appDrawElements(el) {
 	//пора разгребать
 	var size;
 	for (var i=0; i<el.length; i++) {
+		var j;
 		//элемент существует
 		if (el[i] == undefined) continue;
 		
@@ -253,7 +256,7 @@ function appDrawElements(el) {
 		}
 		
 		//выбран ли?
-		var isSelected = (tElem == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("edite")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false) || (api.showElSel == i);
+		var isSelected = (cache.elements[i].active != 0);
 		
 		//определяем цвет заливки
 		if (el[i].privateColor != "") ctx.fillStyle = el[i].privateColor;
@@ -261,7 +264,10 @@ function appDrawElements(el) {
 		
 		//выбираем обводку
 		if ((api.brush == 99) && (AuxBonds == i)) ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].actconn;
-		if (isSelected) ctx.strokeStyle = api.settings.color[6];
+		if (isSelected) {
+			if (cache.elements[i].active == 1) ctx.strokeStyle = api.settings.color[6];
+			else ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].badconn;
+		}
 		if ((AuxBonds == i) && api.settings.tooltips) {
 			if ((api.brush == 99) && !isBondUnique(AuxBonds,AuxBonds2) || AuxBonds==AuxBonds2) {
 				ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].fakeconn;
@@ -348,6 +354,18 @@ function appDrawElements(el) {
 
 
 function appRedraw() {
+	// номер активного элемента
+	for (var i=0; i<cache.elements.length; i++) cache.elements[i].active = 0;
+	if (tElem != undefined) {
+		cache.elements[tElem].active = 1;
+	}
+	if (api.showElSel != undefined) {
+		cache.elements[api.showElSel].active = 1;
+	}
+	if (api.activeWindow!=undefined && api.activeWindow.startsWith("edite")) {
+		cache.elements[document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value].active = 1;
+	}
+
 	ctx.canvas.width  = window.innerWidth * api.settings.canvasSize / 100;
 	ctx.canvas.height = window.innerHeight * api.settings.canvasSize / 100;
 	
@@ -1181,16 +1199,23 @@ function getBondVal(el, caseid) {
 function iteration(i, cur, val, roadmap) {
 	var c;
 	if (project.elements[cur].type == 3) {
+		roadmap.push(cur);
 		if (api.settings.debug) console.log('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.');
 		if (cache.elements[cur].calcChance[roadmap[0]] == undefined) {
 			cache.elements[cur].calcChance[roadmap[0]] = [];
 			for (var j=0; j<val.length; j++) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];
 		}
 		else for (var j=0; j<val.length; j++) 		//досчитали
-			if (cache.elements[cur].calcChance[roadmap[0]][j]<val[j]) {
+			if (cache.elements[cur].calcChance[roadmap[0]][j] < val[j]) {
 				cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
 				
-				cache.elements[cur].calcRoadMap[roadmap[0]][j] = roadmap;
+				cache.elements[cur].calcRoadMap[roadmap[0]][j] = [];
+				cache.elements[roadmap[0]].calcRoadMap[cur][j] = [];
+				
+				for (var k=0; k<roadmap.length-1; k++) {
+					cache.elements[cur].calcRoadMap[roadmap[0]][j][k] = roadmap[k];
+					cache.elements[roadmap[0]].calcRoadMap[cur][j][k] = roadmap[k+1];
+				}
 			}
 		return;
 	}
@@ -1273,7 +1298,7 @@ function Recompile() {
 	for (c=0; c<cache.types[2].length; c++) {
 		cache.elements[cache.types[2][c]].calcChance = [];
 		cache.elements[cache.types[2][c]].calcRoadMap = [];
-		project.elements[cache.types[2][c]].calcChance = [];
+		cache.elements[cache.types[2][c]].finCalcChance = [];
 		for (var k=0; k<cache.types[0].length; k++)  {
 			cache.elements[cache.types[2][c]].calcChance[cache.types[0][k]] = [];
 			cache.elements[cache.types[2][c]].calcRoadMap[cache.types[0][k]] = [];
@@ -1281,8 +1306,15 @@ function Recompile() {
 				cache.elements[cache.types[2][c]].calcChance[cache.types[0][k]].push(0);
 		}
 		for (var j=-2; j<project.cases.length; j++)
-			project.elements[cache.types[2][c]].calcChance.push(0);
+			cache.elements[cache.types[2][c]].finCalcChance.push(0);
 		cache.elements[cache.types[2][c]].costs = [];
+	}
+	
+	for (c=0; c<cache.types[0].length; c++) {
+		cache.elements[cache.types[0][c]].calcRoadMap = [];
+		for (var k=0; k<cache.types[2].length; k++)  {
+			cache.elements[cache.types[0][c]].calcRoadMap[cache.types[2][k]] = [];
+		}
 	}
 	
 	for (c=0; c<cache.types[0].length; c++)

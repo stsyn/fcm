@@ -207,9 +207,9 @@
 				</div>
 				<div class="cc">
 					<div class="table ps"><div class="t3"><div class="t2">
-						<span class="t"><span class="b fs" onclick="api.changeSidePad(0)">Проект</span></span>
+						<span class="t"><span class="b fs" onclick="api.changeSidePad(0)">Граф</span></span>
 						<span class="t"><span class="b fs" onclick="api.changeSidePad(1)">Рисование</span></span>
-						<span class="t"><span class="b fs" onclick="api.changeSidePad(2)">Анализ</span></span>
+						<span class="t"><span class="b fs" onclick="api.changeSidePad(2)">Проект</span></span>
 					</div></div></div>
 					
 					<div id="pad1" class="pad">
@@ -242,14 +242,24 @@
 						Еще не внедрено!
 					</div>
 					
-					<div id="pad3" class="pad" style="text-align:center">
-						<div class="line">
+					<div id="pad3" class="pad">
+						<div class="line" style="text-align:center">
 							<span class="b fs" onclick="api.callWindow('matrix')">Матрица достижимости</span>
 							<span class="b fs" onclick="setTimeout(function() {api.callWindow('effect')},10);api.callPopup2(windows.loader)">Полный эффект</span>
 							<span class="b fs" onclick="setTimeout(function() {api.callWindow('graphs')},10);api.callPopup2(windows.loader)">Общий риск</span>
 						</div>
-						<div class="line">
+						<div class="line" style="text-align:center">
 							<span class="b fs" id="project_button" onclick="api.callWindow('project')">Настройки проекта</span>
+						</div>
+						<div class="line">
+							<span class="t de l">Отображение</span>
+							<label class="b ilb stillsel ac fs rtm project" name="propColor" style="font-weight:normal"><input type="checkbox"> Пропорциональный цвет связей</label>
+							<label class="b ilb stillsel ac fs rtm api" name="elemLabels" style="font-weight:normal"><input type="checkbox"> Подписи у элементов</label>
+							<label class="b ilb stillsel ac fs rtm api" name="actualNames" style="font-weight:normal"><input type="checkbox"> Имена вместо кодов</label>
+							<div class="pad" style="display:block">
+								<span class="t de l">Текущий терм</span>
+								<div id="RTS_cases"></div>
+							</div>
 						</div>
 					</div>
 				</div>

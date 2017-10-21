@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9", s:"RC1", b:58};
+	this.version = {g:"0.9.1", s:"RC1.5", b:59};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -321,12 +321,16 @@ function exapi() {
 			if (api.settings.debug) console.log("Loading ", name);
 			project = JSON.parse(localStorage[name]);
 			if (project.settings.term == undefined) project.settings.term = -3;
+			if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
+			if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
 			if (!silent) {
 				this.closeWindow("load");
 				this.closePopup();
 				document.getElementById("loadlist").innerHTML = "";
 			}
 			api.settings.lastLoaded = name;
+			api.initRTSCases();
+			api.initRTS();
 			this.saveSettings();
 			update();
 			this.changed = false;
@@ -628,6 +632,8 @@ function exapi() {
 		}
 		if (!norefocus) this.renderCase(-2); 
 		else document.getElementById('caselist').getElementsByClassName('b')[api.selectedCase+2].classList.add('sel');
+		api.initRTSCases();
+		api.initRTS();
 	}
 	
 	
@@ -1496,6 +1502,7 @@ function exapi() {
 	
 	this.saveSettings = function() {
 		localStorage["fcm2.settings"] = JSON.stringify(this.settings);
+		api.initRTS();
 	}
 	
 	this.putSettings = function() {
@@ -1652,6 +1659,7 @@ function exapi() {
 		}
 		project.settings.calcFunc = t;
 		api.compiled = false;
+		api.initRTS();
 		this.closeWindow('project');
 		
 	}
@@ -1675,13 +1683,14 @@ function exapi() {
 	}
 	
 	this.keyListener = function(e, ev) {
+		if (((ev.target.nodeName == 'INPUT') || (ev.target.nodeName == 'TEXTAREA')) && e!=13 && e!=27) return;
 		document.getElementById("debug_keyInfo").innerHTML = e;
 		var t, i;
 		t = document.getElementById('top');
 		if (document.querySelectorAll('#windows .d .back').length == 0) {
 			switch (e) {
-				case 79: ev.preventDefault(); t.getElementsByClassName('b')[3].click(); break;
-				case 83: ev.preventDefault(); t.getElementsByClassName('b')[5].click(); t.getElementsByClassName('b')[7].click(); document.querySelectorAll('#export .table .b')[1].click(); document.querySelectorAll('#export .table .b')[0].click(); break;
+				case 79: if (ev.ctrlKey) {ev.preventDefault(); t.getElementsByClassName('b')[3].click()}; break;
+				case 83: if (ev.ctrlKey) {ev.preventDefault(); t.getElementsByClassName('b')[5].click(); t.getElementsByClassName('b')[7].click(); document.querySelectorAll('#export .table .b')[1].click(); document.querySelectorAll('#export .table .b')[0].click();} break;
 				case 112: ev.preventDefault(); t.getElementsByClassName('b')[11].click(); break;
 				case 113: ev.preventDefault(); t.getElementsByClassName('b')[2].click(); break;
 				case 114: ev.preventDefault(); t.getElementsByClassName('b')[5].click(); break;
@@ -1694,7 +1703,13 @@ function exapi() {
 			if (document.getElementById('pad1').style.display == 'block') {
 				t = document.getElementById('pad1');
 				switch (e) {
-					case 27: document.getElementById('brush-1').click(); break;
+					case 27: {
+						if (api.brush == 99) api.brush = 0;
+						else if (api.brush == 97) api.brush = -2;
+						else document.getElementById('brush-1').click(); 
+						api.forceRedraw = true;
+						break;
+					}
 					case 192: document.getElementById('brush-3').click(); break;
 					case 48: document.getElementById('brush0').click(); break;
 					case 49: document.getElementById('brush1').click(); break;
@@ -1809,6 +1824,60 @@ function exapi() {
 				if (e.parentNode.childNodes[i].classList.contains('acr')) e.parentNode.childNodes[i].classList.remove('sel');
 		}
 		e.classList.add("sel");
+	}
+	
+	this.initRTSCases = function() {
+		var c = document.getElementById('RTS_cases');
+		c.innerHTML = '';
+		for (var i=-2; i<project.cases.length; i++) {
+			var n;
+			if (i==-2) n = 'Все отключено';
+			else if (i==-1) n = 'Все включено';
+			else n = project.cases[i].name;
+			
+			c.innerHTML += '<label class="b ilb stillsel acr fs rtm project" name="currentCase" style="font-weight:normal"><input type="radio" name="m_cv" value="'+i+'"> '+n+'</label>';
+		}
+		
+		var ele = c.getElementsByClassName("acr");
+		for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function(e) {
+			api.switchRadioElemState(e.target);
+			api.runTimeSettings(e.target);
+		});
+	}
+	
+	this.initRTS = function() {
+		var ele = document.getElementsByClassName("rtm");
+		for (var i=0; i<ele.length; i++) {
+			var c, e=ele[i].getElementsByTagName('input')[0];
+			if (ele[i].classList.contains('api')) c = api;
+			else if (ele[i].classList.contains('project')) c = project;
+			
+			if (ele[i].classList.contains('ac')) {
+				if (e.checked != c.settings[ele[i].getAttribute('name')]) {
+					e.checked = c.settings[ele[i].getAttribute('name')];
+					api.switchElemState(ele[i]);
+				}
+			}
+			else if (ele[i].classList.contains('acr')) {
+				if ((e.value==c.settings[ele[i].getAttribute('name')]) && !e.checked) {
+					e.checked = true;
+					api.switchRadioElemState(ele[i]);
+				}
+			}
+		}
+	}
+	
+	this.runTimeSettings = function (e) {
+		if (!e.classList.contains('rtm')) e = e.parentNode;
+		
+		var c;
+		if (e.classList.contains('api')) c = api;
+		else if (e.classList.contains('project')) c = project;
+		
+		if (e.classList.contains('ac')) c.settings[e.getAttribute('name')] = e.getElementsByTagName('input')[0].checked;
+		else if (e.classList.contains('acr')) c.settings[e.getAttribute('name')] = e.getElementsByTagName('input')[0].value;
+		
+		api.forceRedraw = true;
 	}
 	
 	this.init = function(fatal) {
@@ -1944,6 +2013,14 @@ function exapi() {
 			for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function(e) {
 				api.switchRadioElemState(e.target);
 			});
+			
+			ele = document.getElementsByClassName("rtm");
+			for (var i=0; i<ele.length; i++) {
+				ele[i].addEventListener("click", function(e) {
+					api.runTimeSettings(e.target);
+				});
+			}
+			api.initRTS();
 		}
 		
 		this.styleSwitch('labelHidden','showLabel',false,false,true);
@@ -1968,7 +2045,7 @@ function exapi() {
 		
 		windows.changelog = {header:'Список изменений',content:(this.locationName!='local'?('<iframe src="//stsyn.github.io/fcm/changelog/'+this.locationName+'.txt"></iframe>'):'<iframe src="changelog/stable.txt"></iframe>'),size:2,windowsize:'ifr',buttons:[{red:false,name:'Закрыть',functions:'api.callPopup2(windows.about)'},{red:false,name:'Развернуть',functions:'api.switchWindowSize(this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.id)'}]};
 		windows.legal = {header:' ',content:'<iframe src="legal.txt"></iframe>',size:2,windowsize:'ifr',buttons:[{red:false,name:'Закрыть',functions:'api.callPopup2(windows.about)'},{red:false,name:'Развернуть',functions:'api.switchWindowSize(this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.id)'}]};
-		windows.about = {header:'FCMBuilder2',content:'<div class="b fs" onclick="api.callPopup2(windows.legal)">Дипломная работа Бельского С.М.</div><div class="b fs" onclick="api.callPopup2(windows.changelog)">Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')</div>',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Закрыть'},{functions:'location.reload(true)',red:true,name:'Принудительный перезапуск'}],windowsize:'sm'};
+		windows.about = {header:'Cognitive Map Constructor',content:'<div class="b fs" onclick="api.callPopup2(windows.legal)">Дипломная работа Бельского С.М.</div><div class="b fs" onclick="api.callPopup2(windows.changelog)">Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')</div>',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Закрыть'},{functions:'location.reload(true)',red:true,name:'Принудительный перезапуск'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
