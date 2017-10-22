@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.1", s:"RC1.5", b:59};
+	this.version = {g:"0.9.2", s:"RC2", b:60};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -1479,6 +1479,7 @@ function exapi() {
 		if (this.settings.redGrid == undefined) this.settings.redGrid = true;
 		if (this.settings.autosave == undefined) this.settings.autosave = 0;
 		if (this.settings.autoload == undefined) this.settings.autoload = false;
+		if (this.settings.activeElems == undefined) this.settings.activeElems = false;
 		this.saveSettings();
 		this.loadSettings();
 	}
@@ -1875,7 +1876,7 @@ function exapi() {
 		else if (e.classList.contains('project')) c = project;
 		
 		if (e.classList.contains('ac')) c.settings[e.getAttribute('name')] = e.getElementsByTagName('input')[0].checked;
-		else if (e.classList.contains('acr')) c.settings[e.getAttribute('name')] = e.getElementsByTagName('input')[0].value;
+		else if (e.classList.contains('acr')) c.settings[e.getAttribute('name')] = parseFloat(e.getElementsByTagName('input')[0].value);
 		
 		api.forceRedraw = true;
 	}

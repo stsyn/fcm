@@ -1,10 +1,10 @@
 var project = {settings:{},elements:[],bonds:[],viewport:{}};
 var colorScheme = [
-{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",badconn:"#f8f",
-selected:"#00f",aconnections:"rgba(17,17,17,0)",  aactconn:"rgba(136,255,136,0)",
+{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",fakeconnt:"#800",
+selected:"#00f",aconnections:"rgba(17,17,17,0)",aactconn:"rgba(136,255,136,0)",afakeconnt:"rgba(136,0,0,0)",
 text:'#000',stext:'#fff',seltext:'#060'},
-{bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",badconn:"#ccc",
-selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)",    
+{bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",fakeconnt:"#f88",
+selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)",afakeconnt:"rgba(255,136,136,0)",    
 text:'#eee',stext:'#111',seltext:'#8f8'}];
 var ctx, tcx, zoomprop, linePattern;
 var doMoving = {};
@@ -138,15 +138,17 @@ function appDrawBond(el,b) {
 		var x1 = translateCoordsX(el[b[i].first].X), y1 = translateCoordsY(el[b[i].first].Y);
 		var x2 = translateCoordsX(el[b[i].second].X), y2 = translateCoordsY(el[b[i].second].Y);
 		
-		var isSel = (tBond == i) || (api.showBSel == i) || ((api.activeWindow!==undefined)?(api.activeWindow.startsWith("editb")?((document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value == i)?true:false):false):false);
+		//выбрана ли?
+		var isSel = (cache.bonds[i].active != 0);
+		var tc = (cache.bonds[i].active==1?'actconn':'fakeconn');
 		
 		if (project.settings.propColor) {
 			if (api.settings.transparency) {
 				var grd=ctx.createLinearGradient(x1,y1,x2,y2);
 				if (isSel) {	
-					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aactconn);
-					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)].actconn);
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)]['a'+tc]);
+					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)][tc]);
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
 				}
 				else {
 					grd.addColorStop(0,agetColor(getBondVal(i, project.settings.currentCase)));
@@ -157,8 +159,8 @@ function appDrawBond(el,b) {
 			}
 			else {
 				if (isSel) {
-					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
 				}
 				else {
 					ctx.strokeStyle=getColor(getBondVal(i, project.settings.currentCase));
@@ -170,9 +172,9 @@ function appDrawBond(el,b) {
 			if (api.settings.transparency) {
 				var grd=ctx.createLinearGradient(x1,y1,x2,y2);
 				if (isSel) {
-					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aactconn);
-					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)].actconn);
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;	
+					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)]['a'+tc]);
+					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)][tc]);
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)][tc];	
 				}
 				else {
 					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aconnections);
@@ -183,8 +185,8 @@ function appDrawBond(el,b) {
 			}
 			else {
 				if (isSel) {
-					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
+					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
+					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
 				}
 				else {
 					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
@@ -266,7 +268,7 @@ function appDrawElements(el) {
 		if ((api.brush == 99) && (AuxBonds == i)) ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].actconn;
 		if (isSelected) {
 			if (cache.elements[i].active == 1) ctx.strokeStyle = api.settings.color[6];
-			else ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].badconn;
+			else ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].fakeconn;
 		}
 		if ((AuxBonds == i) && api.settings.tooltips) {
 			if ((api.brush == 99) && !isBondUnique(AuxBonds,AuxBonds2) || AuxBonds==AuxBonds2) {
@@ -315,26 +317,41 @@ function appDrawElements(el) {
 			if ((((api.brush == 99) && (AuxBonds == i)) || isSelected) && api.settings.tooltips) ctx.stroke();
 		}
 		
-		//подписи
-		if (api.settings.elemLabels) {
-			ctx.font = 300+100*(api.settings.nightMode?0:1)+" "+12*api.settings.glFontSize/100+"pt "+(api.settings.cursor?"'Open Sans'":"'Verdana'");
-			if (isSelected) ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].seltext;
-			else ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].text;
-			ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].stext;
-			ctx.textAlign = 'center';
-			if (translateCoordsY(y) < ctx.canvas.height/2) {
-				ctx.textBaseline = 'top';
-				ctx.strokeText(getName(i), translateCoordsX(x), translateCoordsY(y)+size*1.05);
-				ctx.fillText(getName(i), translateCoordsX(x), translateCoordsY(y)+size*1.05);
-			}
-			else {
-				ctx.textBaseline = 'bottom';
-				ctx.strokeText(getName(i), translateCoordsX(x), translateCoordsY(y)-size*1.05);
-				ctx.fillText(getName(i), translateCoordsX(x), translateCoordsY(y)-size*1.05);
-			}
-		}
 		
 	}
+	// подписи
+	if (api.settings.elemLabels || (api.hasActiveElems && api.settings.activeElems)) for (var i=0; i<el.length; i++) {
+		//получаем коорды
+		var x = el[i].X, y = el[i].Y;
+		if ((el[i].type == 4) || (el[i].type == 5)) {
+			x = translateOnBondCoordsX(el[i].X, el[i].Y);
+			y = translateOnBondCoordsY(el[i].X, el[i].Y);
+		}
+		
+		//выбран ли?
+		var isSelected = (cache.elements[i].active != 0);
+		if ((api.settings.activeElems && api.hasActiveElems) && !isSelected) continue; 
+		
+		ctx.font = 300+100*(api.settings.nightMode?0:1)+" "+12*api.settings.glFontSize/100+"pt "+(api.settings.cursor?"'Open Sans'":"'Verdana'");
+		if (isSelected) {
+			if (cache.elements[i].active == 1) ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].seltext;
+			else ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].fakeconnt;
+		}
+		else ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].text;
+		ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].stext;
+		ctx.textAlign = 'center';
+		if (translateCoordsY(y) < ctx.canvas.height/2) {
+			ctx.textBaseline = 'top';
+			ctx.strokeText(getName(i), translateCoordsX(x), translateCoordsY(y)+size*1.05);
+			ctx.fillText(getName(i), translateCoordsX(x), translateCoordsY(y)+size*1.05);
+		}
+		else {
+			ctx.textBaseline = 'bottom';
+			ctx.strokeText(getName(i), translateCoordsX(x), translateCoordsY(y)-size*1.05);
+			ctx.fillText(getName(i), translateCoordsX(x), translateCoordsY(y)-size*1.05);
+		}
+	}
+	
 	
 	size = getSize(-1);
 	if (((api.brush>0 && api.brush<=6)) && api.settings.tooltips) {
@@ -354,18 +371,63 @@ function appDrawElements(el) {
 
 
 function appRedraw() {
-	// номер активного элемента
+	var f_activeRoadmap = function(roadMap) {
+		if (roadMap != undefined) {
+			for (var j=0; j<roadMap.length; j++) {
+				if ((roadMap[j] == undefined) || (roadMap[j].length==0)) continue;
+				for (var k=0; k<roadMap[j][project.settings.currentCase+2].length; k++) {
+					var ue = roadMap[j][project.settings.currentCase+2][k];
+					cache.elements[ue].active = 2;
+					
+					//активация связей
+					if (k+1<roadMap[j][project.settings.currentCase+2].length) for (var y=0; y<cache.elements[ue].outbonds.length; y++) {
+						if (project.bonds[cache.elements[ue].outbonds[y]].second == roadMap[j][project.settings.currentCase+2][k+1]) {
+							cache.bonds[cache.elements[ue].outbonds[y]].active = 2;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	// обнуление активных связей
+	for (var i=0; i<cache.bonds.length; i++) cache.bonds[i].active = 0;
+	
+	// активные элементы
+	api.hasActiveElems = false;
 	for (var i=0; i<cache.elements.length; i++) cache.elements[i].active = 0;
 	if (tElem != undefined) {
+		var roadMap = cache.elements[tElem].calcRoadMap;
+		f_activeRoadmap(roadMap);
 		cache.elements[tElem].active = 1;
+		api.hasActiveElems = true;
 	}
 	if (api.showElSel != undefined) {
 		cache.elements[api.showElSel].active = 1;
+		api.hasActiveElems = true;
 	}
 	if (api.activeWindow!=undefined && api.activeWindow.startsWith("edite")) {
-		cache.elements[document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value].active = 1;
+		var u = document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value;
+		var roadMap = cache.elements[u].calcRoadMap;
+		cache.elements[u].active = 1;
+		f_activeRoadmap(roadMap);
+		api.hasActiveElems = true;
+	}
+	
+	// активные связи
+	if (tBond != undefined) {
+		cache.bonds[tBond].active = 1;
+	}
+	if (api.showBSel != undefined) {
+		cache.bonds[api.showBSel].active = 1;
+	}
+	if (api.activeWindow!=undefined && api.activeWindow.startsWith("editb")) {
+		var u = document.getElementById(api.activeWindow).getElementsByClassName("cc_id")[0].value;
+		cache.bonds[u].active = 1;
 	}
 
+	//
 	ctx.canvas.width  = window.innerWidth * api.settings.canvasSize / 100;
 	ctx.canvas.height = window.innerHeight * api.settings.canvasSize / 100;
 	
@@ -433,6 +495,8 @@ function appRedraw() {
 }
 
 function appMain() {
+	document.getElementById('is_not_saved').style.display = (api.changed?'inline':'none');
+	document.getElementById('is_not_compiled').style.display = (!api.compiled?'inline':'none');
 	if (api.mouse.button == 1 || api.mouse.button == 4) {
 		if (!doMoving.fact) {
 			doMoving.fact = true;
@@ -1212,9 +1276,9 @@ function iteration(i, cur, val, roadmap) {
 				cache.elements[cur].calcRoadMap[roadmap[0]][j] = [];
 				cache.elements[roadmap[0]].calcRoadMap[cur][j] = [];
 				
-				for (var k=0; k<roadmap.length-1; k++) {
+				for (var k=0; k<roadmap.length; k++) {
 					cache.elements[cur].calcRoadMap[roadmap[0]][j][k] = roadmap[k];
-					cache.elements[roadmap[0]].calcRoadMap[cur][j][k] = roadmap[k+1];
+					cache.elements[roadmap[0]].calcRoadMap[cur][j][k] = roadmap[k];
 				}
 			}
 		return;
@@ -1246,6 +1310,7 @@ function iteration2(i, cur, val, roadmap) {
 	//версия с умножением
 	var c;
 	if (project.elements[cur].type == 3) {
+		roadmap.push(cur);
 		if (api.settings.debug) console.log('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.');
 		if (cache.elements[cur].calcChance[roadmap[0]] == undefined) {
 			cache.elements[cur].calcChance[roadmap[0]] = [];
@@ -1255,7 +1320,13 @@ function iteration2(i, cur, val, roadmap) {
 			if (cache.elements[cur].calcChance[roadmap[0]][j]<val[j]) {
 				cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
 				
-				cache.elements[cur].calcRoadMap[roadmap[0]][j] = roadmap;
+				cache.elements[cur].calcRoadMap[roadmap[0]][j] = [];
+				cache.elements[roadmap[0]].calcRoadMap[cur][j] = [];
+				
+				for (var k=0; k<roadmap.length; k++) {
+					cache.elements[cur].calcRoadMap[roadmap[0]][j][k] = roadmap[k];
+					cache.elements[roadmap[0]].calcRoadMap[cur][j][k] = roadmap[k];
+				}
 		}
 		return;
 	}
@@ -1284,6 +1355,7 @@ function iteration2(i, cur, val, roadmap) {
 }
 	
 function Recompile() {
+	api.callPopup2(windows.loader);
 	var calcFuncs = [iteration, iteration2];
 	var inital = [999, 1];
 	if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
@@ -1326,10 +1398,13 @@ function Recompile() {
 			cache.elements[e].finCalcChance = [];
 			for (var j=-2; j<project.cases.length; j++) {
 				cache.elements[e].finCalcChance[j+2] = 0;
-				for (var k=0; k<cache.types[0].length; k++) 
+				for (var k=0; k<cache.types[0].length; k++) {
 					var i = cache.types[0][k];
-					if (cache.elements[e].calcChance[i] != undefined)
-						if (cache.elements[e].finCalcChance[j+2]<cache.elements[e].calcChance[i][j+2]) cache.elements[e].finCalcChance[j+2] = cache.elements[e].calcChance[i][j+2];
+					if (cache.elements[e].calcChance[i] != undefined) {
+						if (cache.elements[e].finCalcChance[j+2] < cache.elements[e].calcChance[i][j+2]) 
+							cache.elements[e].finCalcChance[j+2] = cache.elements[e].calcChance[i][j+2];
+					}
+				}
 			}
 		}
 	}
