@@ -1,4 +1,4 @@
-var project = {settings:{},elements:[],bonds:[],viewport:{}};
+﻿var project = {settings:{},elements:[],bonds:[],viewport:{}};
 var colorScheme = [
 {bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",fakeconnt:"#800",
 selected:"#00f",aconnections:"rgba(17,17,17,0)",aactconn:"rgba(136,255,136,0)",afakeconnt:"rgba(136,0,0,0)",
@@ -321,16 +321,19 @@ function appDrawElements(el) {
 	}
 	// подписи
 	if (api.settings.elemLabels || (api.hasActiveElems && api.settings.activeElems)) for (var i=0; i<el.length; i++) {
+		//существует
+		if (el[i] == undefined) continue;
+		
+		//выбран ли?
+		var isSelected = (cache.elements[i].active != 0);
+		if ((api.settings.activeElems && api.hasActiveElems) && !isSelected) continue; 
+		
 		//получаем коорды
 		var x = el[i].X, y = el[i].Y;
 		if ((el[i].type == 4) || (el[i].type == 5)) {
 			x = translateOnBondCoordsX(el[i].X, el[i].Y);
 			y = translateOnBondCoordsY(el[i].X, el[i].Y);
 		}
-		
-		//выбран ли?
-		var isSelected = (cache.elements[i].active != 0);
-		if ((api.settings.activeElems && api.hasActiveElems) && !isSelected) continue; 
 		
 		ctx.font = 300+100*(api.settings.nightMode?0:1)+" "+12*api.settings.glFontSize/100+"pt "+(api.settings.cursor?"'Open Sans'":"'Verdana'");
 		if (isSelected) {
