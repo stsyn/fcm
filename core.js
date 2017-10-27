@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.2", s:"RC2", b:61};
+	this.version = {g:"0.9.2", s:"RC2", b:62};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	

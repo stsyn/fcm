@@ -1413,7 +1413,7 @@ function Recompile() {
 	}
 	for (c=0; c<cache.types[2].length; c++) {
 		for (var j=-2; j<project.cases.length; j++) {
-			cache.elements[cache.types[2][c]].costs[j+2] = project.elements[cache.types[2][c]].calcChance[j+2]*project.elements[cache.types[2][c]].cost;
+			cache.elements[cache.types[2][c]].costs[j+2] = cache.elements[cache.types[2][c]].calcChance[j+2]*project.elements[cache.types[2][c]].cost;
 		}
 	}
 	api.compiled = true;
