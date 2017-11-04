@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.2", s:"RC2", b:62};
+	this.version = {g:"0.9.2", s:"RC2", b:63};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -145,9 +145,9 @@ function exapi() {
 		var el = project.elements;
 		var s = '';
 		var ax = ((filter == -1)?"":" na")
-		
 		if (el.length == 0) {
 			s = '<tr class="headline b fs na"><td class="b fs na">Нет элементов</td></tr>';
+			e.innerHTML = s;
 			return;
 		}
 		s = '<tr class="headline"><td class="b fs na sort0'+ax+'">ID</td><td class="b fs na sort1'+ax+'">Тип</td><td class="b fs na sort2">Имя</td><td class="b fs na sort3">Состояние</td><td class="b fs na sort4">Предельное</td><td class="b fs na sort5">Стоимость</td><td class="b fs na sort6">Эффективность</td></tr>';
@@ -178,10 +178,12 @@ function exapi() {
 		
 		if (b.length == 0) {
 			s = '<tr class="headline b fs na"><td class="b fs na">Нет связей</td></tr>';
+			e.innerHTML = s;
 			return;
 		}
 		if ((filter != -1) && (cache.elements[filter].inbonds.length == 0) && (cache.elements[filter].outbonds.length == 0) && (el[filter].type != 4) && (el[filter].type != 5)) {
 			s = '<tr class="headline b fs na"><td class="b fs na">Нет связей</td></tr>';
+			e.innerHTML = s;
 			return;
 		}
 		s = '<tr class="headline"><td class="b fs na">ID</td><td class="b fs na">Путь</div><td class="b fs na">Сила</td><td class="b fs na">Начало</td><td class="b fs na">Конец</td></tr>';
@@ -218,17 +220,17 @@ function exapi() {
 		e.innerHTML = s;
 	}
 	
-	this.includeSaves = function (el, a, addname, el2) {
+	this.includeSaves = function (el, a, addname, el2, nn) {
 		el.innerHTML = "";
 		if (addname) 
-			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="saves_._custom_" id="_custom_"><label for="_custom_" onclick="api.putMetaData(null,document.getElementById(\''+el2+'\'))"><input type="text" name="selection_name" id="save_custom" value="" class="b i fs" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
+			el.innerHTML = '<div class="line linemenu"><input checked type="radio" name="selection" value="'+nn+'._custom_" id="_custom_"><label for="_custom_" onclick="api.putMetaData(null,document.getElementById(\''+el2+'\'))"><input type="text" name="selection_name" id="save_custom" value="" class="b i fs" onclick="this.parentNode.parentNode.getElementsByTagName(\'input\')[0].checked = true"></label></div>';
 		if (a == undefined) return;
 		if (a.length == 0) return;
 		var i, ec = -1;
 		for (i=0; i<a.length; i++) if (a[i] == project.id) ec = i;
 		for (i=0; i<a.length; i++) {
 			if (addname && a[i] == "_temp_save") continue;
-			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="saves_.'+i+'" '+(((!addname && (i==0)) || (ec == i))?"checked":"")+'><label for="saves_.'+i+'" class="b fs" onclick="api.putMetaData(localStorage[\''+a[i]+'\'],document.getElementById(\''+el2+'\'))">'+a[i]+'</label></div>';
+			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="'+nn+'.'+i+'" '+(((!addname && (i==0)) || (ec == i))?"checked":"")+'><label for="'+nn+'.'+i+'" class="b fs" onclick="api.putMetaData(localStorage[\''+a[i]+'\'],document.getElementById(\''+el2+'\'))">'+a[i]+'</label></div>';
 			if ((!addname && (i==0)) || (ec == i)) this.putMetaData(localStorage[a[i]],document.getElementById(el2));
 		}
 	}
@@ -318,7 +320,7 @@ function exapi() {
 	
 	this.load = function (name, silent) {
 		try {
-			if (api.settings.debug) console.log("Loading ", name);
+			if (api.settings.debug) console.log("Loading... ", name);
 			project = JSON.parse(localStorage[name]);
 			if (project.settings.term == undefined) project.settings.term = -3;
 			if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
@@ -559,6 +561,7 @@ function exapi() {
 	}
 	
 	this.calcTSum = function(val) {
+		console.log(this.calcSum(val),this.calcCSum(val));
 		return this.calcSum(val) + this.calcCSum(val);
 	}
 	
@@ -1139,7 +1142,7 @@ function exapi() {
 		if (id == "settings") {
 			document.getElementById("settings_button").classList.add("sel");
 			document.getElementById("settings").classList.toggle("d");
-			this.loadSettings();
+			//this.loadSettings();
 			this.putSettings();
 		}
 		else if (id == "side") {
@@ -1180,7 +1183,7 @@ function exapi() {
 			document.getElementById("instb").classList.toggle("d");
 		}
 		else if (id == "save") {
-			this.includeSaves(document.getElementById("savelist"),this.getSaves(),true,"savepad");
+			this.includeSaves(document.getElementById("savelist"),this.getSaves(),true,"savepad", 'saves');
 			document.getElementById("save_button").classList.add("sel");
 			document.getElementById("save").classList.toggle("d");
 			
@@ -1194,7 +1197,7 @@ function exapi() {
 				return;
 			}
 			else {
-				this.includeSaves(document.getElementById("loadlist"),o,false,"loadpad");
+				this.includeSaves(document.getElementById("loadlist"),o,false,"loadpad", 'loads');
 				document.getElementById("load_button").classList.add("sel");
 				document.getElementById("load").classList.toggle("d");
 			}
@@ -2056,6 +2059,7 @@ function exapi() {
 		windows.deleteCase = {header:'Внимание!',content:'Подтвердите удаление этого кейса.',size:2,buttons:[{red:true,functions:'',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.deleteTerm = {header:'Внимание!',content:'Подтвердите удаление этого терма.',size:2,buttons:[{red:true,functions:'',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.loader = {header:'Загружается...',content:'<div id="squaresWaveG" style="margin-bottom:24px"><div id="squaresWaveG_1" class="squaresWaveG"></div><div id="squaresWaveG_2" class="squaresWaveG"></div><div id="squaresWaveG_3" class="squaresWaveG"></div><div id="squaresWaveG_4" class="squaresWaveG"></div><div id="squaresWaveG_5" class="squaresWaveG"></div><div id="squaresWaveG_6" class="squaresWaveG"></div><div id="squaresWaveG_7" class="squaresWaveG"></div><div id="squaresWaveG_8" class="squaresWaveG"></div></div><div id="loadstring" style="font-size:150%"></div></div>',size:0,windowsize:'sm'};
+		windows.update = {header:'Обновление!',content:'Программа была обновлена до версии <b>'+this.updated+'</b>! Рекомендуется перезапустить программу, чтобы загрузились все обновленные файлы.',size:3,buttons:[{functions:'api.closePopup();',red:false,name:'Закрыть'},{functions:'api.callPopup2(windows.changelog);',red:false,name:'Список изменений'},{functions:'location.reload(true);',red:true,name:'Перезапустить'}],windowsize:'sm'};
 		
 		
 		windows.saveError = {header:'Ошибка!',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
@@ -2066,17 +2070,24 @@ function exapi() {
 		if (this.error) return;
 		this.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1);
 		this.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
-		setTimeout(function() {api.closePopup();},(api.settings.debug?100:777));
+		setTimeout(function() {
+			api.closePopup();
+			if (api.updated) {
+				api.callPopup2(windows.update);
+				api.settings.lastVersion = api.updated;
+				api.saveSettings();
+			}
+			else if (api.locationName != "stable" && !api.settings.dontShowAlerts) {
+				var tt = "";
+				if (api.locationName == "unknown") tt = 'Вы используете версию из неизвестного источника! Настоятельно рекомендуется использовать стабильную версию на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su/applications/cmc">vtizi.ugatu.su</a>';
+				else if (api.locationName == "local") tt = 'Вы используете сохраненную локальную версию. Актуальную стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="http://vtizi.ugatu.su/applications/cmc">vtizi.ugatu.su</a>';
+				else if (api.locationName == "nightly") tt = 'Вы используете самую свежую промежуточную бета-версию. В ней могут содержаться ошибки и недоделанные возможности! В случае обнаружения ошибок и предложений убедительная просьба связаться с разрабочиками! Стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su/applications/cmc">vtizi.ugatu.su</a>';
+				
+				api.callPopup2({header:'Внимание!',content:tt,size:2,windowsize:'sm',buttons:[{functions:'api.settings.dontShowAlerts=true;api.closePopup();api.saveSettings()',name:'Больше не показывать'},{functions:'api.closePopup()',name:'Закрыть'}]});
+			}
+		},(api.settings.debug?100:777));
 		setTimeout(function() {api.callWindow('side');},(api.settings.debug?80:666));
-		/*if (this.locationName == "stable" || this.settings.dontShowAlerts) setTimeout(this.closePopup,777);
-		else {
-			var tt = "";
-			if (this.locationName == "unknown") tt = 'Вы используете версию из неизвестного источника! Настоятельно рекомендуется использовать стабильную версию на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
-			else if (this.locationName == "local") tt = 'Вы используете сохраненную локальную версию. Актуальную стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
-			else if (this.locationName == "nightly") tt = 'Вы используете самую свежую промежуточную бета-версию. В ней могут содержаться ошибки и недоделанные возможности! В случае обнаружения ошибок и предложений убедительная просьба связаться с разрабочиками! Стабильную версию всегда можно найти на сайте кафедры ВТиЗИ УГАТУ <a href="//vtizi.ugatu.su">vtizi.ugatu.su</a>';
-			
-			this.callPopup2({header:'Внимание!',content:tt,size:2,windowsize:'sm',buttons:[{functions:'api.settings.dontShowAlerts=true;api.closePopup();api.saveSettings()',name:'Больше не показывать'},{functions:'api.closePopup()',name:'Закрыть'}]});
-		}*/
+		
 	}
 }
 

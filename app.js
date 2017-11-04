@@ -57,6 +57,7 @@ function resetProject() {
 	project.settings.term = -3;
 	update();
 	api.initRTS();
+	api.initRTSCases();
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
 }
@@ -76,11 +77,11 @@ function translateCoordsY(i) {
 }
 
 function translateCoordsReverseX(i) {
-	return (i-ctx.canvas.width/2)*project.viewport.z+project.viewport.x;
+	return (i-ctx.canvas.width/2-0.5/project.viewport.z)*project.viewport.z+project.viewport.x+(i-ctx.canvas.width/2>0?1:0);
 }
 
 function translateCoordsReverseY(i) {
-	return (i-ctx.canvas.height/2)*project.viewport.z+project.viewport.y;
+	return (i-ctx.canvas.height/2-0.5/project.viewport.z)*project.viewport.z+project.viewport.y+(i-ctx.canvas.height/2>0?1:0);
 }
 
 function translateCoordsReverseNZX(i) {
@@ -1413,7 +1414,7 @@ function Recompile() {
 	}
 	for (c=0; c<cache.types[2].length; c++) {
 		for (var j=-2; j<project.cases.length; j++) {
-			cache.elements[cache.types[2][c]].costs[j+2] = cache.elements[cache.types[2][c]].calcChance[j+2]*project.elements[cache.types[2][c]].cost;
+			cache.elements[cache.types[2][c]].costs[j+2] = cache.elements[cache.types[2][c]].finCalcChance[j+2]*project.elements[cache.types[2][c]].cost;
 		}
 	}
 	api.compiled = true;
