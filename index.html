@@ -38,7 +38,8 @@
 	<div id="bottom">
 		<div class="line as">
 			<span class="b stillsel" onclick="api.settings.bottomHidden=false;api.styleSwitch('bottomHidden','bottomHidden',false,false,false);api.changeBottomPad(0)">Элементы</span><span class="b stillsel" onclick="api.settings.bottomHidden=false;api.styleSwitch('bottomHidden','bottomHidden',false,false,false);api.changeBottomPad(1)">Связи</span><span class="b debug na" id="debug_viewport"></span>
-			<span class="b debug" id="debug_mouseInfo" onclick="api.overDraw = !api.overDraw"></span>
+			<span class="b debug na" id="debug_mouseInfo"></span>
+			<span class="b debug" id="debug_idle" onclick="api.overDraw = !api.overDraw"></span>
 			<span class="b debug na" id="debug_keyInfo"></span>
 			<span class="b" style="float:right" onclick="api.styleSwitch('bottomHidden','bottomHidden',true,true,false)">
 				<span class="hide"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M44,12v62.344L22.828,53.172c-1.562-1.562-4.094-1.562-5.656,0c-1.562,1.562-1.562,4.095,0,5.657l28,28	c1.562,1.562,4.095,1.562,5.656,0l28-28C79.609,58.048,80,57.024,80,56c0-1.023-0.391-2.047-1.172-2.828c-1.562-1.562-4.095-1.562-5.656,0L52,74.344V12c0-2.208-1.791-4-4-4S44,9.791,44,12z"/></svg><b>Скрыть</b></span>
@@ -324,7 +325,7 @@
 					<div id="matrixbutt" style="float:left;width:100%);white-space:pre-wrap;word-wrap:break-word"> </div>
 				</div>
 				<div class="cc btns" style="width:calc(100% - 8px)">
-					<div id="matrixpad" class="pad" style="display:block;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
+					<div id="matrixpad" class="pad" style="display:block;height:calc(100% - 6px);white-space:pre-wrap;word-wrap:break-word;border:none"></div>
 				</div>
 			</div>
 		</div>

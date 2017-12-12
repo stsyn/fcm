@@ -19,7 +19,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.2", s:"RC2", b:63};
+	this.version = {g:"0.9.2", s:"RC2", b:64};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -393,14 +393,14 @@ function exapi() {
 	
 	this.trySave = function() {
 		var v = this.readSelected(document.getElementById("savelist"));
-		if (v == "saves_._custom_") {
+		if (v == "saves._custom_") {
 			v = deXSS(document.getElementById("save_custom").value);
 			if (v == "") {
 				windows.error.content = "Введите имя файла сохранения!";
 				this.callPopup2(windows.error);
 				return;
 			}
-			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "undefined") || (v == "_temp_save") || (v == "hasSettings") || (v == "saves_._custom_") || (v == "null")) {
+			else if ((v == "fcm2.saves") || (v == "fcm2.settings") || (v == "undefined") || (v == "_temp_save") || (v == "hasSettings") || (v == "saves._custom_") || (v == "null")) {
 				windows.error.content = "Данное имя использовать запрещено! Попробуйте какое-нибудь другое.";
 				this.callPopup2(windows.error);
 				return;
@@ -1650,7 +1650,7 @@ function exapi() {
 		project.meta.compress = document.getElementById('m_compress').checked;
 		project.meta.encrypt = document.getElementById('m_encrypt').checked;
 		if (project.meta.encrypt) project.meta.password = document.getElementById('m_pass1').value;
-		project.settings = {term:project.settings.term};
+		project.settings = {term:project.settings.term, currentCase:project.settings.currentCase};
 		project.settings.strict = document.getElementById('m_strict').checked;
 		project.settings.proportional = document.getElementById('m_propsize').checked;
 		project.settings.propColor = document.getElementById('m_propcolor').checked;

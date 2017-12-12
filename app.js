@@ -6,7 +6,7 @@ text:'#000',stext:'#fff',seltext:'#060'},
 {bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",fakeconnt:"#f88",
 selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)",afakeconnt:"rgba(255,136,136,0)",    
 text:'#eee',stext:'#111',seltext:'#8f8'}];
-var ctx, tcx, zoomprop, linePattern;
+var ctx, tcx, zoomprop, linePattern, frame=0;
 var doMoving = {};
 var currentBrush = {};
 var cache = {};
@@ -499,6 +499,18 @@ function appRedraw() {
 }
 
 function appMain() {
+	frame++;
+	var s = '', s2=20;
+	if (frame%s2<s2/2) {
+		for (var i=0; i<frame%s2; i++) s+='\u2588';
+		for (i; i<s2/2; i++) s+= '\u2591';
+	}
+	else {
+		for (var i=0; i<frame%s2-s2/2; i++) s+='\u2591';
+		for (i; i<s2/2; i++) s+= '\u2588';
+	}
+	document.getElementById('debug_idle').innerHTML = s;
+	
 	document.getElementById('is_not_saved').style.display = (api.changed?'inline':'none');
 	document.getElementById('is_not_compiled').style.display = (!api.compiled?'inline':'none');
 	if (api.mouse.button == 1 || api.mouse.button == 4) {
@@ -608,8 +620,8 @@ function appMain() {
 		else document.getElementById("brush-2").style.background=colorScheme[(api.settings.nightMode?1:0)].line;
 	}
 	if (api.settings.debug) {
-		if (api.forceRedraw || api.overDraw) document.getElementById("debug_mouseInfo").style.background=colorScheme[(api.settings.nightMode?1:0)].fakeconn;
-		else document.getElementById("debug_mouseInfo").style.background="";
+		if (api.forceRedraw || api.overDraw) document.getElementById("debug_idle").style.background=colorScheme[(api.settings.nightMode?1:0)].fakeconn;
+		else document.getElementById("debug_idle").style.background="";
 	}
 	if (api.forceRedraw || api.overDraw) {
 		appRedraw();

@@ -73,6 +73,10 @@ body.customCursor #c {cursor: url('cur.cur'), crosshair;}
 	float:none;
 	cursor:text;
 	display:inline-block;}
+.t .b.fs {
+	text-overflow:ellipsis;
+	white-space:pre;
+	overflow:hidden;}
 #top .b.in {
 	float: none;
 	display:block;
@@ -144,6 +148,9 @@ input:disabled.b {
 	width:100%}
 .table .t2{
 	display:table-row;
+width:100%;}
+.xtable .t{display:inline-block}
+.xtable .t2, .xtable .t3{display:inline-block;
 width:100%;}
 .table .headline .t {padding-bottom:0.3em}
 .table .b .t {border:1px solid #ddd}
