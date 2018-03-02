@@ -15,6 +15,10 @@ var AuxBonds, AuxBonds2, dAuxBonds;
 var AuxMove, tElemX, tElemY, tBond, tElem;
 
 
+function isOnBond(id) {
+	return project.elements[id].type == 4 || project.elements[id].type==5;
+} 
+
 function cCode(id, type) {
 	if (type == 1) return 'C(T)'+id; 	//treat
 	if (type == 2) return 'C(R)'+id;	//resource
@@ -513,10 +517,18 @@ function appMain() {
 	
 	document.getElementById('is_not_saved').style.display = (api.changed?'inline':'none');
 	document.getElementById('is_not_compiled').style.display = (!api.compiled?'inline':'none');
+
 	if (api.mouse.button == 1 || api.mouse.button == 4) {
 		if (!doMoving.fact) {
 			doMoving.fact = true;
 			doMoving.act = false;
+			doMoving.elem = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
+			doMoving.moveElem = (doMoving.elem != undefined && api.brush == -2);
+			if (doMoving.moveElem) {
+				AuxMove = doMoving.elem;
+				tElemX = project.elements[AuxMove].X;
+				tElemY = project.elements[AuxMove].Y;
+			}
 			doMoving.stX = api.mouse.X;
 			doMoving.stY = api.mouse.Y;
 			doMoving.cStX = project.viewport.x;
@@ -524,12 +536,45 @@ function appMain() {
 		}
 		else if ((Math.abs(doMoving.stX - api.mouse.X) > 10) || (Math.abs(doMoving.stY - api.mouse.Y) > 10)) doMoving.act = true;
 		if (doMoving.act) {
-			project.viewport.x = doMoving.cStX - (api.mouse.X - doMoving.stX)*project.viewport.z;
-			project.viewport.y = doMoving.cStY - (api.mouse.Y - doMoving.stY)*project.viewport.z;
-			api.forceRedraw = true;
+			if (doMoving.moveElem) {
+				if (!isOnBond(doMoving.elem)) {
+					var x = gridCoords(translateCoordsReverseX(api.mouse.X)), y = gridCoords(translateCoordsReverseY(api.mouse.Y));
+					if (((project.elements[AuxMove].X != x) || (project.elements[doMoving.elem].Y != y)) && !isElementThere(x,y,AuxMove)) {
+						project.elements[AuxMove].X = gridCoords(translateCoordsReverseX(api.mouse.X));
+						project.elements[AuxMove].Y = gridCoords(translateCoordsReverseY(api.mouse.Y));
+						api.forceRedraw = true;
+					}
+				}
+				else {
+					var el = FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize*2);
+					if (el != undefined) {
+						var el2 = BondPositon(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),el);
+						if (el2 != undefined) {
+							project.elements[AuxMove].X  = el; 
+							project.elements[AuxMove].Y = el2;
+							if (project.elements[AuxMove].Y < 0.05) project.elements[AuxMove].Y = 0.05;
+							if (project.elements[AuxMove].Y > 0.95) project.elements[AuxMove].Y = 0.95;
+							api.forceRedraw = true;
+						}
+					}
+				}
+			}
+			else {
+				project.viewport.x = doMoving.cStX - (api.mouse.X - doMoving.stX)*project.viewport.z;
+				project.viewport.y = doMoving.cStY - (api.mouse.Y - doMoving.stY)*project.viewport.z;
+				api.forceRedraw = true;
+			}
+			
 		}
 	}
-	else doMoving.fact = false;
+	else {
+		if (doMoving.moveElem && doMoving.act) {
+			MoveElement(AuxMove,translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y));
+			doMoving.moveElem = false;
+		}
+		doMoving.fact = false;
+		doMoving.act = false;
+	}
 	
 	if (api.brush == 99 && api.settings.tooltips) {
 		AuxBonds2 = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize); 
@@ -538,7 +583,7 @@ function appMain() {
 			api.forceRedraw = true;
 		}
 	}
-	else if ((api.brush == 97) && (project.elements[AuxMove].type > 0) && ((project.elements[AuxMove].type<=3) || (project.elements[AuxMove].type==6))) {
+	else if ((api.brush == 97) && !isOnBond(AuxMove)) {
 		var x = gridCoords(translateCoordsReverseX(api.mouse.X)), y = gridCoords(translateCoordsReverseY(api.mouse.Y));
 		if (((project.elements[AuxMove].X != x) || (project.elements[AuxMove].Y != y)) && !isElementThere(x,y,AuxMove)) {
 			project.elements[AuxMove].X = gridCoords(translateCoordsReverseX(api.mouse.X));
@@ -592,7 +637,7 @@ function appMain() {
 		}
 	}
 	else if ((api.brush == -1) && api.settings.tooltips) {
-		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize*3);
+		el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
         if (el != undefined) {
 			if (tElem != el) {
 				tElem = el;
@@ -1099,8 +1144,8 @@ function AddElement(MouseX,MouseY,onBond) {
 function MoveElement(ActualElement,NewX,NewY,rec) {
 	var x=(rec?NewX:gridCoords(NewX)), y=(rec?NewY:gridCoords(NewY));
 	var i=x, i2=y;
-	if ((project.elements[ActualElement].type > 0) && (project.elements[ActualElement].type<=3) && (isElementThere(x,y,ActualElement))) return;
-	if ((project.elements[ActualElement].type == 4) || (project.elements[ActualElement].type == 5) && !rec) {
+	if (!isOnBond(ActualElement) && (isElementThere(x,y,ActualElement))) return;
+	if (isOnBond(ActualElement) && !rec) {
 		i = FindTheClosestBond(NewX,NewY,api.settings.elemSize);
         if (i != undefined) i2 = BondPositon(NewX,NewY,i);
 	}
@@ -1109,9 +1154,11 @@ function MoveElement(ActualElement,NewX,NewY,rec) {
 		project.elements[ActualElement].Y=i2;
 	}
 	api.forceRedraw = true;
-	api.changed = true;
 	api.brush = -2;
-	Recalculate();
+	if (!rec) {
+		api.changed = true;
+		Recalculate();
+	}
 }
 
 function RemoveBond(ActualBond, afterElem) {

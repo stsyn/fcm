@@ -5,6 +5,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="loadbar.css">
+	<link rel="stylesheet" href="font-awesome.min.css">
+	
 	<script type="text/javascript" src="core.js"></script>
 	<script type="text/javascript" src="app.js"></script>
 	<script type="text/javascript" src="random.js"></script>
@@ -14,36 +16,38 @@
 	
 	<div id="top">
 	
-		<span class="b" onclick="api.requestReset()"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M88,28v56c0,6.627-5.373,12-12,12H20c-6.627,0-12-5.373-12-12V12C8,5.373,13.373,0,20,0h40L88,28z M60,28h16.687L60,11.313V28z M80,84V36H52V8H20c-1.441,0-2.391,0.734-2.829,1.171C16.734,9.609,16,10.559,16,12v72c0,1.441,0.734,2.391,1.171,2.828C17.609,87.266,18.559,88,20,88h56c1.441,0,2.391-0.734,2.828-1.172S80,85.441,80,84z"/></svg><b>Новый</b></span>
+		<span class="b" onclick="api.requestReset()"><i class="fa fa-file-o"></i><b>Новый</b></span>
 		<span class="b h">
-			<span class="b in" id="load_button" onclick="api.callWindow('load')"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M37.414,24.438L39.718,28H44h36c2.206,0,4,1.794,4,4v44c0,2.206-1.794,4-4,4H16c-2.206,0-4-1.794-4-4V20c0-2.206,1.794-4,4-4h16L37.414,24.438zM36,8H16C9.37,8,4,13.37,4,20v56c0,6.63,5.37,12,12,12h64c6.63,0,12-5.37,12-12V32c0-6.63-5.37-12-12-12H44L36,8L36,8z"/></svg><b>Открыть<span class="hid">...</span></b></span>
-			<span class="b in" onclick="api.callWindow('import')"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M25.172,46.829c-1.562-1.562-1.562-4.095,0-5.657s4.095-1.562,5.657,0L44,54.344V8c0-2.208,1.792-4,4-4c2.209,0,4,1.792,4,4v46.343l13.172-13.171c1.562-1.562,4.095-1.562,5.656,0c1.562,1.562,1.562,4.095,0,5.657l-20,20c-0.781,0.78-1.805,1.172-2.828,1.172c-1.024,0-2.047-0.392-2.829-1.172L25.172,46.829z M88,60.001c-2.209,0-4,1.791-4,3.999v16.001C84,82.206,82.253,84,80.105,84H16c-2.205,0-4-1.794-4-3.999V64c0-2.208-1.791-3.999-3.999-3.999c-2.21,0-4,1.791-4,3.999v16.001c0,1.618,0.318,3.189,0.944,4.672c0.604,1.43,1.469,2.712,2.57,3.813c1.101,1.1,2.384,1.965,3.813,2.569C12.81,91.684,14.381,92,16,92h64.105c1.61,0,3.174-0.32,4.648-0.952c1.418-0.607,2.69-1.476,3.78-2.581c1.088-1.101,1.94-2.384,2.536-3.812c0.617-1.477,0.93-3.043,0.93-4.654V64C92,61.792,90.209,60.001,88,60.001z"/></svg><b>Импорт</b></span>
+			<span class="b in" id="load_button" onclick="api.callWindow('load')"><i class="fa fa-folder-o"></i><b>Открыть<span class="hid">...</span></b></span>
+			<span class="b in" onclick="api.callWindow('import')"><i class="fa fa-upload"></i><b>Импорт</b></span>
 		</span>
 		<span class="b h">
-			<span class="b in" id="save_button" onclick="api.saveCurrent()"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M48,4C26.809,4,4,9.007,4,20v56c0,10.993,22.809,16,44,16s44-5.007,44-16V20C92,9.007,69.191,4,48,4z M48,12	c23.189,0,35.18,5.736,35.986,8C83.18,22.264,71.189,28,48,28s-35.18-5.736-35.987-8C12.82,17.736,24.811,12,48,12z M12,29.723C20.513,33.989,34.577,36,48,36c13.424,0,27.488-2.013,36.001-6.279l0.002,18.229C83.369,50.173,71.374,56.001,48,56.001c-23.4,0-35.396-5.841-36-8V29.723L12,29.723z M48,84c-23.4,0-35.396-5.841-36-8V57.723C20.513,61.989,34.577,64,48,64c13.426,0,27.492-2.013,36.004-6.281l0.002,18.223C83.396,78.159,71.4,84,48,84z"/></svg><b>Сохранить<span class="hid">...</span>
+			<span class="b in" id="save_button" onclick="api.saveCurrent()"><i class="fa fa-save"></i><b>Сохранить<span class="hid">...</span>
 			<span style="float:right" id="is_not_saved">*</span></b></span>
-			<span class="b in" onclick="api.callWindow('save')"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M48,0L4,20v56l44,20l44-20V20L48,0z M48,8.79L77.5,22.2L48,35.609L18.49,22.2L48,8.79z M12,70.85v-42.82L44,42.57v42.82			L12,70.85z M84,70.85L52,85.391V42.57l32-14.541V70.85z"/></svg><b>Сохранить как</b></span>
-			<span class="b in" onclick="api.callWindow('export')"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M25.172,30.829c-1.562-1.562-1.562-4.095,0-5.657l20-20c1.562-1.562,4.095-1.562,5.656,0l20,20c1.562,1.562,1.562,4.095,0,5.657C70.047,31.61,69.023,32,68,32s-2.047-0.39-2.828-1.171L52,17.657V64c0,2.209-1.791,4-4,4s-4-1.791-4-4V17.657L30.828,30.829C29.267,32.39,26.733,32.39,25.172,30.829z M88,60c-2.209,0-4,1.791-4,4v16c0,2.205-1.747,4-3.895,4H16c-2.206,0-4-1.795-4-4V64c0-2.209-1.791-4-4-4s-4,1.791-4,4v16c0,1.619,0.317,3.189,0.944,4.672c0.604,1.43,1.47,2.713,2.57,3.812c1.101,1.102,2.384,1.967,3.813,2.57C12.81,91.682,14.382,92,16,92h64.105c1.61,0,3.175-0.32,4.648-0.951c1.418-0.609,2.69-1.477,3.781-2.582c1.087-1.102,1.939-2.385,2.536-3.812C91.688,83.178,92,81.611,92,80V64C92,61.791,90.209,60,88,60z"/></svg><b>Экспорт</b></span>
+			<span class="b in" onclick="api.callWindow('save')"><i class="fa fa-copy"></i><b>Сохранить как</b></span>
+			<span class="b in" onclick="api.callWindow('export')"><i class="fa fa-download"></i><b>Экспорт</b></span>
 		</span>
-		<span class="b stillsel" id="settings_button" onclick="api.callWindow('settings')"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M84,60c6.627,0,12-5.373,12-12s-5.373-12-12-12h-2.049c-0.426-1.204-0.913-2.379-1.46-3.521l1.45-1.449c4.686-4.687,4.686-12.284,0-16.971c-4.687-4.686-12.284-4.686-16.971,0l-1.449,1.45c-1.143-0.547-2.317-1.034-3.521-1.46V12c0-6.627-5.373-12-12-12S36,5.373,36,12v2.049c-1.204,0.426-2.379,0.913-3.521,1.46l-1.449-1.45c-4.687-4.686-12.284-4.686-16.971,0c-4.686,4.687-4.686,12.284,0,16.971l1.45,1.449c-0.547,1.143-1.034,2.317-1.46,3.521H12C5.373,36,0,41.373,0,48s5.373,12,12,12h2.049c0.426,1.204,0.913,2.379,1.46,3.521l-1.45,1.449c-4.686,4.687-4.686,12.284,0,16.971c4.687,4.686,12.284,4.686,16.971,0l1.449-1.45c1.143,0.547,2.317,1.034,3.521,1.46V84c0,6.627,5.373,12,12,12s12-5.373,12-12v-2.049c1.204-0.426,2.379-0.913,3.521-1.46l1.449,1.45c4.687,4.686,12.284,4.686,16.971,0c4.686-4.687,4.686-12.284,0-16.971l-1.45-1.449c0.547-1.143,1.034-2.317,1.46-3.521H84z M75.717,52c-0.679,4.744-2.547,9.104-5.291,12.769l5.701,5.702l0.157,0.156c1.562,1.562,1.562,4.096,0,5.657s-4.095,1.562-5.657,0l-0.156-0.157l-5.702-5.701C61.104,73.17,56.744,75.038,52,75.717V84c0,2.209-1.791,4-4,4s-4-1.791-4-4v-8.283c-4.744-0.679-9.104-2.547-12.769-5.291l-5.702,5.701l-0.156,0.157c-1.562,1.562-4.096,1.562-5.657,0s-1.562-4.095,0-5.657l0.157-0.156l5.701-5.702C22.83,61.104,20.962,56.744,20.283,52H12c-2.209,0-4-1.791-4-4s1.791-4,4-4h8.283c0.679-4.744,2.547-9.104,5.291-12.769l-5.701-5.702l-0.157-0.156c-1.562-1.562-1.562-4.096,0-5.657s4.095-1.562,5.657,0l0.156,0.157l5.702,5.701c3.665-2.744,8.024-4.612,12.769-5.291V12c0-2.209,1.791-4,4-4s4,1.791,4,4v8.283c4.744,0.679,9.104,2.547,12.769,5.291l5.702-5.701l0.156-0.157c1.562-1.562,4.096-1.562,5.657,0s1.562,4.095,0,5.657l-0.157,0.156l-5.701,5.702c2.744,3.665,4.612,8.024,5.291,12.769H84c2.209,0,4,1.791,4,4s-1.791,4-4,4H75.717z M48,32c-8.837,0-16,7.163-16,16s7.163,16,16,16s16-7.163,16-16S56.837,32,48,32z M48,56c-4.418,0-8-3.582-8-8s3.582-8,8-8s8,3.582,8,8S52.418,56,48,56z"/></svg><b>Настройки</b></span>
+		<span class="b stillsel" id="settings_button" onclick="api.callWindow('settings')"><i class="fa fa-wrench"></i><b>Настройки</b></span>
 		<span class="b stillsel" id="side_button" onclick="api.callWindow('side')">
-		<svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M48,12C16,12,0,48.166,0,48.166S16,84,48,84s48-36,48-36S80,12,48,12z M48,76C26.854,76,13.503,56.118,9.003,48.148C13.5,40.102,26.854,20,48,20c21.15,0,34.502,19.998,38.998,28C82.494,56.016,69.145,76,48,76z M48,32c-8.836,0-16,7.164-16,16c0,8.837,7.164,16,16,16c8.837,0,16-7.163,16-16C64,39.164,56.837,32,48,32z M48,56c-4.411,0-8-3.589-8-8s3.589-8,8-8s8,3.589,8,8S52.411,56,48,56z"/><path d="M48,12C16,12,0,48.166,0,48.166S16,84,48,84s48-36,48-36S80,12,48,12z M48,76C26.854,76,13.503,56.118,9.003,48.148C13.5,40.102,26.854,20,48,20c21.15,0,34.502,19.998,38.998,28C82.494,56.016,69.145,76,48,76z M48,32c-8.836,0-16,7.164-16,16c0,8.837,7.164,16,16,16c8.837,0,16-7.163,16-16C64,39.164,56.837,32,48,32z M48,56c-4.411,0-8-3.589-8-8s3.589-8,8-8s8,3.589,8,8S52.411,56,48,56z"/></svg><b>Инструменты</b>
+		<i class="fa fa-briefcase"></i><b>Инструменты</b>
 		</span>
 		<span class="b" onclick="api.styleSwitch('night','nightMode',true,true,false);api.forceRedraw = true">
-			<svg width="96px" height="96px" viewBox="0 0 96 96" class="night_hide"><path d="M40.124,16.98C40.042,17.979,40,18.986,40,20c0,19.852,16.148,36,36,36c1.014,0,2.021-0.041,3.02-0.124C75.501,69.725,62.928,80,48,80c-17.645,0-32-14.355-32-32C16,33.072,26.275,20.499,40.124,16.98 M48,8C25.909,8,8,25.909,8,48c0,22.092,17.909,40,40,40c22.092,0,40-17.908,40-40c0-0.893-0.04-1.775-0.098-2.654C84.29,47.045,80.257,48,76,48c-15.464,0-28-12.536-28-28c0-4.257,0.955-8.29,2.654-11.902C49.775,8.04,48.893,8,48,8L48,8z"/></svg><b class="night_hide">Ночь</b>
-			<svg width="96px" height="96px" viewBox="0 0 96 96" class="night_nothide"><path d="M52,4v8c0,2.209-1.791,4-4,4s-4-1.791-4-4V4c0-2.209,1.791-4,4-4S52,1.791,52,4z M48,80c-2.209,0-4,1.791-4,4v8c0,2.209,1.791,4,4,4s4-1.791,4-4v-8C52,81.791,50.209,80,48,80zM14.059,14.059c-1.562,1.562-1.562,4.095,0,5.657l5.657,5.657c1.562,1.562,4.095,1.562,5.657,0c1.562-1.562,1.562-4.096,0-5.657l-5.657-5.657C18.153,12.497,15.621,12.497,14.059,14.059z M70.627,70.627c-1.562,1.562-1.562,4.096,0,5.657l5.657,5.657c1.562,1.562,4.095,1.562,5.657,0c1.562-1.562,1.562-4.095,0-5.657l-5.657-5.657C74.722,69.065,72.189,69.065,70.627,70.627z M0,48c0,2.209,1.791,4,4,4h8c2.209,0,4-1.791,4-4s-1.791-4-4-4H4C1.791,44,0,45.791,0,48z M80,48c0,2.209,1.791,4,4,4h8c2.209,0,4-1.791,4-4s-1.791-4-4-4h-8C81.791,44,80,45.791,80,48z M14.059,81.941c1.562,1.562,4.095,1.562,5.657,0l5.656-5.657c1.562-1.562,1.562-4.095,0-5.657c-1.562-1.562-4.094-1.562-5.656,0l-5.657,5.657C12.497,77.847,12.497,80.379,14.059,81.941z M70.627,25.373c1.562,1.562,4.095,1.562,5.657,0l5.657-5.657c1.562-1.562,1.562-4.095,0-5.657c-1.562-1.562-4.095-1.562-5.657,0l-5.657,5.657C69.065,21.277,69.065,23.811,70.627,25.373z M72,48c0,13.255-10.745,24-24,24S24,61.255,24,48s10.745-24,24-24S72,34.745,72,48z M64,48c0-8.837-7.163-16-16-16s-16,7.163-16,16s7.163,16,16,16S64,56.837,64,48z"/></svg><b class="night_nothide">День</b></span>
-		<span class="b" onclick="api.callPopup2(windows.about)"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M12,28h72c2.209,0,4-1.791,4-4s-1.791-4-4-4H12c-2.209,0-4,1.791-4,4S9.791,28,12,28z M84,44H12c-2.209,0-4,1.791-4,4s1.791,4,4,4h72c2.209,0,4-1.791,4-4S86.209,44,84,44z M84,68H12c-2.209,0-4,1.791-4,4s1.791,4,4,4h72c2.209,0,4-1.791,4-4S86.209,68,84,68z"/></svg><b>Информация</b></span>
+			<i class="fa fa-moon-o night_hide"></i><b class="night_hide">Ночь</b>
+			<i class="fa fa-sun-o night_nothide"></i><b class="night_nothide">День</b></span>
+		<span class="b" onclick="api.callPopup2(windows.about)"><i class="fa fa-th-list"></i></svg><b>Информация</b></span>
 	</div>
 	
-	<div id="bottom">
+	<div id="bottom" class="norm">
 		<div class="line as">
 			<span class="b stillsel" onclick="api.settings.bottomHidden=false;api.styleSwitch('bottomHidden','bottomHidden',false,false,false);api.changeBottomPad(0)">Элементы</span><span class="b stillsel" onclick="api.settings.bottomHidden=false;api.styleSwitch('bottomHidden','bottomHidden',false,false,false);api.changeBottomPad(1)">Связи</span><span class="b debug na" id="debug_viewport"></span>
 			<span class="b debug na" id="debug_mouseInfo"></span>
 			<span class="b debug" id="debug_idle" onclick="api.overDraw = !api.overDraw"></span>
 			<span class="b debug na" id="debug_keyInfo"></span>
-			<span class="b" style="float:right" onclick="api.styleSwitch('bottomHidden','bottomHidden',true,true,false)">
-				<span class="hide"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M44,12v62.344L22.828,53.172c-1.562-1.562-4.094-1.562-5.656,0c-1.562,1.562-1.562,4.095,0,5.657l28,28	c1.562,1.562,4.095,1.562,5.656,0l28-28C79.609,58.048,80,57.024,80,56c0-1.023-0.391-2.047-1.172-2.828c-1.562-1.562-4.095-1.562-5.656,0L52,74.344V12c0-2.208-1.791-4-4-4S44,9.791,44,12z"/></svg><b>Скрыть</b></span>
-				<span class="nothide"><svg width="96px" height="96px" viewBox="0 0 96 96"><path d="M52,83.999V21.655l21.172,21.172c1.562,1.562,4.094,1.562,5.656,0c1.562-1.562,1.562-4.095,0-5.657l-28-28c-1.562-1.562-4.095-1.562-5.656,0l-28,28C16.391,37.951,16,38.974,16,39.999c0,1.023,0.391,2.047,1.172,2.828 c1.562,1.562,4.095,1.562,5.656,0L44,21.655v62.344c0,2.209,1.791,4,4,4S52,86.208,52,83.999z"/></svg><b>Показать</b></span>
+			<span class="control" style="float:right">
+				<span class="b bnorm bbig" onclick="document.getElementById('bottom').className='hide'"><i class="fa fa-arrow-down"></i><b>Скрыть</b></span>
+				<span class="b bhide" onclick="document.getElementById('bottom').className='norm'"><i class="fa fa-arrow-up"></i><b>Показать</b></span>
+				<span class="b bnorm" onclick="document.getElementById('bottom').className='big'"><i class="fa fa-arrow-up"></i><b>Развернуть</b></span>
+				<span class="b bbig" onclick="document.getElementById('bottom').className='norm'"><i class="fa fa-arrow-down"></i><b>Свернуть</b></span>
 			</span>
 			<span class="b red" style="float:right; overflow:hidden" onclick="Recompile()" id="is_not_compiled">Не пересчитано</span>
 		</div>
@@ -79,7 +83,7 @@
 					<span>Настройки</span>
 				</div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns" style="">
 					<div class="pad" style="display:block">
@@ -153,7 +157,7 @@
 					<span>Проект</span>
 				</div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
@@ -205,8 +209,8 @@
 					<span>Инструменты</span>
 				</div>
 				<div class="controls">
-					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-window-minimize"></i></div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc">
 					<div class="table ps"><div class="t3"><div class="t2">
@@ -277,7 +281,7 @@
 					<span>Сохранить</span>
 				</div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns">
 					<div id="savelist" class="pad selection" style="display:block;float:left;width:calc(100% - 30em - 16px);height:calc(100% - 8px)"></div>
@@ -297,7 +301,7 @@
 					<span>Полный эффект</span>
 				</div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="bt up">
 					<div style="float:left;width:calc(15em - 8px);white-space:pre-wrap;word-wrap:break-word;padding:4px">&nbsp;</div>
@@ -319,7 +323,7 @@
 					<span>Матрица достижимости</span>
 				</div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="bt up">
 					<div id="matrixbutt" style="float:left;width:100%);white-space:pre-wrap;word-wrap:break-word"> </div>
@@ -336,7 +340,7 @@
 				<div class="h"><span>Кейсы</span></div>
 				<div class="hc"><span>Кейсы</span></div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns">
 					<div id="caselist" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
@@ -359,7 +363,7 @@
 				<div class="h"><span>Термы</span></div>
 				<div class="hc"><span>Термы</span></div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns">
 					<div id="termlist" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
@@ -383,7 +387,7 @@
 					<span>Открыть</span>
 				</div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns">
 					<div id="loadlist" class="pad selection" style="display:block;float:left;width:calc(100% - 30em - 16px);height:calc(100% - 8px)"></div>
@@ -403,8 +407,8 @@
 				<div class="hc"><span>Экспорт</span></div>
 				<div class="h"><span>Экспорт</span></div>
 				<div class="controls">
-					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)">[ ]</div>
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-window-maximize"></i><i class="fa fa-window-restore"></i></div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns">
 					<textarea type="text" class="b i ex_c" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:90%;height:70%"></textarea>
@@ -424,8 +428,8 @@
 				<div class="hc"><span>Импорт</span></div>
 				<div class="h"><span>Импорт</span></div>
 				<div class="controls">
-					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)">[ ]</div>
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-window-maximize"></i><i class="fa fa-window-restore"></i></div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns">
 					<textarea type="text" class="b i im_c" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:90%;height:70%"></textarea>
@@ -444,7 +448,7 @@
 			<div class="w huge">
 				<div class="hc"><span>Общий риск</span></div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc">
 					<div class="pad bl scale" id="graphscale" style="margin-left:calc(20em + 6px);width:calc(100% - 20em - 12px);border:none"></div>
@@ -553,9 +557,9 @@
 				<div class="h"><span>Связь</span></div>
 				<div class="hc"><span>Связь</span></div>
 				<div class="controls">
-					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
-					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)">[ ]</div>
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-window-minimize"></i></div>
+					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-window-maximize"></i><i class="fa fa-window-restore"></i></div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
@@ -587,9 +591,9 @@
 				<div class="h"><span>Свойства</span></div>
 				<div class="hc"><span>Свойства</span></div>
 				<div class="controls">
-					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)">__</div>
-					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)">[ ]</div>
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)">X</div>
+					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-window-minimize"></i></div>
+					<div class="rsz" onclick="api.switchWindowSize(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-window-maximize"></i><i class="fa fa-window-restore"></i></div>
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">

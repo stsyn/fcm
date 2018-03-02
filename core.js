@@ -12,6 +12,32 @@ function checkWindowPos(id) {
 	if (t) setTimeout(checkWindowPos,16,id);
 }
 
+function InfernoAddElem(tag, values, childs) {
+	var t;
+	if (values != undefined && values.id != undefined && document.getElementById(values.id) != undefined) {
+		if (document.querySelectorAll(tag+'#'+values.id).length == 0) {
+			t = document.getElementById(values.id);
+			t.parentNode.removeChild(t);
+			t = document.createElement(tag);
+		}
+		else {
+			t = document.getElementById(values.id);
+			while (t.firstChild) {t.removeChild(t.firstChild);}
+		}
+	}
+	else t = document.createElement(tag);
+	
+	for (var i in values) if (i!='events' && i!='dataset' && i!='innerHTML' && i!='className' && !(i=='style' && typeof values.style=='object')) t.setAttribute(i,values[i]);
+	if (values.dataset != undefined) for (var i in values.dataset) t.dataset[i] = values.dataset[i];
+	if (values.className != undefined) t.className = values.className;
+	if (values.innerHTML != undefined) t.innerHTML = values.innerHTML;
+	if (values.events != undefined) values.events.forEach(function(v,i,a) {t.addEventListener(v.t, v.f);});
+	if (typeof values.style=='object') for (var i in values.style) t.style[i] = values.style[i];
+	
+	if (childs != undefined && childs.length != undefined) childs.forEach(function(c,i,a) {t.appendChild(c);});
+	return t;
+}
+
 function exapi() {
 	this.updated = false;
 	this.error = false;
@@ -19,7 +45,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.2", s:"RC2", b:64};
+	this.version = {g:"0.9.2", s:"RC2", b:65};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.zindex = [];
 	
@@ -138,86 +164,126 @@ function exapi() {
 	this.includeElementsTLine = function (el, i) {
 		var u = el[i].val;
 		if ((project.settings.term != -3) && (u != undefined) && (u <= 1) && (u >= 0)) u = getTermName(u);
-		return '<tr class="b fs linemenu" onclick="editElement('+i+')" onmouseover="api.elSel='+i+'"><td>'+i+'</td><td>'+el[i].type+'</td><td>'+getName(i)+'</td><td>'+((el[i].state===undefined)?"—":el[i].state)+'</td><td>'+((el[i].lim===undefined)?"—":el[i].lim)+'</td><td>'+((el[i].cost===undefined)?"—":el[i].cost)+'</td><td>'+((el[i].val===undefined)?"—":u)+'</td></tr>';
+		return InfernoAddElem('tr', {className:'b fs linemenu', events:[{t:'click',f:function(){editElement(i)}}, {t:'mouseover', f:function(){api.elSel=i;}}]},[
+			InfernoAddElem('td',{innerHTML:i},[]),
+			InfernoAddElem('td',{innerHTML:el[i].type},[]),
+			InfernoAddElem('td',{innerHTML:getName(i)},[]),
+			InfernoAddElem('td',{innerHTML:((el[i].state===undefined)?"—":el[i].state)},[]),
+			InfernoAddElem('td',{innerHTML:((el[i].lim===undefined)?"—":el[i].lim)},[]),
+			InfernoAddElem('td',{innerHTML:((el[i].cost===undefined)?"—":el[i].cost)},[]),
+			InfernoAddElem('td',{innerHTML:((el[i].val===undefined)?"—":el[i].val)},[])
+		]);
 	}
 	
 	this.includeElements = function (e,filter) {
 		var el = project.elements;
+		e.innerHTML = '';
+		var ax = ((filter == -1)?"":" na");
 		var s = '';
-		var ax = ((filter == -1)?"":" na")
 		if (el.length == 0) {
-			s = '<tr class="headline b fs na"><td class="b fs na">Нет элементов</td></tr>';
-			e.innerHTML = s;
+			e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
+				InfernoAddElem('td',{className:'b fs na', innerHTML:'Нет элементов'},[])
+			]))
 			return;
 		}
-		s = '<tr class="headline"><td class="b fs na sort0'+ax+'">ID</td><td class="b fs na sort1'+ax+'">Тип</td><td class="b fs na sort2">Имя</td><td class="b fs na sort3">Состояние</td><td class="b fs na sort4">Предельное</td><td class="b fs na sort5">Стоимость</td><td class="b fs na sort6">Эффективность</td></tr>';
+		e.appendChild(
+			InfernoAddElem('tr', {className:'headline'},[
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'ID'},[]),
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Тип'},[]),
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Имя'},[]),
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Состояние'},[]),
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Предельное'},[]),
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Стоимость'},[]),
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Эффективность'},[])
+			])
+		);
 		var i, j;
 		if (filter != -1) {
-			s += this.includeElementsTLine(el, project.bonds[filter].first);
-			for (i=0; i<cache.bonds[filter].elems.length; i++) s += this.includeElementsTLine (el, cache.bonds[filter].elems[i]);
-			s += this.includeElementsTLine (el, project.bonds[filter].second);
+			e.appendChild(this.includeElementsTLine(el, project.bonds[filter].first));
+			for (i=0; i<cache.bonds[filter].elems.length; i++) e.appendChild(this.includeElementsTLine (el, cache.bonds[filter].elems[i]));
+			e.appendChild(this.includeElementsTLine(el, project.bonds[filter].second));
 		}
-		
 		else for (i=0; i<el.length; i++) {
 			if (el[i] == undefined) continue;
-			s += this.includeElementsTLine (el, i);
+			e.appendChild(this.includeElementsTLine(el, i));
 		}
-		e.innerHTML = s;
 	}
 	
 	this.includeBondsTLine = function (b, el, i) {
 		var u = b[i].val;
 		if (project.settings.term != -3 && u != undefined) u = getTermName(u);
-		return '<tr class="b fs linemenu" onclick="editBond('+i+')" onmouseover="api.bSel='+i+'"><td>'+i+'</td><td>'+b[i].first+' — '+b[i].second+'</td><td>'+u+'</td><td>'+getName(b[i].first)+'</td><td>'+getName(b[i].second)+'</td></tr>';
+		return InfernoAddElem('tr', {className:'b fs linemenu', events:[{t:'click',f:function(){editBond(i)}}, {t:'mouseover', f:function(){api.bSel=i;}}]},[
+			InfernoAddElem('td',{innerHTML:i},[]),
+			InfernoAddElem('td',{innerHTML:b[i].first+' — '+b[i].second},[]),
+			InfernoAddElem('td',{innerHTML:u},[]),
+			InfernoAddElem('td',{innerHTML:getName(b[i].first)},[]),
+			InfernoAddElem('td',{innerHTML:getName(b[i].second)},[])
+		]);
 	}
 
 	this.includeBonds = function (e, filter) {
-		var s = '';
+		e.innerHTML = '';
+		
+		var ax = ((filter == -1)?"":" na");
 		var el = project.elements;
 		var b = project.bonds;
 		
 		if (b.length == 0) {
-			s = '<tr class="headline b fs na"><td class="b fs na">Нет связей</td></tr>';
-			e.innerHTML = s;
+			e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
+				InfernoAddElem('td',{className:'b fs na', innerHTML:'Нет связей'},[])
+			]));
 			return;
 		}
 		if ((filter != -1) && (cache.elements[filter].inbonds.length == 0) && (cache.elements[filter].outbonds.length == 0) && (el[filter].type != 4) && (el[filter].type != 5)) {
-			s = '<tr class="headline b fs na"><td class="b fs na">Нет связей</td></tr>';
-			e.innerHTML = s;
+			e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
+				InfernoAddElem('td',{className:'b fs na', innerHTML:'Нет связей'},[])
+			]));
 			return;
 		}
-		s = '<tr class="headline"><td class="b fs na">ID</td><td class="b fs na">Путь</div><td class="b fs na">Сила</td><td class="b fs na">Начало</td><td class="b fs na">Конец</td></tr>';
+		e.appendChild(
+			InfernoAddElem('tr', {className:'headline'},[
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'ID'},[]),
+				InfernoAddElem('td',{className:'b fs na'+ax,innerHTML:'Путь'},[]),
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Сила'},[]),
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Начало'},[]),
+				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Конец'},[])
+			])
+		);
 		var i, j;
 		if (filter != -1) {
 			if ((el[filter].type == 4) || (el[filter].type == 5)) {
-				s += '<tr class="headline b fs na"><td colspan="5">Родительская связь</td></tr>';
-				s += this.includeBondsTLine (b, el, el[filter].X);
-				e.innerHTML = s;
+				e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
+					InfernoAddElem('td',{className:'b fs na',colspan:'5', innerHTML:'Родительская связь'},[])
+				]));
+				e.appendChild(this.includeBondsTLine (b, el, el[filter].X));
 				return;
 			}
 			var t = true;
 			for (i=0; i<cache.elements[filter].inbonds.length; i++) {
 				if (t) {
 					t = false;
-					s += '<tr class="headline b fs na"><td colspan="5">Входящие связи</td></tr>';
+					e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
+						InfernoAddElem('td',{className:'b fs na',colspan:'5', innerHTML:'Входящие связи'},[])
+					]));
 				}
-				s += this.includeBondsTLine (b, el, cache.elements[filter].inbonds[i]);
+				e.appendChild(this.includeBondsTLine (b, el, cache.elements[filter].inbonds[i]));
 			}
-			var t = true;
+			t = true;
 			for (i=0; i<cache.elements[filter].outbonds.length; i++) {
 				if (t) {
 					t = false;
-					s += '<tr class="headline b fs na"><td colspan="5">Исходящие связи</td></tr>';
+					e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
+						InfernoAddElem('td',{className:'b fs na',colspan:'5', innerHTML:'Исходящие связи'},[])
+					]));
 				}
-				s += this.includeBondsTLine (b, el, cache.elements[filter].outbonds[i]);
+				e.appendChild(this.includeBondsTLine (b, el, cache.elements[filter].outbonds[i]));
 			}
 		}
 		
 		else for (i=0; i<b.length; i++) {
 			if (b[i] == undefined) continue;
-			s += this.includeBondsTLine (b, el, i);
+			e.appendChild(this.includeBondsTLine (b, el, i));
 		}
-		e.innerHTML = s;
 	}
 	
 	this.includeSaves = function (el, a, addname, el2, nn) {
@@ -1591,7 +1657,7 @@ function exapi() {
 		this.fontSwitch();
 			
 		this.forceRedraw = true;
-		update();
+		//update();
 	}
 	
 	this.putMetas = function() {

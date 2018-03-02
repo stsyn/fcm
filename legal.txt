@@ -12,4 +12,4 @@
 
 Используется шрифт Open Sans: https://fonts.google.com/specimen/Open+Sans
 
-Используются векторные иконки Feather Icons: http://colebemis.com/feather/
+Используются иконки FontAwesome v4.7.0: https://fontawesome.com/v4.7.0/
