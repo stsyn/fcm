@@ -10,6 +10,9 @@
 	<script type="text/javascript" src="core.js"></script>
 	<script type="text/javascript" src="app.js"></script>
 	<script type="text/javascript" src="random.js"></script>
+	<script type="text/javascript" src="libs/lzma_worker-min.js"></script>
+	<script type="text/javascript" src="libs/aes-js-min.js"></script>
+	<script type="text/javascript" src="libs/forge-sha256.min.js"></script>
 </head>
 <body>
 	<canvas id="c"></canvas>
@@ -187,12 +190,12 @@
 							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_strict"> Строгий режим</label></div>
 							<div class="line hd"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_propsize"> Пропорциональный размер элементов</label></div>
 							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_propcolor"> Пропорциональный цвет связей</label></div>
-							<div class="line">Пароль: <input type="text" class="b i" id="m_pass1" style="width:10em" disabled></div> 
+							<div class="line">Пароль: <input type="password" class="b i" id="m_pass1" style="width:10em"></div> 
 						</div>
 						<div class="pad" style="width:calc(50% - 10px);display:inline-block;text-align:left;border:none">
-							<div class="line"><label class="b ilb stillsel ac na fs" style="font-weight:normal"><input type="checkbox" id="m_compress" disabled> Сжатие проекта</label></div>
-							<div class="line"><label class="b ilb stillsel ac na fs" style="font-weight:normal"><input type="checkbox" id="m_encrypt" disabled> Шифрование</label></div>
-							<div class="line">Повтор: <input type="text" class="b i" id="m_pass2" style="width:10em" disabled></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_compress"> Сжатие проекта</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="m_encrypt"> Шифрование</label></div>
+							<div class="line">Повтор: <input type="password" class="b i" id="m_pass2" style="width:10em"></div>
 						</div>
 					</div>
 				</div>

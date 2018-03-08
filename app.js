@@ -43,12 +43,16 @@ function getCode(id) {
 }
 
 function getName(id) {
-	if (project.elements[id] == undefined) return '[ERROR]';
+	if (typeof id == 'object') {
+		if (api.settings.actualNames) return id.name;
+		return getCode(id.id);
+	}
+	if (project.elements[id] == undefined || id == undefined) return '[ERROR]';
 	if (api.settings.actualNames) return project.elements[id].name;
 	return getCode(id);
 }
 
-function resetProject() {
+function resetProject(crash) {
 	var t = new Date();
 	project = {meta:{},settings:{},elements:[],bonds:[],viewport:{}};
 	project.settings.strict = true;
@@ -64,6 +68,10 @@ function resetProject() {
 	api.initRTSCases();
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
+	if (crash) {
+		resetViewport();
+		setTimeout(appMain, api.settings.chInterval);
+	}
 }
 
 function resetViewport() {
@@ -742,6 +750,7 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	var id = parseInt(e.getElementsByClassName("cc_id")[0].value);
 	project.elements[id] = {};
 	var elem = project.elements[id];
+	elem.id = id;
 	elem.X = parseFloat(e.getElementsByClassName("cc_X")[0].value);
 	elem.Y = parseFloat(e.getElementsByClassName("cc_Y")[0].value);
 	var type = parseInt(e.getElementsByClassName("cc_type")[0].value);
@@ -825,6 +834,7 @@ function createAndAddBond(el, isNew) {
 	var e = document.getElementById(el);
 	var id = parseInt(e.getElementsByClassName("cc_id")[0].value);
 	project.bonds[id] = {};
+	project.bonds[id].id = id;
 	project.bonds[id].first = parseInt(e.getElementsByClassName("cc_first")[0].value);
 	project.bonds[id].second = parseInt(e.getElementsByClassName("cc_second")[0].value);
 	project.bonds[id].val = parseFloat(e.getElementsByClassName("cc_v")[0].value);
@@ -1304,7 +1314,11 @@ function BondPositon(MouseX,MouseY,key) {
 }
 
 function getBondVal(el, caseid) {
-	var i, c = project.bonds[el].val;
+	var c;
+	if (el == undefined) return 0;
+	if (typeof el == 'object') el = el.id;
+	c = project.bonds[el].val;
+	var i;
 	if (project.settings.term != -3) c = getValueOfTerm(getTermInterval(c));
 	for (i=0; i<cache.bonds[el].elems.length; i++) {
 		var u = cache.bonds[el].elems[i];

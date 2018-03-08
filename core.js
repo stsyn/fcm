@@ -12,6 +12,23 @@ function checkWindowPos(id) {
 	if (t) setTimeout(checkWindowPos,16,id);
 }
 
+function cloneObj(obj, ignore) {
+	var n = {};
+	if (Array.isArray(obj)) {
+		n = [];
+		for (var i=0; i<obj.length; i++) {
+			if (typeof obj[i] == 'object') n[i] = cloneObj(obj[i]);
+			else n[i] = obj[i];
+		}
+	}
+	else for (var i in obj) {
+		if (ignore !== undefined && ignore[i]) continue;
+		if (typeof obj[i] == 'object') n[i] = cloneObj(obj[i]);
+		else n[i] = obj[i];
+	}
+	return n;
+}
+
 function InfernoAddElem(tag, values, childs) {
 	var t;
 	if (values != undefined && values.id != undefined && document.getElementById(values.id) != undefined) {
@@ -45,9 +62,24 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.2", s:"RC2", b:65};
+	this.version = {g:"0.9.2", s:"RC2", b:67};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
+	this.structData = {
+		elements:{
+			fieldsName:['ID','Тип','Имя','Состояние','Предельное','Стоимость','Эффективность'],
+			fields:['id','type','name','state','lim','cost','val'],
+			typesName:[]
+		},
+		bonds:{
+			fieldsName:['ID','Путь','Сила','Текущая','Начало','Конец'],
+			fields:['id','way','val','curval','first','second']
+		}
+	};
 	this.zindex = [];
+	this.esort = 0;
+	this.esortdir = 1;
+	this.bsort = 0;
+	this.bsortdir = 1;
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -121,19 +153,20 @@ function exapi() {
 		this.settings.palette = t;
 	}
 	
-	
-	this.putMetaData = function (proj, el) {
-		el.innerHTML = '';
+		
+	this.putMetaData = function (proj, el, l, test) {
 		
 		if (proj != "null") {
 			var p;
 			try {
 				p = JSON.parse(proj);
+				if (test) return false;
 			}
 			catch (ex) {
 				el.innerHTML = 'Ошибка в проекте: '+ex;
 				return true;
 			}
+			el.innerHTML = '';
 			if (p.meta != undefined) {
 				if (p.meta.description != undefined && p.meta.description != '' && p.meta.description != 'undefined') el.innerHTML += p.meta.description+'<br>';
 				var d = new Date(p.meta.timeCreated);
@@ -142,6 +175,7 @@ function exapi() {
 				el.innerHTML += 'Сохранен: '+d.getDate()+'.'+d.getMonth()+'.'+d.getFullYear()+' '+d.getHours()+':'+d.getMinutes()+'<br><br>';
 				el.innerHTML += 'Сжатие: '+(p.meta.compress?'да':'нет')+'<br>';
 				el.innerHTML += 'Шифрование: '+(p.meta.encrypt?'да':'нет')+'<br>';
+				if (p.meta.encrypt && l) el.innerHTML += 'Пароль: <input type="password" class="b i pass">';
 				return false;
 			}
 			else {
@@ -161,6 +195,35 @@ function exapi() {
 		localStorage["fcm2.saves"] = JSON.stringify(s);
 	}
 	
+	this.getElemField = function (el, i, field, strictNumeric) {
+		if (typeof el == 'undefined') return -1;
+		switch (field) {
+			case 'id': return i;
+			case 'type': return el.type;
+			case 'name': return getName(el);
+			case 'state': return ((el.state==undefined)?(strictNumeric?-1:"—"):el.state);
+			case 'lim': return ((el.lim==undefined)?(strictNumeric?-1:"—"):el.lim);
+			case 'cost': return ((el.cost==undefined)?(strictNumeric?-1:"—"):el.cost);
+			case 'val': return ((el.val==undefined)?(strictNumeric?-1:"—"):el.val);
+		} 
+	}
+	
+	this.getBondField = function (b, i, field, strictNumeric) {
+		if (typeof b == 'undefined') return -1;
+		var u = b.val;
+		if (project.settings.term != -3 && u != undefined && !strictNumeric) u = getTermName(u);
+		var u2 = getBondVal(b, project.settings.currentCase);
+		if (project.settings.term != -3 && u2 != undefined && !strictNumeric) u2 = getTermName(u2);
+		switch (field) {
+			case 'id': return b.id;
+			case 'way': return b.first+' — '+b.second;
+			case 'val': return u;
+			case 'curval': return u2;
+			case 'first': return getName(b.first);
+			case 'second': return getName(b.second);
+		} 
+	}
+	
 	this.includeElementsTLine = function (el, i) {
 		var u = el[i].val;
 		if ((project.settings.term != -3) && (u != undefined) && (u <= 1) && (u >= 0)) u = getTermName(u);
@@ -178,7 +241,8 @@ function exapi() {
 	this.includeElements = function (e,filter) {
 		var el = project.elements;
 		e.innerHTML = '';
-		var ax = ((filter == -1)?"":" na");
+		var heads = api.structData.elements.fieldsName;
+		var fields = api.structData.elements.fields;
 		var s = '';
 		if (el.length == 0) {
 			e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
@@ -186,36 +250,56 @@ function exapi() {
 			]))
 			return;
 		}
-		e.appendChild(
-			InfernoAddElem('tr', {className:'headline'},[
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'ID'},[]),
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Тип'},[]),
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Имя'},[]),
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Состояние'},[]),
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Предельное'},[]),
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Стоимость'},[]),
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Эффективность'},[])
-			])
-		);
+		var elem = InfernoAddElem('tr', {className:'headline'},[]);
+		for (var i=0; i<heads.length; i++) {
+			elem.appendChild(InfernoAddElem('td',{dataset:{id:i},className:'b fs'+(filter==-1?(i == api.esort?' sel stillsel':''):' na'),events:(filter==-1?[{t:'click',f:function(e) {
+				if (this.dataset.id == api.esort) api.esortdir = -api.esortdir;
+				else {
+					api.esort = this.dataset.id;
+					api.esortdir = 1;
+				}
+				api.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1);
+			}}]:[])},[
+				InfernoAddElem('i',{className:'fa fa-arrow-up',style:'opacity:0'},[]),
+				InfernoAddElem('span',{innerHTML:heads[i]+' '},[]),
+				InfernoAddElem('i',{className:'fa fa-arrow-'+(api.esortdir==1?'down':'up'),style:(i == api.esort?'':'opacity:0')},[])
+			]));
+		}
+		e.appendChild(elem);
+		
+		var order = [];
+		for (var i=0; i<el.length; i++) order[i] = i;
+		
+		if (api.esort != 0 && filter == -1) order.sort(function(a,b) {
+			if (api.getElemField(project.elements[a],a,fields[api.esort],true) < api.getElemField(project.elements[b],b,fields[api.esort],true)) return -1;
+			if (api.getElemField(project.elements[a],a,fields[api.esort],true) > api.getElemField(project.elements[b],b,fields[api.esort],true)) return 1;
+			return 0;
+		});
+		
+		
 		var i, j;
+		var start = (api.esortdir == 1?0:el.length-1);
 		if (filter != -1) {
 			e.appendChild(this.includeElementsTLine(el, project.bonds[filter].first));
 			for (i=0; i<cache.bonds[filter].elems.length; i++) e.appendChild(this.includeElementsTLine (el, cache.bonds[filter].elems[i]));
 			e.appendChild(this.includeElementsTLine(el, project.bonds[filter].second));
 		}
-		else for (i=0; i<el.length; i++) {
-			if (el[i] == undefined) continue;
-			e.appendChild(this.includeElementsTLine(el, i));
+		else for (i=start; i<el.length && i>=0; i+=api.esortdir) {
+			if (el[order[i]] == undefined) continue;
+			e.appendChild(this.includeElementsTLine(el, order[i]));
 		}
 	}
 	
 	this.includeBondsTLine = function (b, el, i) {
 		var u = b[i].val;
 		if (project.settings.term != -3 && u != undefined) u = getTermName(u);
+		var u2 = getBondVal(b[i], project.settings.currentCase);
+		if (project.settings.term != -3 && u2 != undefined) u2 = getTermName(u2);
 		return InfernoAddElem('tr', {className:'b fs linemenu', events:[{t:'click',f:function(){editBond(i)}}, {t:'mouseover', f:function(){api.bSel=i;}}]},[
 			InfernoAddElem('td',{innerHTML:i},[]),
 			InfernoAddElem('td',{innerHTML:b[i].first+' — '+b[i].second},[]),
 			InfernoAddElem('td',{innerHTML:u},[]),
+			InfernoAddElem('td',{innerHTML:u2}),
 			InfernoAddElem('td',{innerHTML:getName(b[i].first)},[]),
 			InfernoAddElem('td',{innerHTML:getName(b[i].second)},[])
 		]);
@@ -227,6 +311,8 @@ function exapi() {
 		var ax = ((filter == -1)?"":" na");
 		var el = project.elements;
 		var b = project.bonds;
+		var heads = api.structData.bonds.fieldsName;
+		var fields = api.structData.bonds.fields;
 		
 		if (b.length == 0) {
 			e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
@@ -240,15 +326,33 @@ function exapi() {
 			]));
 			return;
 		}
-		e.appendChild(
-			InfernoAddElem('tr', {className:'headline'},[
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'ID'},[]),
-				InfernoAddElem('td',{className:'b fs na'+ax,innerHTML:'Путь'},[]),
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Сила'},[]),
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Начало'},[]),
-				InfernoAddElem('td',{className:'b fs'+ax,innerHTML:'Конец'},[])
-			])
-		);
+		var elem = InfernoAddElem('tr', {className:'headline'},[]);
+		for (var i=0; i<heads.length; i++) {
+			elem.appendChild(InfernoAddElem('td',{dataset:{id:i},className:'b fs'+(filter==-1?(i == api.bsort?' sel stillsel':''):' na'),events:(filter==-1?[{t:'click',f:function(e) {
+				if (this.dataset.id == api.bsort) api.bsortdir = -api.bsortdir;
+				else {
+					api.bsort = this.dataset.id;
+					api.bsortdir = 1;
+				}
+				api.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
+			}}]:[])},[
+				InfernoAddElem('i',{className:'fa fa-arrow-up',style:'opacity:0'},[]),
+				InfernoAddElem('span',{innerHTML:heads[i]+' '},[]),
+				InfernoAddElem('i',{className:'fa fa-arrow-'+(api.bsortdir==1?'down':'up'),style:(i == api.bsort?'':'opacity:0')},[])
+			]));
+		}
+		e.appendChild(elem);
+		
+		var order = [];
+		for (var i=0; i<b.length; i++) order[i] = i;
+		
+		if (api.bsort != 0 && filter == -1) order.sort(function(a,x) {
+			if (api.getBondField(project.bonds[a],a,fields[api.bsort],true) < api.getBondField(project.bonds[x],x,fields[api.bsort],true)) return -1;
+			if (api.getBondField(project.bonds[a],a,fields[api.bsort],true) > api.getBondField(project.bonds[x],x,fields[api.bsort],true)) return 1;
+			return 0;
+		});
+		var start = (api.bsortdir == 1?0:b.length-1);
+		
 		var i, j;
 		if (filter != -1) {
 			if ((el[filter].type == 4) || (el[filter].type == 5)) {
@@ -279,10 +383,9 @@ function exapi() {
 				e.appendChild(this.includeBondsTLine (b, el, cache.elements[filter].outbonds[i]));
 			}
 		}
-		
-		else for (i=0; i<b.length; i++) {
-			if (b[i] == undefined) continue;
-			e.appendChild(this.includeBondsTLine (b, el, i));
+		else for (i=start; i<b.length && i>=0; i+=api.bsortdir) {
+			if (b[order[i]] == undefined) continue;
+			e.appendChild(this.includeBondsTLine(b, el, order[i]));
 		}
 	}
 	
@@ -296,8 +399,8 @@ function exapi() {
 		for (i=0; i<a.length; i++) if (a[i] == project.id) ec = i;
 		for (i=0; i<a.length; i++) {
 			if (addname && a[i] == "_temp_save") continue;
-			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="'+nn+'.'+i+'" '+(((!addname && (i==0)) || (ec == i))?"checked":"")+'><label for="'+nn+'.'+i+'" class="b fs" onclick="api.putMetaData(localStorage[\''+a[i]+'\'],document.getElementById(\''+el2+'\'))">'+a[i]+'</label></div>';
-			if ((!addname && (i==0)) || (ec == i)) this.putMetaData(localStorage[a[i]],document.getElementById(el2));
+			el.innerHTML = el.innerHTML + '<div class="line linemenu"><input type="radio" name="selection" value="'+a[i]+'" id="'+nn+'.'+i+'" '+(((!addname && (i==0)) || (ec == i))?"checked":"")+'><label for="'+nn+'.'+i+'" class="b fs" onclick="api.putMetaData(localStorage[\''+a[i]+'\'],document.getElementById(\''+el2+'\'),'+(nn=="loads")+')">'+a[i]+'</label></div>';
+			if ((!addname && (i==0)) || (ec == i)) this.putMetaData(localStorage[a[i]],document.getElementById(el2),(nn=="loads"));
 		}
 	}
 	
@@ -309,7 +412,8 @@ function exapi() {
 	}
 	
 	this.exportProject = function () {
-		var blob = new Blob([JSON.stringify(project)], {type: "application/json"});
+		var tproject = (project.meta.compress?api.compressProject(project):project);
+		var blob = new Blob([JSON.stringify(tproject)], {type: "application/json"});
 		var url = URL.createObjectURL(blob);
 		var c = document.querySelector('#export .exportlink');
 		c.innerHTML = '';
@@ -324,14 +428,79 @@ function exapi() {
 	
 	this.importProject = function () {
 		var c = document.getElementById("import").getElementsByClassName("im_c")[0].value;
-		if (this.putMetaData(c,document.getElementById("importpad"))) {
+		if (this.putMetaData(c,document.getElementById("importpad"), true, true)) {
 			this.addMessage('Проект не может быть импортирован','red');
 		}
-		project = JSON.parse(c);
-		if (project.settings.term == undefined) project.settings.term = -3;
-		update();
-		this.changed = false;
-		this.closeWindow('import');
+		try {
+			project = JSON.parse(c);
+			if (project.meta.encrypt) key = document.querySelector('#import input.pass').value;
+			if (project.meta.compress && project.data != undefined) project = api.unpackProject(project, key);
+			if (project.settings.term == undefined) project.settings.term = -3;
+			if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
+			if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
+			for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) project.elements[i].id = i;
+			for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) project.bonds[i].id = i;
+			update();
+			this.changed = false;
+			this.closeWindow('import');
+		}
+		catch (ex) {
+			if (project.settings == undefined) {
+				if (project.meta.encrypt) {
+					windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Проект поврежден или пароль неверный.<br><br>Описание ошибки:<br>'+ex;
+				}
+				else {
+					windows.loadError.content = 'Проект поврежден.<br><br>Описание ошибки:<br>'+ex;
+				}
+			}
+			else windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки:<br>'+ex;
+			this.callPopup2(windows.loadError);
+			setTimeout(function() {resetProject(true)}, 500);
+			if (api.settings.debug) throw ex;
+			return true;
+		}
+	}
+	
+	this.encryptProject = function(data, proj, key) {
+		var xkey = forge_sha256(proj.settings.password+proj.meta.timeSaved+proj.id);
+		var key = aesjs.utils.hex.toBytes(xkey);
+		var aesCbc = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(10));
+		var encryptedBytes = aesCbc.encrypt(data);
+		return encryptedBytes;
+	}
+	
+	this.decryptProject = function(data, proj, key) {
+		var xkey = forge_sha256(key+proj.meta.timeSaved+proj.id);
+		console.log(xkey, key+proj.meta.timeSaved+proj.id);
+		var key = aesjs.utils.hex.toBytes(xkey);
+		var aesCbc = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(10));
+		var decryptedBytes = aesCbc.encrypt(data);
+		console.log(decryptedBytes);
+		return decryptedBytes;
+	}
+
+	this.compressProject = function(proj) {
+		var n = cloneObj(proj, {meta:true, id:true});
+		var n2 = LZMA.compress(JSON.stringify(n),9);
+		var r = '';
+		for (var i=0; i<n2.length; i++) if (n2[i] < 0) n2[i] = 256+n2[i];
+		if (proj.meta.encrypt) n2 = api.encryptProject(n2, proj);
+		for (var i=0; i<n2.length; i++) r+=String.fromCharCode(n2[i]);
+		var x = {id:proj.id,meta:proj.meta,data:btoa(r)};
+		return x;
+	}
+	
+	this.unpackProject = function(proj, key) {
+		var x = atob(proj.data);
+		var r = [];
+		for (var j=0; j<x.length; j++) r[j] = x.charCodeAt(j);
+		if (proj.meta.encrypt) r = api.decryptProject(r, proj, key);
+		for (var j=0; j<r.length; j++) if (r[j]>127) r[j]-=256;
+		var s;
+		s = JSON.parse(LZMA.decompress(r));
+		s.id = proj.id;
+		s.meta = proj.meta;
+		return s;
 	}
 	
 	this.save = function (name, silent) {
@@ -353,18 +522,22 @@ function exapi() {
 			project.id = name;
 			this.settings.lastLoaded = name;
 			this.saveSettings();
-			localStorage[name] = JSON.stringify(project);
+			
+			if (project.meta == undefined) project.meta = {};
+			var t = new Date();
+			if (isNaN(project.meta.timeCreated)) project.meta.timeCreated = t.getTime();
+			project.meta.timeSaved = t.getTime();
+			////////
+			var tproject = (project.meta.compress?api.compressProject(project):project);
+			
+			////////
+			localStorage[name] = JSON.stringify(tproject);
 			if (!silent) {
 				this.callPopup2(windows.saveDone);
 				this.closeWindow("save");
 				document.getElementById("savelist").innerHTML = "";
 			}
 			this.changed = false;
-			
-			if (project.meta == undefined) project.meta = {};
-			var t = new Date();
-			if (isNaN(project.meta.timeCreated)) project.meta.timeCreated = t.getTime();
-			project.meta.timeSaved = t.getTime();
 			if (silent) api.addMessage('Сохранено!','green');
 			
 			Recalculate();
@@ -388,9 +561,14 @@ function exapi() {
 		try {
 			if (api.settings.debug) console.log("Loading... ", name);
 			project = JSON.parse(localStorage[name]);
+			var key;
+			if (project.meta.encrypt) key = document.querySelector('#load input.pass').value;
+			if (project.meta.compress && project.data != undefined) project = api.unpackProject(project, key);
 			if (project.settings.term == undefined) project.settings.term = -3;
 			if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
 			if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
+			for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) project.elements[i].id = i;
+			for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) project.bonds[i].id = i;
 			if (!silent) {
 				this.closeWindow("load");
 				this.closePopup();
@@ -405,8 +583,17 @@ function exapi() {
 			return false;
 		}
 		catch (ex) {
-			windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки:<br>'+ex;
+			if (project.settings == undefined) {
+				if (project.meta.encrypt) {
+					windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Проект поврежден или пароль неверный.<br><br>Описание ошибки:<br>'+ex;
+				}
+				else {
+					windows.loadError.content = 'Проект поврежден.<br><br>Описание ошибки:<br>'+ex;
+				}
+			}
+			else windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки:<br>'+ex;
 			this.callPopup2(windows.loadError);
+			setTimeout(function() {resetProject(true)}, 500);
 			if (api.settings.debug) throw ex;
 			return true;
 		}
@@ -1192,15 +1379,6 @@ function exapi() {
 		if (this.windows[id]) 
 		{	
 			var e = document.getElementById(id).getElementsByClassName("w")[0];
-			/*e.style.top = '';
-			e.style.left = '';
-			e.style.top = getComputedStyle(e).getPropertyValue("top");
-			e.style.left = getComputedStyle(e).getPropertyValue("left");
-			
-			if (id =="side") {
-				e.style.left = document.body.clientWidth-parseInt(getComputedStyle(e).getPropertyValue("width")) + 'px';
-				e.style.top = getComputedStyle(document.getElementById('top')).getPropertyValue("height");
-			}*/
 			this.windowOnTop(id);
 			return;
 		}
@@ -1208,7 +1386,6 @@ function exapi() {
 		if (id == "settings") {
 			document.getElementById("settings_button").classList.add("sel");
 			document.getElementById("settings").classList.toggle("d");
-			//this.loadSettings();
 			this.putSettings();
 		}
 		else if (id == "side") {
@@ -1271,7 +1448,8 @@ function exapi() {
 		else if (id == "export") {
 			document.getElementById("save_button").classList.add("sel");
 			document.getElementById("export").classList.toggle("d");
-			document.getElementsByClassName("ex_c")[0].value = JSON.stringify(project);
+			var tproject = (project.meta.compress?api.compressProject(project):project);
+			document.getElementsByClassName("ex_c")[0].value = JSON.stringify(tproject);
 			document.querySelector('#export .exportlink').innerHTML = '';
 		}
 		else if (id == "import") {
@@ -1669,8 +1847,8 @@ function exapi() {
 			document.getElementById('m_compress').checked = project.meta.compress;
 			document.getElementById('m_encrypt').checked = project.meta.encrypt;
 			if (project.meta.encrypt) {
-				document.getElementById('m_pass1').value = project.meta.password;
-				document.getElementById('m_pass2').value = project.meta.password;
+				document.getElementById('m_pass1').value = project.settings.password;
+				document.getElementById('m_pass2').value = project.settings.password;
 			}
 			
 		}
@@ -1705,6 +1883,10 @@ function exapi() {
 				return;
 			}
 		}
+		if (document.getElementById('m_encrypt').checked && !document.getElementById('m_compress').checked) {
+			api.addMessage('Шифровать можно только сжатый проект','red');
+			return;
+		}
 		project.id = document.getElementById('m_id').value;
 		var t = new Date();
 		project.meta  = {};
@@ -1715,11 +1897,11 @@ function exapi() {
 		if (isNaN(project.meta.timeSaved)) project.meta.timeSaved = t.getTime();
 		project.meta.compress = document.getElementById('m_compress').checked;
 		project.meta.encrypt = document.getElementById('m_encrypt').checked;
-		if (project.meta.encrypt) project.meta.password = document.getElementById('m_pass1').value;
 		project.settings = {term:project.settings.term, currentCase:project.settings.currentCase};
 		project.settings.strict = document.getElementById('m_strict').checked;
 		project.settings.proportional = document.getElementById('m_propsize').checked;
 		project.settings.propColor = document.getElementById('m_propcolor').checked;
+		if (project.meta.encrypt) project.settings.password = document.getElementById('m_pass1').value;
 		var ec = document.getElementById('m_calcfunc'), t=0;
 		for (var i=0; i<ec.querySelectorAll('.acr').length; i++) {
 			if (ec.querySelectorAll('.acr input')[i].checked) {
@@ -1912,6 +2094,7 @@ function exapi() {
 		for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function(e) {
 			api.switchRadioElemState(e.target);
 			api.runTimeSettings(e.target);
+			update();
 		});
 	}
 	
@@ -2034,7 +2217,7 @@ function exapi() {
 			
 			
 			document.getElementById("import").getElementsByClassName("im_c")[0].addEventListener("input", function(event) {
-				api.putMetaData(document.getElementById("import").getElementsByClassName("im_c")[0].value,document.getElementById("importpad"));
+				api.putMetaData(document.getElementById("import").getElementsByClassName("im_c")[0].value,document.getElementById("importpad"), true);
 			});
 			if('ondrop' in document.createElement('div')) {
 				document.getElementById("import").getElementsByClassName("im_c")[0].addEventListener('dragover', function (e) {
@@ -2051,7 +2234,7 @@ function exapi() {
 					var reader = new FileReader();
 					reader.onload = function() {
 						document.getElementById("import").getElementsByClassName("im_c")[0].value=reader.result;
-						api.putMetaData(document.getElementById("import").getElementsByClassName("im_c")[0].value,document.getElementById("importpad"))
+						api.putMetaData(document.getElementById("import").getElementsByClassName("im_c")[0].value,document.getElementById("importpad"), true)
 					}
 					reader.readAsText(file);
 				});

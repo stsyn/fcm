@@ -14,7 +14,7 @@ body {
 	transition:.15s;
 	height:1.6em;
 	width:100%;
-	z-index:1;
+	z-index:2;
 	position:relative;
 	border-bottom:1px #ddd solid;
 	font-size:1.4em}
@@ -447,7 +447,7 @@ body.debugEnabled .debug {display:block !important}
 
 #bottom.hide {height:1.75em}
 #bottom.norm {height:30%}
-#bottom.big {height:90%; z-index: 9999999999}
+#bottom.big {height:90%; z-index: 1}
 #bottom .control > span {display:none}
 #bottom.hide .control > span.bhide,
 #bottom.norm .control > span.bnorm,
