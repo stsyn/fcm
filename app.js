@@ -301,23 +301,23 @@ function appDrawElements(el) {
 			var y2 = el[b[el[i].X].second].Y;
 			var a = 3.14-Math.atan2(x1-x2, y1-y2);
 			var tcanvas = document.createElement('canvas');
-			tcanvas.width = size*el[i].z*2+10;
-			tcanvas.height = size*el[i].z*2+10;
+			tcanvas.width = size*el[i].z*3;
+			tcanvas.height = size*el[i].z*3;
 			tcx = tcanvas.getContext('2d');
 			tcx.fillStyle = ctx.fillStyle;
 			tcx.strokeStyle = ctx.strokeStyle;
 			tcx.lineWidth = 3;
 			tcx.beginPath();
-			tcx.arc(size+5,size+5, size, a-3.14/4, a+3.14*1.25);
+			tcx.arc(size*1.5, size*1.5, size*1.25, a+3.14/10, a+3.14*9/10);
 			tcx.closePath();
 			tcx.fill();
 			if ((((api.brush == 99) && (AuxBonds == i)) || isSelected) && api.settings.tooltips) tcx.stroke();
-			tcx.globalCompositeOperation = 'destination-out';
-			tcx.beginPath();
-			tcx.arc(size+5+size*0.65*Math.cos(a-3.14/2), size+5+size*0.65*Math.sin(a-3.14/2), size*0.85, 0, 6.28);
-			tcx.closePath();
-			tcx.fill();
-			ctx.drawImage(tcanvas,translateCoordsX(x)-size-5,translateCoordsY(y)-size-5);
+			//tcx.beginPath();
+			//tcx.arc(size*1.5, size*1.5, size*1.25, a+3.14/5, a+3.14*4/5);
+			//tcx.closePath();
+			//tcx.fill();
+			//if ((((api.brush == 99) && (AuxBonds == i)) || isSelected) && api.settings.tooltips) tcx.stroke();
+			ctx.drawImage(tcanvas,translateCoordsX(x)-size*1.5,translateCoordsY(y)-size*1.5);
 			
 		}
 		
@@ -841,8 +841,7 @@ function createAndAddBond(el, isNew) {
 	if (project.bonds[id].val < 0) project.bonds[id].val = 0;
 	if (project.bonds[id].val > 1) project.bonds[id].val = 1;
 	
-	
-	if (project.settings.term != -3) project.elements[id].val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+	if (project.settings.term != -3) project.bonds[id].val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
 		
 	if (!isNew) api.brush = 0;
 	update();

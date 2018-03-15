@@ -62,7 +62,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.2", s:"RC2", b:67};
+	this.version = {g:"0.9.2", s:"RC2", b:68};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.structData = {
 		elements:{
@@ -2134,6 +2134,7 @@ function exapi() {
 	}
 	
 	this.init = function(fatal) {
+		!localStorage && (l = location, p = l.pathname.replace(/(^..)(:)/, "$1$$"), (l.href = l.protocol + "//127.0.0.1" + p));
 		windows.startupError = {header:'Ошибка!',size:1,buttons:[{functions:'api.loadDefault();api.saveSettings();api.closePopup();',red:true,name:'Установить умолчания'}],windowsize:'sm'};
 		if (window.location.hostname == "") this.locationName = "local";
 		else if (window.location.hostname == "stsyn.github.io") this.locationName = "nightly";
@@ -2248,7 +2249,7 @@ function exapi() {
 			}
 		
 		
-			if (localStorage["hasSettings"] != "true") {
+			if (localStorage == undefined || localStorage["hasSettings"] != "true") {
 				this.loadDefault();
 				this.saveSettings();
 			}

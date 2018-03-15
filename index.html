@@ -10,6 +10,7 @@
 	<script type="text/javascript" src="core.js"></script>
 	<script type="text/javascript" src="app.js"></script>
 	<script type="text/javascript" src="random.js"></script>
+	<script type="text/javascript" src="polyfills.js"></script>
 	<script type="text/javascript" src="libs/lzma_worker-min.js"></script>
 	<script type="text/javascript" src="libs/aes-js-min.js"></script>
 	<script type="text/javascript" src="libs/forge-sha256.min.js"></script>
@@ -37,7 +38,7 @@
 		<span class="b" onclick="api.styleSwitch('night','nightMode',true,true,false);api.forceRedraw = true">
 			<i class="fa fa-moon-o night_hide"></i><b class="night_hide">Ночь</b>
 			<i class="fa fa-sun-o night_nothide"></i><b class="night_nothide">День</b></span>
-		<span class="b" onclick="api.callPopup2(windows.about)"><i class="fa fa-th-list"></i></svg><b>Информация</b></span>
+		<span class="b" onclick="api.callPopup2(windows.about)"><i class="fa fa-info"></i><b>Информация</b></span>
 	</div>
 	
 	<div id="bottom" class="norm">
@@ -350,7 +351,7 @@
 					<div id="caseoptions" class="pad selection" style="display:block;float:left;width:calc(100% - 40em - 24px);height:calc(100% - 8px)"></div>
 					<div id="caseinfo" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word">
 						<div class="line">Имя: <input type="text" class="b i" id="cs_name" style="width:10em"></div>
-						<div class="line">Суммарная стоимость: <input type="text" class="b i" id="cs_cost" style="width:6em"disabled></div>
+						<div class="line">Суммарная стоимость: <input type="text" class="b i" id="cs_cost" style="width:6em" disabled></div>
 						<div class="line"><div class="b red" id="cs_del">Удалить</div></div>
 					</div>
 				</div>

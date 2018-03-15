@@ -154,6 +154,24 @@ tr {display:table-row !important}
 tr.headline, tbody, table.r {width:100%}
 table.r td {text-align:center}
 
+input[type="checkbox"], input[type="radio"] {
+	margin-right: 1.5em;
+	width:0;
+    vertical-align: 0.15em;
+	color:inherit;
+}
+
+input[type="checkbox"]:before, input[type="radio"]:before {
+	font: normal normal normal 14px/1 FontAwesome;
+	font-size: 1.5em;
+	text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+input[type="checkbox"]:before {content:'\f096';}
+input[type="checkbox"]:checked:before {content:'\f14a';}
+input[type="radio"]:before {content:'\f10c';}
+input[type="radio"]:checked:before {content:'\f05d';}
+
 .pad {
 	width:calc(100% - 8px);
 	padding:3px;
