@@ -14,7 +14,7 @@ body {
 	transition:.15s;
 	height:1.6em;
 	width:100%;
-	z-index:2;
+	z-index:0;
 	position:relative;
 	border-bottom:1px #ddd solid;
 	font-size:1.4em}
@@ -155,22 +155,20 @@ tr.headline, tbody, table.r {width:100%}
 table.r td {text-align:center}
 
 input[type="checkbox"], input[type="radio"] {
-	margin-right: 1.5em;
-	width:0;
-    vertical-align: 0.15em;
-	color:inherit;
+	display:none;
 }
 
-input[type="checkbox"]:before, input[type="radio"]:before {
+.b.ac:before, .b.acr:before {
 	font: normal normal normal 14px/1 FontAwesome;
 	font-size: 1.5em;
+    vertical-align: -0.1em;
 	text-rendering: auto;
     -webkit-font-smoothing: antialiased;
 }
-input[type="checkbox"]:before {content:'\f096';}
-input[type="checkbox"]:checked:before {content:'\f14a';}
-input[type="radio"]:before {content:'\f10c';}
-input[type="radio"]:checked:before {content:'\f05d';}
+.b.ac:before {content:'\f096';}
+.b.ac.sel:before {content:'\f14a';}
+.b.acr:before {content:'\f10c';}
+.b.acr.sel:before {content:'\f05d';}
 
 .pad {
 	width:calc(100% - 8px);
@@ -195,7 +193,8 @@ input:checked + label, input:checked + label .b{background:#cfc !important}
 
 .scale{
 	position:relative;
-	height:1.55em;
+	height:2em;
+	line-height:1.75em;
 	margin:0;
 }
 .scale > div{
@@ -210,7 +209,7 @@ input:checked + label, input:checked + label .b{background:#cfc !important}
 	margin-top:-1px;
 	border-top:1px solid #888;
 }
-#graphlist .line {height:1.3em;}
+#graphlist .line {height:1.75em;}
 .scale > span{
 	position:relative;
 	height:90%;

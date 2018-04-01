@@ -62,12 +62,13 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.2", s:"RC2", b:68};
+	this.version = {g:"0.9.2", s:"RC2", b:69};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.structData = {
 		elements:{
-			fieldsName:['ID','Тип','Имя','Состояние','Предельное','Стоимость','Эффективность'],
-			fields:['id','type','name','state','lim','cost','val'],
+			fieldsName:['ID','Тип','Код','Имя'/*,'Состояние','Предельное'*/,'Стоимость','Значимость'],
+			fields:['id','type','code','name'/*,'state','lim'*/,'cost','val'],
+			types:['','Угроза','Ресурс','Цель','Контрмера','Дестабилизатор','Посредник'],
 			typesName:[]
 		},
 		bonds:{
@@ -229,10 +230,11 @@ function exapi() {
 		if ((project.settings.term != -3) && (u != undefined) && (u <= 1) && (u >= 0)) u = getTermName(u);
 		return InfernoAddElem('tr', {className:'b fs linemenu', events:[{t:'click',f:function(){editElement(i)}}, {t:'mouseover', f:function(){api.elSel=i;}}]},[
 			InfernoAddElem('td',{innerHTML:i},[]),
-			InfernoAddElem('td',{innerHTML:el[i].type},[]),
-			InfernoAddElem('td',{innerHTML:getName(i)},[]),
-			InfernoAddElem('td',{innerHTML:((el[i].state===undefined)?"—":el[i].state)},[]),
-			InfernoAddElem('td',{innerHTML:((el[i].lim===undefined)?"—":el[i].lim)},[]),
+			InfernoAddElem('td',{innerHTML:api.structData.elements.types[el[i].type]},[]),
+			InfernoAddElem('td',{innerHTML:getCode(i)},[]),
+			InfernoAddElem('td',{innerHTML:el[i].name},[]),
+			//InfernoAddElem('td',{innerHTML:((el[i].state===undefined)?"—":el[i].state)},[]),
+			//InfernoAddElem('td',{innerHTML:((el[i].lim===undefined)?"—":el[i].lim)},[]),
 			InfernoAddElem('td',{innerHTML:((el[i].cost===undefined)?"—":el[i].cost)},[]),
 			InfernoAddElem('td',{innerHTML:((el[i].val===undefined)?"—":el[i].val)},[])
 		]);
@@ -260,9 +262,9 @@ function exapi() {
 				}
 				api.includeElements(document.getElementById("bpad1").getElementsByTagName("table")[0],-1);
 			}}]:[])},[
-				InfernoAddElem('i',{className:'fa fa-arrow-up',style:'opacity:0'},[]),
+				InfernoAddElem('i',{className:'fa fa-arrow-up',style:'opacity:0;'+(filter==-1?'':'display:none')},[]),
 				InfernoAddElem('span',{innerHTML:heads[i]+' '},[]),
-				InfernoAddElem('i',{className:'fa fa-arrow-'+(api.esortdir==1?'down':'up'),style:(i == api.esort?'':'opacity:0')},[])
+				InfernoAddElem('i',{className:'fa fa-arrow-'+(api.esortdir==1?'down':'up'),style:(i == api.esort?'':'opacity:0;')+(filter==-1?'':'display:none')},[])
 			]));
 		}
 		e.appendChild(elem);
@@ -336,9 +338,9 @@ function exapi() {
 				}
 				api.includeBonds(document.getElementById("bpad2").getElementsByTagName("table")[0],-1);
 			}}]:[])},[
-				InfernoAddElem('i',{className:'fa fa-arrow-up',style:'opacity:0'},[]),
+				InfernoAddElem('i',{className:'fa fa-arrow-up',style:'opacity:0;'+(filter==-1?'':'display:none')},[]),
 				InfernoAddElem('span',{innerHTML:heads[i]+' '},[]),
-				InfernoAddElem('i',{className:'fa fa-arrow-'+(api.bsortdir==1?'down':'up'),style:(i == api.bsort?'':'opacity:0')},[])
+				InfernoAddElem('i',{className:'fa fa-arrow-'+(api.bsortdir==1?'down':'up'),style:(i == api.bsort?'':'opacity:0;')+(filter==-1?'':'display:none')},[])
 			]));
 		}
 		e.appendChild(elem);
@@ -357,7 +359,7 @@ function exapi() {
 		if (filter != -1) {
 			if ((el[filter].type == 4) || (el[filter].type == 5)) {
 				e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
-					InfernoAddElem('td',{className:'b fs na',colspan:'5', innerHTML:'Родительская связь'},[])
+					InfernoAddElem('td',{className:'b fs na',colspan:'6', innerHTML:'Родительская связь'},[])
 				]));
 				e.appendChild(this.includeBondsTLine (b, el, el[filter].X));
 				return;
@@ -367,7 +369,7 @@ function exapi() {
 				if (t) {
 					t = false;
 					e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
-						InfernoAddElem('td',{className:'b fs na',colspan:'5', innerHTML:'Входящие связи'},[])
+						InfernoAddElem('td',{className:'b fs na',colspan:'6', innerHTML:'Входящие связи'},[])
 					]));
 				}
 				e.appendChild(this.includeBondsTLine (b, el, cache.elements[filter].inbonds[i]));
@@ -377,7 +379,7 @@ function exapi() {
 				if (t) {
 					t = false;
 					e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
-						InfernoAddElem('td',{className:'b fs na',colspan:'5', innerHTML:'Исходящие связи'},[])
+						InfernoAddElem('td',{className:'b fs na',colspan:'6', innerHTML:'Исходящие связи'},[])
 					]));
 				}
 				e.appendChild(this.includeBondsTLine (b, el, cache.elements[filter].outbonds[i]));
@@ -756,7 +758,7 @@ function exapi() {
 		if (caseid>0 && elem>0) if (project.cases[caseid].enabled[elem] == undefined) project.cases[caseid].enabled[elem] = true;
 		var e = document.createElement('div');
 		var isEnabled = (elem == -1 ? false : (caseid == -2 ? false : (caseid == -1 ? true : project.cases[caseid].enabled[elem])));
-		e.classList = 't2 b fs'+(isEnabled ? (caseid>=0 ? ' sel stillsel' : ' sel') : (caseid>=0 ? '' : ' na'))+(elem == -1 ? ' na' : '');
+		e.className = 't2 b fs'+(isEnabled ? (caseid>=0 ? ' sel stillsel' : ' sel') : (caseid>=0 ? '' : ' na'))+(elem == -1 ? ' na' : '');
 		e.value = caseid;
 		e.style = (elem == -1 ?'':'text-align:left');
 		e.elemId = elem;
@@ -809,7 +811,7 @@ function exapi() {
 	
 	this.calcCSum = function(val) {
 		var sum = 0;
-		for (var c=0; c<cache.types[2].length; c++) sum+=cache.elements[cache.types[2][c]].costs[val+2];
+		for (var c=0; c<cache.types[2].length; c++) sum+=parseInt(cache.elements[cache.types[2][c]].costs[val+2]*project.elements[cache.types[2][c]].val);
 		return sum;
 	}
 	
@@ -862,7 +864,7 @@ function exapi() {
 			else s = project.cases[i].name;
 			
 			var el = document.createElement('div');
-			el.classList = 'b fs';
+			el.className = 'b fs';
 			el.innerHTML = s;
 			el.value = i;
 			if (i != project.cases.length) el.addEventListener("click",function() {
@@ -900,7 +902,7 @@ function exapi() {
 	
 	this.renderTermElem = function (caseid, elem, x) {
 		var e = document.createElement('div');
-		e.classList = 't2 ';
+		e.className = 't2 ';
 		e.value = caseid;
 		e.style = (elem == -1 ?'':'text-align:left');
 		e.elemId = elem;
@@ -1060,7 +1062,7 @@ function exapi() {
 			}
 			
 			var el = document.createElement('div');
-			el.classList = 'b fs';
+			el.className = 'b fs';
 			if (i !=project.terms.length) el.innerHTML = t[u].name;
 			else el.innerHTML = '<i>Новый набор</i>';
 			el.value = i;
@@ -1104,19 +1106,20 @@ function exapi() {
 		u.innerHTML = '';
 		for (i=0; i<cache.types[2].length; i++) {
 			var c = document.createElement('div');
-			c.classList = 'line';
+			c.className = 'line';
 			c.style = 'font-weight:700;font-size:120%;margin:8px 0';
-			c.innerHTML = getName(cache.types[2][i]);
+			c.innerHTML = '&nbsp;';
 			u.appendChild(c);
 			for (var j=0; j<cache.types[0].length; j++) {
 				c = document.createElement('div');
-				c.classList = 'line';
+				c.className = 'line';
 				c.innerHTML = cache.elements[cache.types[2][i]].calcChance[cache.types[0][j]][val+2];
 				if (project.settings.term != -3) c.innerHTML = getTermName(c.innerHTML);
 				u.appendChild(c);
 			}
 			c = document.createElement('div');
-			c.classList = 'line';
+			c.className = 'line';
+			c.style = 'font-weight:700';
 			c.innerHTML = cache.elements[cache.types[2][i]].finCalcChance[val+2];
 			if (project.settings.term != -3) c.innerHTML = getTermName(c.innerHTML);
 			u.appendChild(c);
@@ -1134,10 +1137,10 @@ function exapi() {
 				else s = project.cases[i].name;
 				
 				var el2 = document.createElement('span');
-				el2.classList = 't';
+				el2.className = 't';
 				
 				var el = document.createElement('span');
-				el.classList = 'b fs';
+				el.className = 'b fs';
 				el.innerHTML = s;
 				el.value = i;
 				el.target = j;
@@ -1151,18 +1154,18 @@ function exapi() {
 		l.innerHTML = '';
 		for (i=0; i<cache.types[2].length; i++) {
 			var c = document.createElement('div');
-			c.classList = 'line';
+			c.className = 'line';
 			c.style = 'font-weight:700;font-size:120%;margin:8px 0';
-			c.innerHTML = '&nbsp;';
+			c.innerHTML = getName(cache.types[2][i]);
 			l.appendChild(c);
 			for (j=0; j<cache.types[0].length; j++) {
 				c = document.createElement('div');
-				c.classList = 'line';
+				c.className = 'line';
 				c.innerHTML = getName(cache.types[0][j]);
 				l.appendChild(c);
 			}
 			c = document.createElement('div');
-			c.classList = 'line';
+			c.className = 'line';
 			c.innerHTML = '<i>Полный эффект</i>';
 			l.appendChild(c);
 		}
@@ -1177,110 +1180,67 @@ function exapi() {
 		gel.innerHTML = '';
 		var maxsum = 0;
 		
-		var el3 = document.createElement('div');
-		el3.classList = 'line scale ax';
-		el3.innerHTML = 'Общий риск';
-		gel.appendChild(el3);
+		var els = [];
 		for (var j=0; j<=4; j++) {
-			el = document.createElement('div');
-			el.innerHTML = '&nbsp';
-			el.style.right = (4-j)*25+'%'; 
-			el3.appendChild(el);
+			els.push(InfernoAddElem('div',{innerHTML:'&nbsp',style:{right:(4-j)*25+'%'}},[]));
 		}
+		gel.appendChild(InfernoAddElem('div',{className:'line scale ax',innerHTML:'Общий риск'},els));
 		
-		var el = document.createElement('div');
-		el.classList = 'line ax';
-		el.innerHTML = '&nbsp';
-		el2.appendChild(el);
-		
+		el2.appendChild(InfernoAddElem('div',{className:'line ax',innerHTML:'&nbsp'},[]));
 		for (var i = -2; i<project.cases.length; i++) {
 			var s = '';
 			if (i == -2) s = 'Все отключено';
 			else if (i == -1) s = 'Все включено';
 			else s = project.cases[i].name;
 			
-			el = document.createElement('div');
-			el.classList = 'line';
-			el.innerHTML = s;
-			el2.appendChild(el);
+			el2.appendChild(InfernoAddElem('div',{innerHTML:s,className:'line'},[]));
 			
 			if (maxsum < api.calcTSum(i)) maxsum = api.calcTSum(i);
 		}
+		
 		var el4 = document.getElementById('graphscale');
 		el4.innerHTML = '';
+		
 		for (i = 0; i<=4; i++) {
-			el = document.createElement('div');
-			el.innerHTML = parseInt(maxsum*i/4);
-			el.style.right = (4-i)*25+'%'; 
-			el4.appendChild(el);
+			el4.appendChild(InfernoAddElem('div',{innerHTML:parseInt(maxsum*i/4),style:{right:(4-i)*25+'%'}},[]));
 		}
 		for (i = -2; i<project.cases.length; i++) {
-			el3 = document.createElement('div');
-			el3.classList = 'line scale';
-			gel.appendChild(el3);
-			
+			els = [];
 			for (var j=0; j<=4; j++) {
-				el = document.createElement('div');
-				el.innerHTML = '&nbsp';
-				el.style.right = (4-j)*25+'%'; 
-				el3.appendChild(el);
+				els.push(InfernoAddElem('div',{innerHTML:'&nbsp',style:{right:(4-j)*25+'%'}},[]));
 			}
+						
+			els.push(InfernoAddElem('span',{className:'c_b',innerHTML:api.calcCSum(i),style:{width:100*(api.calcCSum(i)/maxsum)+'%'}},[]));
 			
-			el = document.createElement('span');
-			el.className = 'c_b';
-			el.innerHTML = api.calcCSum(i);
-			el.style.width = 100*(api.calcCSum(i)/maxsum)+'%';
-			el3.appendChild(el);
+			els.push(InfernoAddElem('span',{className:'c_c',innerHTML:api.calcTSum(i),style:{width:100*(api.calcSum(i)/maxsum)+'%'}},[]));
 			
-			el = document.createElement('span');
-			el.className = 'c_c';
-			el.innerHTML = api.calcTSum(i);
-			el.style.width = 100*(api.calcSum(i)/maxsum)+'%';
-			el3.appendChild(el);
+			gel.appendChild(InfernoAddElem('div',{className:'line scale'},els));
 		}
 		
 		for (var k=0; k<cache.types[2].length; k++) {
-			var n = cache.types[2][k];
-			el3 = document.createElement('div');
-			el3.classList = 'line scale ax';
-			el3.innerHTML = getName(n);
-			gel.appendChild(el3);
+			var n = cache.types[2][k];			
+			els = [];
 			for (var j=0; j<=4; j++) {
-				el = document.createElement('div');
-				el.innerHTML = '&nbsp';
-				el.style.right = (4-j)*25+'%'; 
-				el3.appendChild(el);
+				els.push(InfernoAddElem('div',{innerHTML:'&nbsp',style:{right:(4-j)*25+'%'}},[]));
 			}
+			gel.appendChild(InfernoAddElem('div',{innerHTML:getName(n),className:'line scale ax'},els));
 			
-			el = document.createElement('div');
-			el.classList = 'line ax';
-			el.innerHTML = '&nbsp';
-			el2.appendChild(el);
+			el2.appendChild(InfernoAddElem('div',{innerHTML:'&nbsp',className:'line ax'},[]));
 			for (var i = -2; i<project.cases.length; i++) {
 				var s = '';
 				if (i == -2) s = 'Все отключено';
 				else if (i == -1) s = 'Все включено';
 				else s = project.cases[i].name;
-				el = document.createElement('div');
-				el.classList = 'line';
-				el.innerHTML = s;
-				el2.appendChild(el);
+				el2.appendChild(InfernoAddElem('div',{innerHTML:s,className:'line'},[]));
 			
-				el3 = document.createElement('div');
-				el3.classList = 'line scale';
-				gel.appendChild(el3);
+				els = [];
 				for (var j=0; j<=4; j++) {
-					el = document.createElement('div');
-					el.innerHTML = '&nbsp';
-					el.style.right = (4-j)*25+'%'; 
-					el3.appendChild(el);
+					els.push(InfernoAddElem('div',{innerHTML:'&nbsp',style:{right:(4-j)*25+'%'}},[]));
 				}
 				
-				el = document.createElement('span');
-				el.className = 'c_b';
-				el.innerHTML = (cache.elements[n].costs[i+2]);
-				el.style.width = 100*((cache.elements[n].costs[i+2])/maxsum)+'%';
-				el3.appendChild(el);
+				els.push(InfernoAddElem('span',{className:'c_b',innerHTML:(cache.elements[n].costs[i+2]),style:{width:100*((cache.elements[n].costs[i+2])/maxsum)+'%'}},[]));
+				
+				gel.appendChild(InfernoAddElem('div',{className:'line scale'},els));
 			}
 		}
 	}
@@ -1352,10 +1312,10 @@ function exapi() {
 			else s = project.cases[i].name;
 			
 			var el2 = document.createElement('span');
-			el2.classList = 't';
+			el2.className = 't';
 			
 			var el = document.createElement('span');
-			el.classList = 'b fs';
+			el.className = 'b fs';
 			el.innerHTML = s;
 			el.value = i;
 			el.addEventListener("click",function() {

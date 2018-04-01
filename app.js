@@ -775,6 +775,9 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	else if (type == 3) {
 		if (e.getElementsByClassName("cc_cost")[0].value !== "") elem.cost = parseFloat(e.getElementsByClassName("cc_cost")[0].value); else elem.cost = 0;
 		if (e.getElementsByClassName("cc_value")[0].value !== "") elem.val = parseFloat(e.getElementsByClassName("cc_value")[0].value); else elem.val = 0;
+		
+		if (elem.val < 0) elem.val = 0;
+		if (elem.val > 1) elem.val = 1;
 	}
 	else if ((type == 4) || (type == 5)) {
 		if (e.getElementsByClassName("cc_cost2")[0].value !== "") elem.cost = parseFloat(e.getElementsByClassName("cc_cost2")[0].value); else elem.cost = 0;
@@ -783,10 +786,8 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 		
 		if (project.settings.term != -3) elem.val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
 		
-		if (project.settings.strict) {
-			if (elem.val < 0) elem.val = 0;
-			if (elem.val > 1) elem.val = 1;
-		}
+		if (elem.val < 0) elem.val = 0;
+		if (elem.val > 1) elem.val = 1;
 		
 		elem.alias = parseInt(e.getElementsByClassName("cc_alias")[0].value);
 		var u = elem.alias;
@@ -1038,7 +1039,7 @@ function editElement(id) {
 		e.getElementsByClassName("cc_size")[0].disabled = true;
 	}
 	
-	e.getElementsByClassName("_cc_initator")[0].style.display = (((el.type == 1) || (el.type == 2))?"block":"none");
+	//e.getElementsByClassName("_cc_initator")[0].style.display = (((el.type == 1) || (el.type == 2))?"block":"none");
 	e.getElementsByClassName("_cc_target")[0].style.display = ((el.type == 3)?"block":"none");
 	e.getElementsByClassName("_cc_control")[0].style.display = (((el.type == 4) || (el.type == 5))?"block":"none");
 	
@@ -1443,6 +1444,7 @@ function Recompile() {
 	if (project.cases == undefined) project.cases = [];
 	var c = project.cases.length+2;
 	while (c--) uv.push(inital[project.settings.calcFunc]);
+	//инициализация
 	for (c=0; c<cache.types[2].length; c++) {
 		cache.elements[cache.types[2][c]].calcChance = [];
 		cache.elements[cache.types[2][c]].calcRoadMap = [];
@@ -1465,9 +1467,11 @@ function Recompile() {
 		}
 	}
 	
+	//поиск путей
 	for (c=0; c<cache.types[0].length; c++)
 		calcFuncs[project.settings.calcFunc](0, cache.types[0][c], uv, []);
 		
+	//поиск путей
 	for (c=0; c<cache.types[2].length; c++) {
 		var e = cache.types[2][c];
 		if (cache.elements[e].calcChance.length > 0) {
@@ -1484,6 +1488,8 @@ function Recompile() {
 			}
 		}
 	}
+	
+	//собираем стоимость
 	for (c=0; c<cache.types[2].length; c++) {
 		for (var j=-2; j<project.cases.length; j++) {
 			cache.elements[cache.types[2][c]].costs[j+2] = cache.elements[cache.types[2][c]].finCalcChance[j+2]*project.elements[cache.types[2][c]].cost;
