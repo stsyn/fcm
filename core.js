@@ -62,7 +62,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.2", s:"RC2", b:69};
+	this.version = {g:"0.9.2", s:"RC2", b:70};
 	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
 	this.structData = {
 		elements:{
@@ -81,6 +81,7 @@ function exapi() {
 	this.esortdir = 1;
 	this.bsort = 0;
 	this.bsortdir = 1;
+	this.updateMode = 0;
 	
 	this.styleSwitch = function(id, variable, change, rewrite, reverse) {
 		if (change) this.settings[variable] = !this.settings[variable];
@@ -569,8 +570,14 @@ function exapi() {
 			if (project.settings.term == undefined) project.settings.term = -3;
 			if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
 			if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
-			for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) project.elements[i].id = i;
-			for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) project.bonds[i].id = i;
+			for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
+				if (project.settings.term != -3) project.elements[i].tval = getTermInterval(project.elements[i].val);
+				project.elements[i].id = i;
+			}
+			for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) {
+				if (project.settings.term != -3) project.bonds[i].tval = getTermInterval(project.bonds[i].val);
+				project.bonds[i].id = i;
+			}
 			if (!silent) {
 				this.closeWindow("load");
 				this.closePopup();
@@ -595,6 +602,7 @@ function exapi() {
 			}
 			else windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки:<br>'+ex;
 			this.callPopup2(windows.loadError);
+			console.log(ex);
 			setTimeout(function() {resetProject(true)}, 500);
 			if (api.settings.debug) throw ex;
 			return true;
@@ -1029,7 +1037,7 @@ function exapi() {
 			}
 		}
 		
-		p.innerHTML += 'Изменения сохраняются автоматически. Используется терм, который был открыт последним. <b>Все значения элементов и связей корректируются после закрытия редактирования исходя из используемого терма!</b>';
+		p.innerHTML += 'Изменения сохраняются автоматически. Используется терм, который был открыт последним. <b>Все значения элементов и связей корректируются после закрытия редактирования!</b><hr><ul><li>В случае перехода к режиму без термов, вычисляется среднее значение;<li>В случае перехода из режима без термов, выбираетс терм, на интервале которого лежит значение;<li>В случае изменения набора индексы выбранных термов не изменяются. При необходимости сменить набор с примерным сохранением заданных значений выберите режим без термов и сохраните изменения, после чего выберите желаемый набор.</ul>';
 		document.getElementById('termoptions').appendChild(p);
 		document.getElementById('t_name').value = (val >= 0?project.terms[val].name : (val == -1 ? api.defTerms[2].name : (val == -2 ?api.defTerms[1].name: api.defTerms[0].name)));
 		document.getElementById('t_name').disabled = !(val>=0);
@@ -1588,7 +1596,7 @@ function exapi() {
 				if (project.settings.term == -3) {
 					e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
 					us.classList.remove('hd');
-					us.value = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+					//us.value = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
 				}
 				else {
 					us.classList.add('hd');
@@ -1599,7 +1607,7 @@ function exapi() {
 					var t = api.getTermsPattern(project.settings.term);
 					for (var j=0; j<t.terms.length; j++) {
 						var c = document.createElement('option');
-						c.selected = (j == getTermInterval(parseFloat(us.value)));
+						//c.selected = (j == getTermInterval(parseFloat(us.value)));
 						c.innerHTML = t.terms[j].term;
 						c.value = j;
 						u.appendChild(c);
@@ -1610,7 +1618,18 @@ function exapi() {
 				else api.includeElements(e.getElementsByClassName("elist")[0].getElementsByTagName("table")[0], id);
 			}
 		}
+		for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
+			if (api.selectedTerm != -3 && project.settings.term == -3) project.elements[i].tval = getTermInterval(project.elements[i].val, api.selectedTerm);
+			else if (api.selectedTerm == -3 && project.settings.term != -3) project.elements[i].val = getValueOfTerm(project.elements[i].tval);
+			else if (api.selectedTerm != -3 && project.settings.term != -3) project.elements[i].tval = project.elements[i].tval>api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.elements[i].tval;
+		}
+		for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) {
+			if (api.selectedTerm != -3 && project.settings.term == -3) project.bonds[i].tval = getTermInterval(project.bonds[i].val, api.selectedTerm);
+			else if (api.selectedTerm == -3 && project.settings.term != -3) project.bonds[i].val = getValueOfTerm(project.bonds[i].tval);
+			else if (api.selectedTerm != -3 && project.settings.term != -3) project.bonds[i].tval = project.bonds[i].tval>api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.bonds[i].tval;
+		}
 		update();
+		project.settings.term = api.selectedTerm;
 		api.closePopup();
 	}
 	
@@ -1621,7 +1640,7 @@ function exapi() {
 		else if (id == "terms") {
 			setTimeout(api.unvokeTermUpdate, 10);
 			this.callPopup2(windows.loader);
-			project.settings.term = api.selectedTerm;
+			
 		}
 		else if (id == "side") document.getElementById("side_button").classList.remove("sel");
 		else if ((id == "save") || (id == "export")) document.getElementById("save_button").classList.remove("sel");

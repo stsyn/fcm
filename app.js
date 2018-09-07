@@ -784,7 +784,10 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 		if (e.getElementsByClassName("cc_effect")[0].value !== "") elem.val = parseFloat(e.getElementsByClassName("cc_effect")[0].value); else elem.val = 0;	
 		
 		
-		if (project.settings.term != -3) elem.val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+		if (project.settings.term != -3) {
+			//elem.val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+			elem.tval = e.getElementsByClassName("cc_vsel")[0].selectedIndex;
+		}
 		
 		if (elem.val < 0) elem.val = 0;
 		if (elem.val > 1) elem.val = 1;
@@ -842,7 +845,10 @@ function createAndAddBond(el, isNew) {
 	if (project.bonds[id].val < 0) project.bonds[id].val = 0;
 	if (project.bonds[id].val > 1) project.bonds[id].val = 1;
 	
-	if (project.settings.term != -3) project.bonds[id].val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+	if (project.settings.term != -3) {
+		//project.bonds[id].val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
+		project.bonds[id].tval = e.getElementsByClassName("cc_vsel")[0].selectedIndex;
+	}
 		
 	if (!isNew) api.brush = 0;
 	update();
@@ -915,15 +921,15 @@ function includeAliases(id, e) {
 	}
 }
 
-function getTermInterval(val) {
+function getTermInterval(val, x) {
 	var t, i;
-	t = api.getTermsPattern(project.settings.term);
+	t = api.getTermsPattern(x == undefined?project.settings.term:x);
 	
 	for (var i=0; i<t.terms.length; i++) if (val <= t.terms[i].lim) return i;
 }
 
-function getValueOfTerm(val) {
-	var t = api.getTermsPattern(project.settings.term);
+function getValueOfTerm(val, x) {
+	var t = api.getTermsPattern(x == undefined?project.settings.term:x);
 	if (val == 0) return t.terms[0].lim/2;
 	else return (t.terms[val].lim-t.terms[val-1].lim)/2+t.terms[val-1].lim;
 }
@@ -960,24 +966,24 @@ function editElement(id) {
 	e.getElementsByClassName("cc_effect")[0].value = el.val;
 	e.getElementsByClassName("cc_code")[0].value = getCode(id);
 	
+	var u = e.getElementsByClassName("cc_vsel")[0];
+	u.innerHTML = '';
+	var t = api.getTermsPattern(project.settings.term);
+	for (var i=0; i<t.terms.length; i++) {
+		var c = document.createElement('option');
+		c.selected = (i == el.tval);
+		c.innerHTML = t.terms[i].term;
+		c.value = i;
+		u.appendChild(c);
+	}
+	
 	if (project.settings.term == -3) {
 		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
 		e.getElementsByClassName("cc_effect")[0].classList.remove('hd');
 	}
 	else {
-		e.getElementsByClassName("cc_effect")[0].classList.add('hd');
-		var u = e.getElementsByClassName("cc_vsel")[0];
 		u.classList.remove('hd');
-		u.innerHTML = '';
-		
-		var t = api.getTermsPattern(project.settings.term);
-		for (var i=0; i<t.terms.length; i++) {
-			var c = document.createElement('option');
-			c.selected = (i == getTermInterval(el.val));
-			c.innerHTML = t.terms[i].term;
-			c.value = i;
-			u.appendChild(c);
-		}
+		e.getElementsByClassName("cc_effect")[0].classList.add('hd');
 	}
 	
 	var u = e.getElementsByClassName("cc_alias")[0];
@@ -1059,24 +1065,26 @@ function editBond(id) {
 	e.getElementsByClassName("cc_second")[0].value = el.second;
 	e.getElementsByClassName("cc_v")[0].value = el.val;
 	
+	var u = e.getElementsByClassName("cc_vsel")[0];
+	u.innerHTML = '';
+	
+	var t = api.getTermsPattern(project.settings.term);
+	for (var i=0; i<t.terms.length; i++) {
+		var c = document.createElement('option');
+		c.selected = (i == el.tval);
+		c.innerHTML = t.terms[i].term;
+		c.value = i;
+		u.appendChild(c);
+	}
+	
 	if (project.settings.term == -3) {
 		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
 		e.getElementsByClassName("cc_v")[0].classList.remove('hd');
 	}
 	else {
 		e.getElementsByClassName("cc_v")[0].classList.add('hd');
-		var u = e.getElementsByClassName("cc_vsel")[0];
 		u.classList.remove('hd');
-		u.innerHTML = '';
 		
-		var t = api.getTermsPattern(project.settings.term);
-		for (var i=0; i<t.terms.length; i++) {
-			var c = document.createElement('option');
-			c.selected = (i == getTermInterval(el.val));
-			c.innerHTML = t.terms[i].term;
-			c.value = i;
-			u.appendChild(c);
-		}
 	}
 	api.includeElements(e.getElementsByClassName("elist")[0].getElementsByTagName("table")[0], id);
 }
@@ -1319,7 +1327,10 @@ function getBondVal(el, caseid) {
 	if (typeof el == 'object') el = el.id;
 	c = project.bonds[el].val;
 	var i;
-	if (project.settings.term != -3) c = getValueOfTerm(getTermInterval(c));
+	if (project.settings.term != -3) {
+		//c = getValueOfTerm(getTermInterval(c));
+		c = getValueOfTerm(project.bonds[el].tval);
+	}
 	for (i=0; i<cache.bonds[el].elems.length; i++) {
 		var u = cache.bonds[el].elems[i];
 		if (project.elements[u].alias > -1) u = project.elements[u].alias;
@@ -1330,7 +1341,10 @@ function getBondVal(el, caseid) {
 		if (caseid == -1 && !t) continue;       //не учитываем дестабилизаторы, если все включено
 		if (caseid >= 0 && (project.cases[caseid].enabled[u] ^ t)) continue;
 		var uv = project.elements[u].val;
-		if (project.settings.term != -3) uv = getValueOfTerm(getTermInterval(uv));
+		if (project.settings.term != -3) {
+			//uv = getValueOfTerm(getTermInterval(uv));
+			uv = getValueOfTerm(project.elements[el].tval);
+		}
 		if (t) c *= (1 - uv);
 		else c = (1 - (1 - c) * (1 - uv));
 	}
@@ -1358,7 +1372,7 @@ function iteration(i, cur, val, roadmap) {
 					cache.elements[roadmap[0]].calcRoadMap[cur][j][k] = roadmap[k];
 				}
 			}
-		return;
+		// return; пытаемся продолжать вычисления
 	}
 	for (var u=0; u<roadmap.length; u++) if (roadmap[u] == cur) {
 		if (api.settings.debug) console.log('Вошли в цикл на итерации '+i+'. Текущий элемент №'+cur+', путь '+roadmap+'.');
@@ -1405,7 +1419,7 @@ function iteration2(i, cur, val, roadmap) {
 					cache.elements[roadmap[0]].calcRoadMap[cur][j][k] = roadmap[k];
 				}
 		}
-		return;
+		// return; пытаемся продолжать вычисления
 	}
 	
 	for (var u=0; u<roadmap.length; u++) if (roadmap[u] == cur) {
