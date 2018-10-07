@@ -8,7 +8,23 @@ body {
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	font-family: Open Sans, sans-serif;
-	font-size:16px}
+	font-size:16px
+	}
+body.night {
+	scrollbar-arrow-color: #ddd;
+	scrollbar-base-color: #000;
+}
+
+::-webkit-scrollbar, ::-webkit-scrollbar-track{
+    width:12px;
+}
+::-webkit-scrollbar-thumb{
+    background-color: #bbb;
+}
+body.night ::-webkit-scrollbar-thumb{
+    background-color: #2b2f52;
+}
+
 #top {
 	background:#fff;
 	transition:.15s;
@@ -41,7 +57,7 @@ body.customCursor #c {cursor: url('cur.cur'), crosshair;}
 #bottom .list {
 	overflow-y:auto;
 	width:100%;
-	height:calc(100% - 2.2em);
+	height:calc(100% - 2.1em);
 	margin-top:2px}
 .bl {display:block !important}
 .il {
@@ -106,6 +122,7 @@ body.night #top .b.in:not(:first-child) {border-left:1px solid #333 !important;}
 .b:not(.na):not(.sel):hover {background:#def}
 .b:not(.na):not(.sel):active {background:#8ad}
 .b.sel, .b.sel path {
+	border-color:#9c9;
 	background:#cfc;
 	color:#080;
 	fill:#080;
@@ -123,6 +140,7 @@ body.night #top .b.in:not(:first-child) {border-left:1px solid #333 !important;}
 .red {color: #e11;}
 .b.red {
 	background: #fdd;
+	border-color: #d99;
 	color: #e11;
 	fill: #e11;}
 .b.stillsel.sel {cursor:pointer}
@@ -170,12 +188,31 @@ input[type="checkbox"], input[type="radio"] {
 .b.acr:before {content:'\f10c';}
 .b.acr.sel:before {content:'\f05d';}
 
+.ps .b.fs {
+	border-top:none;
+}
+.ps .t:first-child .b.fs {
+	border-left:none;
+	width: calc(100% - .5em - 1px);
+}
+.ps .t:last-child .b.fs {
+	border-right:none;
+	width: calc(100% - .5em - 1px);
+}
+.ps .b.fs.sel {
+	border-bottom:none;
+}
+
 .pad {
 	width:calc(100% - 8px);
 	padding:3px;
 	display:none;
-	border:1px solid #eee;}
+	border-bottom:1px solid #eee;}
 
+.line>.pad {
+	border-left:1px solid #eee;
+	border-right:1px solid #eee;}
+}
 .de {
 	display:inline-block;
 	vertical-align: middle;
@@ -241,7 +278,7 @@ body.night .scale > span.c_c{background:#880}
 }
 body.night #messages > span{
 	background:#444;
-	color:#eee;
+	color:#ddd;
 }
 .transparentActive #messages > span{opacity:.8}
 .transparentActive #messages > span:active{opacity:1}
@@ -252,7 +289,7 @@ body.night #messages > span{
 }
 body.night #messages > span.green{
 	background:#040;
-	color:#eee;
+	color:#ddd;
 }
 
 #messages > span.yellow{
@@ -261,7 +298,7 @@ body.night #messages > span.green{
 }
 body.night #messages > span.yellow{
 	background:#440;
-	color:#eee;
+	color:#ddd;
 }
 
 #messages > span.red{
@@ -270,7 +307,7 @@ body.night #messages > span.yellow{
 }
 body.night #messages > span.red{
 	background:#400;
-	color:#eee;
+	color:#ddd;
 }
 
 #windows > div {
@@ -328,8 +365,8 @@ body.night #messages > span.red{
 #windows .w.sm {
 	width:40vw;
 	left:30vw;
-	height:40vh;
-	top:30vh}
+	height:45vh;
+	top:27.5vh}
 #windows .w.sm2 {
 	width:40vw;
 	left:30vw;
@@ -346,32 +383,33 @@ body.night #messages > span.red{
 	height:40vh;
 	top:30vh}
 #windows .w.huge {
-	width:95vw;
-	left:2.5vw;
-	height:95vh;
-	top:2.5vh}
+	width:100vw;
+	left:0vw;
+	height:100vh;
+	top:0vh}
 #windows .w.side {
 	width:22em !important; 
 	left:calc(50vw - 11em);
 	height:50vh;
 	top:25vh}
 #windows .w.tall {
-	width:40vw;
-	left:30vw;
+	width:45vw;
+	left:27.5vw;
 	height:70vh;
 	top:15vh}
 #windows .cc{
-	height:calc(100% - 2.5em - 18px);
+	height:calc(100% - 2.5em - 8px);
 	margin:.5em;
-	padding: 1px 0;
+	padding: 0;
 	overflow-y:auto}
 #windows .cc.btns{height:calc(100% - 4.3em - 18px)}
+#windows .cc.btnsdouble{height:calc(100% - 6.6em - 18px)}
 #windows .hidd {
 	height:2em !important;
 	width:30vw !important}
 #windows .hidd .cc, #windows .hidd .bt, #windows .hidd .rsz{display:none}
 #windows .bt{padding:5px}
-#windows .bt.up {margin:0 3px}
+#windows .bt.up {margin:0 3px; padding-bottom:0}
 #windows .bt.up .t .b:first-child, #windows .bt.up .t .b:last-child{padding:0 calc(4px + .25em)}
 #windows .h, #windows .hc {
 	width:calc(100% - .33em);
@@ -414,29 +452,31 @@ body.night #windows .w.ifr iframe {
 	filter:invert(100%);
 	-webkit-filter:invert(100%)}
 body.night, body.night #top, body.night #side, body.night #bottom, body.night .b, body.night a {
-	background:#000;
-	color:#eee}
-body.night * {border-color: #333 !important;}
+	background:#001;
+	color:#ccd}
+body.night * {border-color: #1b1f32 !important;}
 body.night #c {background: #012}
-body.night .b.na {color:#888}
-body.night .b:not(.na):not(.sel):hover {background:#046}
+body.night .b.na {color:#777}
+body.night .b:not(.na):not(.sel):hover {background:#024}
 body.night .b:not(.na):not(.sel):active {background:#8ad}
 body.night .b.sel, body.night .b.sel path{
-	background:#040;
+	background:#030;
+	border-color:#141 !important;
 	fill:#8f8;
 	color:#8f8}
 body.night .b path {fill:#eee}
 body.night .red{color: #f88;}
 body.night .b.red, body.night .b.red path{
 	background: #400;
+	border-color: #511 !important;
 	fill: #f88}
-body.night .b.stillsel.sel:hover {background:#080}
+body.night .b.stillsel.sel:hover {background:#050}
 body.night #windows .w{
-	background:#000;
+	background:#001;
 	box-shadow: 0 0 10px rgba(192,192,192,0.5)}
-body.night #windows .a	{box-shadow: 0 0 10px rgba(0,255,255,0.5)}
+body.night #windows .a	{box-shadow: 0 0 10px rgba(128,128,208,0.5)}
 body.night #windows .h, body.night #windows .hc{color:#099}
-body.night #windows .a .h, body.night #windows .h:hover{background:#016}
+body.night #windows .a .h, body.night #windows .h:hover,
 body.night #windows .a .hc, body.night #windows .hc:hover{background:#124}
 body.night #windows .controls > div {
 	background: #044;

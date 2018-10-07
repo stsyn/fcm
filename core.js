@@ -43,14 +43,18 @@ function InfernoAddElem(tag, values, childs) {
 		}
 	}
 	else t = document.createElement(tag);
-	
-	for (var i in values) if (i!='events' && i!='dataset' && i!='innerHTML' && i!='className' && !(i=='style' && typeof values.style=='object')) t.setAttribute(i,values[i]);
+
+	for (var i in values) if (i!='events' && i!='dataset' && i!='innerHTML' && i!='checked' && i!='disabled' && i!='value' && i!='selected' && i!='className' && !(i=='style' && typeof values.style=='object')) t.setAttribute(i,values[i]);
 	if (values.dataset != undefined) for (var i in values.dataset) t.dataset[i] = values.dataset[i];
 	if (values.className != undefined) t.className = values.className;
 	if (values.innerHTML != undefined) t.innerHTML = values.innerHTML;
+	if (values.value != undefined) t.value = values.value;
+	if (values.checked != undefined) t.checked = values.checked;
+	if (values.selected != undefined) t.selected = values.selected;
+	if (values.disabled != undefined) t.disabled = values.disabled;
 	if (values.events != undefined) values.events.forEach(function(v,i,a) {t.addEventListener(v.t, v.f);});
 	if (typeof values.style=='object') for (var i in values.style) t.style[i] = values.style[i];
-	
+
 	if (childs != undefined && childs.length != undefined) childs.forEach(function(c,i,a) {t.appendChild(c);});
 	return t;
 }
@@ -62,8 +66,21 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.2", s:"RC2", b:70};
-	this.defTerms = [{name:"<i>Без термов</i>",terms:[]},{name:"Краткий",terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}]},{name:"Подробный",terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}]}];
+	this.version = {g:"0.9.3", s:"RC2", b:71};
+	this.defTerms = [
+		{name:"<i>Без термов</i>",terms:[]},
+		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
+		[0,0,0],
+		[1,0,0],
+		[2,1,0],
+		]},
+		{name:"Подробный",autoTerms:true,terms:[{term:'Очень слабо',lim:0.2},{term:'Слабо',lim:0.4},{term:'Средне',lim:0.6},{term:'Сильно',lim:0.8},{term:'Очень сильно',lim:1}], rules:[
+		[0,0,0,0,0],
+		[1,1,0,0,0],
+		[2,1,1,0,0],
+		[3,2,1,1,0],
+		[4,3,2,1,0],
+		]}];
 	this.structData = {
 		elements:{
 			fieldsName:['ID','Тип','Код','Имя'/*,'Состояние','Предельное'*/,'Стоимость','Значимость'],
@@ -111,27 +128,7 @@ function exapi() {
 	this.glFontSize = function() {
 		document.getElementsByTagName("body")[0].style.fontSize = this.settings.glFontSize+"%";
 	}
-	
-	this.changeSidePad = function (n) {
-		for (var i=0; i<3; i++) {
-			document.getElementById("pad"+(i+1)).style.display = "none";
-			document.getElementById("side").getElementsByClassName("table")[0].getElementsByClassName("b")[i].classList.remove("sel");
-		}
-		document.getElementById("pad"+(n+1)).style.display = "block";
-		document.getElementById("side").getElementsByClassName("table")[0].getElementsByClassName("b")[n].classList.add("sel");
-		if (n == 0) this.actualBrush = this.brush;
-		else this.actualBrush = -1;
-	}
-	
-	this.changeBottomPad = function (n) {
-		for (var i=0; i<2; i++) {
-			document.getElementById("bpad"+(i+1)).style.display = "none";
-			document.getElementById("bottom").getElementsByClassName("line")[0].getElementsByClassName("b")[i].classList.remove("sel");
-		}
-		document.getElementById("bpad"+(n+1)).style.display = "block";
-		document.getElementById("bottom").getElementsByClassName("line")[0].getElementsByClassName("b")[n].classList.add("sel");
-	}
-	
+		
 	this.selectBrush = function (n) {
 		for (var i=-3; i<7; i++) {
 			document.getElementById("brush"+i).classList.remove("sel");
@@ -237,7 +234,7 @@ function exapi() {
 			//InfernoAddElem('td',{innerHTML:((el[i].state===undefined)?"—":el[i].state)},[]),
 			//InfernoAddElem('td',{innerHTML:((el[i].lim===undefined)?"—":el[i].lim)},[]),
 			InfernoAddElem('td',{innerHTML:((el[i].cost===undefined)?"—":el[i].cost)},[]),
-			InfernoAddElem('td',{innerHTML:((el[i].val===undefined)?"—":el[i].val)},[])
+			InfernoAddElem('td',{innerHTML:((el[i].val===undefined)?"—":u)},[])
 		]);
 	}
 	
@@ -310,7 +307,6 @@ function exapi() {
 
 	this.includeBonds = function (e, filter) {
 		e.innerHTML = '';
-		
 		var ax = ((filter == -1)?"":" na");
 		var el = project.elements;
 		var b = project.bonds;
@@ -474,11 +470,9 @@ function exapi() {
 	
 	this.decryptProject = function(data, proj, key) {
 		var xkey = forge_sha256(key+proj.meta.timeSaved+proj.id);
-		console.log(xkey, key+proj.meta.timeSaved+proj.id);
 		var key = aesjs.utils.hex.toBytes(xkey);
 		var aesCbc = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(10));
 		var decryptedBytes = aesCbc.encrypt(data);
-		console.log(decryptedBytes);
 		return decryptedBytes;
 	}
 
@@ -570,6 +564,12 @@ function exapi() {
 			if (project.settings.term == undefined) project.settings.term = -3;
 			if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
 			if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
+			if (project.terms != undefined) {
+				for (var i=0; i<project.terms.length; i++) {
+					project.terms.autoTerms = true;
+					autocalcTermRules(project.terms);
+				}
+			}
 			for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
 				if (project.settings.term != -3) project.elements[i].tval = getTermInterval(project.elements[i].val);
 				project.elements[i].id = i;
@@ -824,7 +824,6 @@ function exapi() {
 	}
 	
 	this.calcTSum = function(val) {
-		console.log(this.calcSum(val),this.calcCSum(val));
 		return this.calcSum(val) + this.calcCSum(val);
 	}
 	
@@ -1009,8 +1008,79 @@ function exapi() {
 		x.appendChild(e);
 	}
 	
+	this.renderTermRules = function () {
+		var val = api.selectedTerm;
+		var inner = [];
+		if (val == -3) {
+			inner[0] = InfernoAddElem('span',{innerHTML:'В режиме без термов база правил отсутствует.'},[]);
+		}
+		else {
+			var onChange = function (e) {
+				var elem = e.target.parentNode;
+				t[u].rules[elem.dataset.bondId][elem.dataset.controllerId] = e.target.value;
+			};
+			var lines = [];
+			var cells = [];
+			cells[1] = InfernoAddElem('td',{innerHTML:'<b>Вес связей \\ Вес контрмер</b>'},[]);
+			
+			var u, t;
+			if (val < 0) {
+				u = val+3;
+				t = api.defTerms;
+			}
+			else {
+				u = val;
+				t = project.terms;
+			}
+			var editable = !t[u].autoTerms && val >= 0;
+			if (!editable) autocalcTermRules(t[u]);
+			
+			for (var i=0; i<t[u].terms.length; i++) cells.push(InfernoAddElem('td',{innerHTML:t[u].terms[i].term},[]));
+			lines[0] = InfernoAddElem('tr',{className:'headline'},cells);
+			var termsOptions = [];
+			for (var i=0; i<t[u].terms.length; i++) termsOptions.push(InfernoAddElem('option',{innerHTML:t[u].terms[i].term,value:i},[]));
+			var termsSelection = InfernoAddElem('select',{size:1,className:'b fs ilb '+(editable?'':'na'),disabled:!editable},termsOptions);
+			
+			for (var i=0; i<t[u].terms.length; i++) {
+				cells = [];
+				cells.push(InfernoAddElem('td',{innerHTML:t[u].terms[i].term},[]));
+				for (var j=0; j<t[u].terms.length; j++) {
+					var x = termsSelection.cloneNode(true);
+					x.childNodes[t[u].rules[i][j]].selected = true;
+					x.addEventListener('change',onChange);
+					cells.push(InfernoAddElem('td',{dataset:{bondId:i,controllerId:j}},[x]));
+				}
+				lines.push(InfernoAddElem('tr',{className:'linemenu'},cells));
+			}
+			inner[0] = InfernoAddElem('table',{className:"r",cellspacing:0,rules:'all'},lines);
+			inner[1] = InfernoAddElem('div',{},[
+				InfernoAddElem('br',{},[]),
+				InfernoAddElem('label',{className:'b ac '+(val >= 0?'stillsel ':'')+(editable?'sel':''), style:'float:none;display:inline-block'},[
+					InfernoAddElem('input',{type:'checkbox',disabled:(val < 0),checked:t[u].autoTerms, events:[{t:'click',f:
+						function(e) {
+							if (val < 0) return;
+							var elem = e.target;
+							t[u].autoTerms = elem.checked;
+							setTimeout(api.renderTermRules, 10);
+						}
+					}]},[]),
+					InfernoAddElem('span',{innerHTML:' Автоматически'},[])
+				]),
+				InfernoAddElem('div',{innerHTML:'По горизонтали задаются веса связей, по вертикали задаются веса контрмер, в пересечениях — вес связи под влияением данной контрмеры. В автоматическом режиме пересечения рассчитываются через произведение средних значений двух термов.'},[])
+			]);
+			api.switchElemState(inner[1].querySelector('label'));
+			if (val<0) {
+				inner[3] = InfernoAddElem('strong',{innerHTML:'Нельзя изменять базу правил для встроенных наборов термов. Создайте новый набор на основе сущетсвующего.'},[]);
+			}
+		}
+		var container = document.getElementById('termrules');
+		container.removeChild(container.childNodes[0]);
+		container.appendChild(InfernoAddElem('div',{className:'pad',style:'display:block'},inner));
+	}
+	
 	this.renderTerm = function(val) {
 		api.selectedTerm = val;
+		api.renderTermRules();
 		document.getElementById('termoptions').innerHTML = '<div class="table r"><div class="t3"></div></div>';
 		var i;
 		for (i=0; i<document.getElementById('termlist').getElementsByClassName('b').length; i++) 
@@ -1037,7 +1107,7 @@ function exapi() {
 			}
 		}
 		
-		p.innerHTML += 'Изменения сохраняются автоматически. Используется терм, который был открыт последним. <b>Все значения элементов и связей корректируются после закрытия редактирования!</b><hr><ul><li>В случае перехода к режиму без термов, вычисляется среднее значение;<li>В случае перехода из режима без термов, выбираетс терм, на интервале которого лежит значение;<li>В случае изменения набора индексы выбранных термов не изменяются. При необходимости сменить набор с примерным сохранением заданных значений выберите режим без термов и сохраните изменения, после чего выберите желаемый набор.</ul>';
+		p.innerHTML += 'Изменения сохраняются автоматически. Используется терм, который был открыт последним. <b>Все значения элементов и связей корректируются после закрытия редактирования!</b><hr><ul><li>В случае перехода к режиму <i>Без термов</i>, вычисляется среднее значение;<li>В случае перехода из режима <i>Без термов</i>, выбираетс терм, на интервале которого лежит значение;<li>В случае изменения набора индексы выбранных термов не изменяются. При необходимости сменить набор с примерным сохранением заданных значений выберите режим <i>Без термов</i> и сохраните изменения, после чего выберите желаемый набор.</ul>';
 		document.getElementById('termoptions').appendChild(p);
 		document.getElementById('t_name').value = (val >= 0?project.terms[val].name : (val == -1 ? api.defTerms[2].name : (val == -2 ?api.defTerms[1].name: api.defTerms[0].name)));
 		document.getElementById('t_name').disabled = !(val>=0);
@@ -1083,6 +1153,7 @@ function exapi() {
 				var x = project.terms[c];
 				x.name = 'Новый набор '+c;
 				x.terms = [];
+				x.autoTerms = true;
 				if (api.selectedTerm == -3) {
 					x.terms[0] = {};
 					x.terms[0].term = 'Терм 0';
@@ -1584,7 +1655,7 @@ function exapi() {
 		}
 	}
 	
-	this.unvokeTermUpdate = function() {
+	this.invokeTermUpdate = function() {
 		for (var i=0; i<api.zindex.length; i++) {
 			if (api.zindex[i].startsWith('editb') || api.zindex[i].startsWith('edite')) {
 				var e = document.getElementById(api.zindex[i]);
@@ -1621,15 +1692,15 @@ function exapi() {
 		for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
 			if (api.selectedTerm != -3 && project.settings.term == -3) project.elements[i].tval = getTermInterval(project.elements[i].val, api.selectedTerm);
 			else if (api.selectedTerm == -3 && project.settings.term != -3) project.elements[i].val = getValueOfTerm(project.elements[i].tval);
-			else if (api.selectedTerm != -3 && project.settings.term != -3) project.elements[i].tval = project.elements[i].tval>api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.elements[i].tval;
+			else if (api.selectedTerm != -3 && project.settings.term != -3) project.elements[i].tval = project.elements[i].tval>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.elements[i].tval;
 		}
 		for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) {
 			if (api.selectedTerm != -3 && project.settings.term == -3) project.bonds[i].tval = getTermInterval(project.bonds[i].val, api.selectedTerm);
 			else if (api.selectedTerm == -3 && project.settings.term != -3) project.bonds[i].val = getValueOfTerm(project.bonds[i].tval);
-			else if (api.selectedTerm != -3 && project.settings.term != -3) project.bonds[i].tval = project.bonds[i].tval>api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.bonds[i].tval;
+			else if (api.selectedTerm != -3 && project.settings.term != -3) project.bonds[i].tval = project.bonds[i].tval>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.bonds[i].tval;
 		}
-		update();
 		project.settings.term = api.selectedTerm;
+		update();
 		api.closePopup();
 	}
 	
@@ -1638,9 +1709,8 @@ function exapi() {
 		document.getElementById(id).classList.toggle("d");
 		if (id == "settings") document.getElementById("settings_button").classList.remove("sel");
 		else if (id == "terms") {
-			setTimeout(api.unvokeTermUpdate, 10);
+			setTimeout(api.invokeTermUpdate, 1);
 			this.callPopup2(windows.loader);
-			
 		}
 		else if (id == "side") document.getElementById("side_button").classList.remove("sel");
 		else if ((id == "save") || (id == "export")) document.getElementById("save_button").classList.remove("sel");
@@ -1931,7 +2001,7 @@ function exapi() {
 			}
 		}
 		if (api.zindex == 'side' && document.querySelectorAll('#popUp.d').length == 0) {
-			if (document.getElementById('pad1').style.display == 'block') {
+			if (document.querySelector('#side .pad[data-tab="1"]').style.display == 'block') {
 				t = document.getElementById('pad1');
 				switch (e) {
 					case 27: {
@@ -2237,7 +2307,7 @@ function exapi() {
 				this.fixSettings();
 			}
 			
-			var ele = document.getElementsByClassName("ac");
+			/*var ele = document.getElementsByClassName("ac");
 			for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function(e) {
 				api.switchElemState(e.target);
 			});
@@ -2245,7 +2315,7 @@ function exapi() {
 			ele = document.getElementsByClassName("acr");
 			for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function(e) {
 				api.switchRadioElemState(e.target);
-			});
+			});*/
 			
 			ele = document.getElementsByClassName("rtm");
 			for (var i=0; i<ele.length; i++) {
@@ -2265,8 +2335,8 @@ function exapi() {
 		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.styleSwitch('transparentActive','transparency',false,false,false);
 		this.styleSwitch('customCursor','cursor',false,false,false);
-		this.changeSidePad(0);
-		this.changeBottomPad(0);
+		//this.changeSidePad(0);
+		//this.changeBottomPad(0);
 		this.selectBrush(-1);
 		this.popUp = "popUp";
 		this.colorMode(this.settings.palette);
@@ -2318,6 +2388,39 @@ function exapi() {
 		setTimeout(function() {api.callWindow('side');},(api.settings.debug?80:666));
 		
 	}
+
+	this.parseEvent = function (elem, cat) {
+		if (elem == undefined) return;
+		if (elem.dataset != undefined) {
+			if (cat == 'click') {
+				if (elem.dataset.tabSelect != undefined) {
+					var tabContainer = elem.parentNode;
+					while (tabContainer.dataset == undefined || tabContainer.dataset.tabId == undefined) 
+						tabContainer = tabContainer.parentNode;
+					var tabs = tabContainer.querySelectorAll('[data-tab][data-tab-id="'+tabContainer.dataset.tabId+'"]');
+					var tabHeaders = tabContainer.querySelectorAll('[data-tab-select][data-tab-id="'+tabContainer.dataset.tabId+'"]');
+					for (var i=0; i<tabs.length; i++) {
+						tabs[i].style.display = (tabs[i].dataset.tab == elem.dataset.tabSelect?'block':'none');
+					}
+					for (var i=0; i<tabHeaders.length; i++) {
+						tabHeaders[i].classList.remove('sel');
+					}
+					elem.classList.add('sel');
+				}
+				if (elem.classList.contains('ac')) {
+					api.switchElemState(elem);
+				}
+				if (elem.classList.contains('acr')) {
+					api.switchRadioElemState(elem);
+				}
+			}
+		}
+		if (elem.tagName != 'BODY') api.parseEvent(elem.parentNode, cat);
+	}
+	
+	this.handleClickEvents = function (e) {
+		api.parseEvent(e.target, 'click');
+	}
 }
 
 var api = new exapi();
@@ -2325,6 +2428,7 @@ var api = new exapi();
 window.onload = function () {
 	if (document.getElementById("loadstring") != undefined) document.getElementById("loadstring").innerHTML = returnRandomLoadingLine();
 	setTimeout(function() {api.init(true)},200);
+	document.body.addEventListener('click', api.handleClickEvents);
 }
 
 window.onbeforeunload = function (evt) {

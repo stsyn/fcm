@@ -41,12 +41,13 @@
 		<span class="b" onclick="api.callPopup2(windows.about)"><i class="fa fa-info"></i><b>Информация</b></span>
 	</div>
 	
-	<div id="bottom" class="norm">
+	<div id="bottom" class="norm" data-tab-id="bottom">
 		<div class="line as">
-			<span class="b stillsel" onclick="api.settings.bottomHidden=false;api.styleSwitch('bottomHidden','bottomHidden',false,false,false);api.changeBottomPad(0)">Элементы</span><span class="b stillsel" onclick="api.settings.bottomHidden=false;api.styleSwitch('bottomHidden','bottomHidden',false,false,false);api.changeBottomPad(1)">Связи</span><span class="b debug na" id="debug_viewport"></span>
+			<span class="b stillsel sel" onclick="api.settings.bottomHidden=false;api.styleSwitch('bottomHidden','bottomHidden',false,false,false)" data-tab-select="1" data-tab-id="bottom">Элементы</span>
+			<span class="b stillsel" onclick="api.settings.bottomHidden=false;api.styleSwitch('bottomHidden','bottomHidden',false,false,false)" data-tab-select="2" data-tab-id="bottom">Связи</span><span class="b debug na" id="debug_viewport"></span>
 			<span class="b debug na" id="debug_mouseInfo"></span>
 			<span class="b debug" id="debug_idle" onclick="api.overDraw = !api.overDraw"></span>
-			<span class="b debug na" id="debug_keyInfo"></span>
+			<span class="b debug na" id="debug_keyInfo">0</span>
 			<span class="control" style="float:right">
 				<span class="b bnorm bbig" onclick="document.getElementById('bottom').className='hide'"><i class="fa fa-arrow-down"></i><b>Скрыть</b></span>
 				<span class="b bhide" onclick="document.getElementById('bottom').className='norm'"><i class="fa fa-arrow-up"></i><b>Показать</b></span>
@@ -56,10 +57,10 @@
 			<span class="b red" style="float:right; overflow:hidden" onclick="Recompile()" id="is_not_compiled">Не пересчитано</span>
 		</div>
 		<div class="list">
-			<div id="bpad1" class="pad selection"><table class="r" cellspacing="0" rules="all">
+			<div id="bpad1" class="pad selection" data-tab-id="bottom" data-tab="1" style="display:block"><table class="r" cellspacing="0" rules="all">
 						
 			</table></div>
-			<div id="bpad2" class="pad selection"><table class="r" cellspacing="0" rules="all">
+			<div id="bpad2" class="pad selection" data-tab-id="bottom" data-tab="2"><table class="r" cellspacing="0" rules="all">
 						
 			</table></div>
 		</div>
@@ -216,14 +217,14 @@
 					<div onclick="api.switchWindowState(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-window-minimize"></i></div>
 					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
 				</div>
-				<div class="cc">
+				<div class="cc" data-tab-id="side">
 					<div class="table ps"><div class="t3"><div class="t2">
-						<span class="t"><span class="b fs" onclick="api.changeSidePad(0)">Граф</span></span>
-						<span class="t"><span class="b fs" onclick="api.changeSidePad(1)">Рисование</span></span>
-						<span class="t"><span class="b fs" onclick="api.changeSidePad(2)">Проект</span></span>
+						<span class="t"><span class="b fs sel" data-tab-select="1" data-tab-id="side">Граф</span></span>
+						<span class="t"><span class="b fs" data-tab-select="2" data-tab-id="side">Рисование</span></span>
+						<span class="t"><span class="b fs" data-tab-select="3" data-tab-id="side">Проект</span></span>
 					</div></div></div>
 					
-					<div id="pad1" class="pad">
+					<div data-tab="1" data-tab-id="side" class="pad" style="display:block">
 					
 						<div class="line">Факторы
 							<div class="table r"><div class="t3">
@@ -249,11 +250,11 @@
 						
 					</div>
 					
-					<div id="pad2" class="pad">
+					<div data-tab="2" data-tab-id="side" class="pad">
 						Еще не внедрено!
 					</div>
 					
-					<div id="pad3" class="pad">
+					<div data-tab="3" data-tab-id="side" class="pad">
 						<div class="line" style="text-align:center">
 							<span class="b fs" onclick="api.callWindow('matrix')">Матрица достижимости</span>
 							<span class="b fs" onclick="api.callWindow('effect')">Полный эффект</span>
@@ -363,18 +364,29 @@
 		
 		<div id="terms">
 			<div class="back"></div>
-			<div class="w huge defhuge">
+			<div class="w huge defhuge" data-tab-id="terms">
 				<div class="h"><span>Термы</span></div>
 				<div class="hc"><span>Термы</span></div>
 				<div class="controls">
-					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
+					<div class="close" onclick="api.closeWindow('terms')"><i class="fa fa-lg fa-close"></i></div>
 				</div>
-				<div class="cc btns">
-					<div id="termlist" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
-					<div id="termoptions" class="pad selection" style="display:block;float:left;width:calc(100% - 40em - 24px);height:calc(100% - 8px)"></div>
-					<div id="terminfo" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word">
-						<div class="line">Имя: <input type="text" class="b i" id="t_name" style="width:10em"></div>
-						<div class="line"><div class="b red" id="t_del">Удалить</div></div>
+				<div class="bt up">
+					<div class="table ps"><div class="t3"><div class="t2">
+						<span class="t"><span class="b fs sel" data-tab-select="1" data-tab-id="terms">Лингвистические термы</span></span>
+						<span class="t"><span class="b fs" data-tab-select="2" data-tab-id="terms" onclick="api.renderTermRules();">База правил</span></span>
+					</div></div></div>
+				</div>
+				<div class="cc btnsdouble">
+					<div data-tab="1" data-tab-id="terms" style="height:100%">
+						<div id="termlist" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word"></div>
+						<div id="termoptions" class="pad selection" style="display:block;float:left;width:calc(100% - 40em - 24px);height:calc(100% - 8px)"></div>
+						<div id="terminfo" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word">
+							<div class="line">Имя: <input type="text" class="b i" id="t_name" style="width:10em"></div>
+							<div class="line"><div class="b red" id="t_del">Удалить</div></div>
+						</div>
+					</div>
+					<div data-tab="2" data-tab-id="terms" style="display:none;height:100%">
+						<div id="termrules" class="pad selection" style="display:block;height:calc(100% - 8px)"><div></div></div>
 					</div>
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">

@@ -1,11 +1,11 @@
 ﻿var project = {settings:{},elements:[],bonds:[],viewport:{}};
 var colorScheme = [
-{bg:"#fff",line:"#bbb",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",fakeconnt:"#800",
+{bg:"#fff",line:"#ddd",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",fakeconnt:"#800",
 selected:"#00f",aconnections:"rgba(17,17,17,0)",aactconn:"rgba(136,255,136,0)",afakeconnt:"rgba(136,0,0,0)",
 text:'#000',stext:'#fff',seltext:'#060'},
-{bg:"#001",line:"#033",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",fakeconnt:"#f88",
+{bg:"#001",line:"#012",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",fakeconnt:"#f88",
 selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)",afakeconnt:"rgba(255,136,136,0)",    
-text:'#eee',stext:'#111',seltext:'#8f8'}];
+text:'#ccd',stext:'#111',seltext:'#8f8'}];
 var ctx, tcx, zoomprop, linePattern, frame=0;
 var doMoving = {};
 var currentBrush = {};
@@ -923,13 +923,17 @@ function includeAliases(id, e) {
 
 function getTermInterval(val, x) {
 	var t, i;
-	t = api.getTermsPattern(x == undefined?project.settings.term:x);
+	if (typeof x == 'object') t = x;
+	else t = api.getTermsPattern(x == undefined?project.settings.term:x);
 	
 	for (var i=0; i<t.terms.length; i++) if (val <= t.terms[i].lim) return i;
 }
 
 function getValueOfTerm(val, x) {
-	var t = api.getTermsPattern(x == undefined?project.settings.term:x);
+	var t;
+	if (typeof x == 'object') t = x;
+	else t = api.getTermsPattern(x == undefined?project.settings.term:x);
+	
 	if (val == 0) return t.terms[0].lim/2;
 	else return (t.terms[val].lim-t.terms[val-1].lim)/2+t.terms[val-1].lim;
 }
@@ -1084,7 +1088,6 @@ function editBond(id) {
 	else {
 		e.getElementsByClassName("cc_v")[0].classList.add('hd');
 		u.classList.remove('hd');
-		
 	}
 	api.includeElements(e.getElementsByClassName("elist")[0].getElementsByTagName("table")[0], id);
 }
@@ -1321,6 +1324,25 @@ function BondPositon(MouseX,MouseY,key) {
 	return Range;
 }
 
+function applyCombination(term1, term2) {
+	var t = api.getTermsPattern(project.settings.term);
+	
+	return t.rules[term1][term2];
+}
+
+function autocalcTermRules(term) {
+	term.rules = [];
+	for (var i=0; i<term.terms.length; i++) {
+		term.rules[i] = [];
+		for (var j=0; j<term.terms.length; j++) {
+			var a = getValueOfTerm(i, term);
+			var b = getValueOfTerm(j, term);
+			var x = a * (1 - b);
+			term.rules[i][j] = getTermInterval(x,term);
+		}
+	}
+}
+
 function getBondVal(el, caseid) {
 	var c;
 	if (el == undefined) return 0;
@@ -1329,7 +1351,7 @@ function getBondVal(el, caseid) {
 	var i;
 	if (project.settings.term != -3) {
 		//c = getValueOfTerm(getTermInterval(c));
-		c = getValueOfTerm(project.bonds[el].tval);
+		c = project.bonds[el].tval;
 	}
 	for (i=0; i<cache.bonds[el].elems.length; i++) {
 		var u = cache.bonds[el].elems[i];
@@ -1343,10 +1365,17 @@ function getBondVal(el, caseid) {
 		var uv = project.elements[u].val;
 		if (project.settings.term != -3) {
 			//uv = getValueOfTerm(getTermInterval(uv));
-			uv = getValueOfTerm(project.elements[el].tval);
+			uv = project.elements[u].tval;
+			
+			if (t) c = applyCombination(c,uv);
 		}
-		if (t) c *= (1 - uv);
-		else c = (1 - (1 - c) * (1 - uv));
+		else {
+			if (t) c *= (1 - uv);
+			else c = (1 - (1 - c) * (1 - uv));
+		}
+	}
+	if (project.settings.term != -3) {
+		c = getValueOfTerm(c);
 	}
 	return +c.toFixed(4);
 }
