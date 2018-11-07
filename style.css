@@ -145,9 +145,13 @@ body.night #top .b.in:not(:first-child) {border-left:1px solid #333 !important;}
 	fill: #e11;}
 .b.stillsel.sel {cursor:pointer}
 .b.stillsel.sel:hover {background:#6f6}
-input[type="text"].b, textarea.b {
+input[type="text"].b, textarea.b, select.b {
 	cursor:text;
 	font-size:100%}
+select.b {
+	cursor:pointer;
+	height:1.8em
+}
 input:disabled.b {
     background: #ccc !important;
 	cursor:default;
@@ -398,12 +402,12 @@ body.night #messages > span.red{
 	height:70vh;
 	top:15vh}
 #windows .cc{
-	height:calc(100% - 2.5em - 8px);
+	height:calc(100% - 2.8em - 8px);
 	margin:.5em;
 	padding: 0;
 	overflow-y:auto}
-#windows .cc.btns{height:calc(100% - 4.3em - 18px)}
-#windows .cc.btnsdouble{height:calc(100% - 6.6em - 18px)}
+#windows .cc.btns{height:calc(100% - 4.6em - 18px)}
+#windows .cc.btnsdouble{height:calc(100% - 7.0em - 18px)}
 #windows .hidd {
 	height:2em !important;
 	width:30vw !important}

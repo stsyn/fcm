@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.3", s:"RC2", b:71};
+	this.version = {g:"0.9.3", s:"RC2", b:72};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -432,14 +432,10 @@ function exapi() {
 		}
 		try {
 			project = JSON.parse(c);
-			if (project.meta.encrypt) key = document.querySelector('#import input.pass').value;
-			if (project.meta.compress && project.data != undefined) project = api.unpackProject(project, key);
-			if (project.settings.term == undefined) project.settings.term = -3;
-			if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
-			if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
-			for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) project.elements[i].id = i;
-			for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) project.bonds[i].id = i;
+			this.handleProject();
 			update();
+			api.initRTSCases();
+			api.initRTS();
 			this.changed = false;
 			this.closeWindow('import');
 		}
@@ -554,30 +550,34 @@ function exapi() {
 		else this.save(project.id, true);
 	}
 	
+	this.handleProject = function () {
+		var key;
+		if (project.meta.encrypt) key = document.querySelector('#load input.pass').value;
+		if (project.meta.compress && project.data != undefined) project = api.unpackProject(project, key);
+		if (project.settings.term == undefined) project.settings.term = -3;
+		if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
+		if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
+		if (project.terms != undefined) {
+			for (var i=0; i<project.terms.length; i++) {
+				project.terms.autoTerms = true;
+				autocalcTermRules(project.terms[i]);
+			}
+		}
+		for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
+			if (project.settings.term != -3) project.elements[i].tval = getTermInterval(project.elements[i].val);
+			project.elements[i].id = i;
+		}
+		for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) {
+			if (project.settings.term != -3) project.bonds[i].tval = getTermInterval(project.bonds[i].val);
+			project.bonds[i].id = i;
+		}
+	}
+	
 	this.load = function (name, silent) {
 		try {
 			if (api.settings.debug) console.log("Loading... ", name);
 			project = JSON.parse(localStorage[name]);
-			var key;
-			if (project.meta.encrypt) key = document.querySelector('#load input.pass').value;
-			if (project.meta.compress && project.data != undefined) project = api.unpackProject(project, key);
-			if (project.settings.term == undefined) project.settings.term = -3;
-			if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
-			if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
-			if (project.terms != undefined) {
-				for (var i=0; i<project.terms.length; i++) {
-					project.terms.autoTerms = true;
-					autocalcTermRules(project.terms);
-				}
-			}
-			for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
-				if (project.settings.term != -3) project.elements[i].tval = getTermInterval(project.elements[i].val);
-				project.elements[i].id = i;
-			}
-			for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) {
-				if (project.settings.term != -3) project.bonds[i].tval = getTermInterval(project.bonds[i].val);
-				project.bonds[i].id = i;
-			}
+			this.handleProject();
 			if (!silent) {
 				this.closeWindow("load");
 				this.closePopup();
@@ -600,7 +600,7 @@ function exapi() {
 					windows.loadError.content = 'Проект поврежден.<br><br>Описание ошибки:<br>'+ex;
 				}
 			}
-			else windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки:<br>'+ex;
+			else windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Попробуйте перезапустить программу. Также вероятно, что вы пытаетесь загрузить несуществующий проект.<br><br>Описание ошибки (см. браузерные логи для подробностей):<br>'+ex;
 			this.callPopup2(windows.loadError);
 			console.log(ex);
 			setTimeout(function() {resetProject(true)}, 500);
@@ -975,7 +975,7 @@ function exapi() {
 					if (isNaN(this.value)) this.value = 0;
 					if (this.value>1) this.value = 1;
 					if (this.value<min) this.value = min;
-					project.terms[this.parentNode.parentNode.value].terms[this.parentNode.parentNode.elemId].lim = this.value;
+					project.terms[this.parentNode.parentNode.value].terms[this.parentNode.parentNode.elemId].lim = parseFloat(this.value);
 					this.parentNode.parentNode.nextElementSibling.getElementsByClassName('b')[1].value = this.value;
 				});
 				c.appendChild(u);
@@ -1984,7 +1984,8 @@ function exapi() {
 	}
 	
 	this.keyListener = function(e, ev) {
-		if (((ev.target.nodeName == 'INPUT') || (ev.target.nodeName == 'TEXTAREA')) && e!=13 && e!=27) return;
+		if ((ev.target.nodeName == 'INPUT') && e!=13 && e!=27) return;
+		if (ev.target.nodeName == 'TEXTAREA' && e!=27) return;
 		document.getElementById("debug_keyInfo").innerHTML = e;
 		var t, i;
 		t = document.getElementById('top');

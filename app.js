@@ -354,6 +354,7 @@ function appDrawElements(el) {
 			else ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].fakeconnt;
 		}
 		else ctx.fillStyle = colorScheme[(api.settings.nightMode?1:0)].text;
+		ctx.lineWidth = 5;
 		ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].stext;
 		ctx.textAlign = 'center';
 		if (translateCoordsY(y) < ctx.canvas.height/2) {
