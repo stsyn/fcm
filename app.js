@@ -748,51 +748,13 @@ function update() {
 
 function createAndAddElement(el, isNew) { //createElement already defined >:c
 	var e = document.getElementById(el);
-	var id = parseInt(e.getElementsByClassName("cc_id")[0].value);
+	var id = parseInt(e.querySelector('[data-val="id"]').value);
 	project.elements[id] = {};
 	var elem = project.elements[id];
-	elem.id = id;
-	elem.X = parseFloat(e.getElementsByClassName("cc_X")[0].value);
-	elem.Y = parseFloat(e.getElementsByClassName("cc_Y")[0].value);
-	var type = parseInt(e.getElementsByClassName("cc_type")[0].value);
-	elem.type = type;
-	elem.desc = deXSS(e.getElementsByClassName("cc_desc")[0].value);
-	elem.name = deXSS(e.getElementsByClassName("cc_name")[0].value);
-	if (api.settings.palette) {
-		if (e.getElementsByClassName("cc_color_check")[0].checked) 
-			elem.privateColor = deXSS(e.getElementsByClassName("cc_color")[0].value);
-		else elem.privateColor = 0;
-	}
-	else elem.privateColor = deXSS(e.getElementsByClassName("cc_color2")[0].value);
-	if (e.getElementsByClassName("cc_size")[0].value !== "") elem.z = parseInt(e.getElementsByClassName("cc_size")[0].value)/100; 
-	else elem.z = 1;
-	if (elem.z > 3) elem.z = 3;
-	if (elem.z < 0.6) elem.z = 0.6;
-	
-	if ((type == 1) || (type == 2)) {
-		if (e.getElementsByClassName("cc_state")[0].value !== "") elem.state = parseFloat(e.getElementsByClassName("cc_state")[0].value); else elem.state = 0;
-		if (e.getElementsByClassName("cc_limit")[0].value !== "") elem.lim = parseFloat(e.getElementsByClassName("cc_limit")[0].value); else elem.lim = 0;
-	}
-	else if (type == 3) {
-		if (e.getElementsByClassName("cc_cost")[0].value !== "") elem.cost = parseFloat(e.getElementsByClassName("cc_cost")[0].value); else elem.cost = 0;
-		if (e.getElementsByClassName("cc_value")[0].value !== "") elem.val = parseFloat(e.getElementsByClassName("cc_value")[0].value); else elem.val = 0;
-		
-		if (elem.val < 0) elem.val = 0;
-		if (elem.val > 1) elem.val = 1;
-	}
-	else if ((type == 4) || (type == 5)) {
-		if (e.getElementsByClassName("cc_cost2")[0].value !== "") elem.cost = parseFloat(e.getElementsByClassName("cc_cost2")[0].value); else elem.cost = 0;
-		if (e.getElementsByClassName("cc_effect")[0].value !== "") elem.val = parseFloat(e.getElementsByClassName("cc_effect")[0].value); else elem.val = 0;	
-		
-		
-		if (project.settings.term != -3) {
-			//elem.val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
-			elem.tval = e.getElementsByClassName("cc_vsel")[0].selectedIndex;
-		}
-		
-		if (elem.val < 0) elem.val = 0;
-		if (elem.val > 1) elem.val = 1;
-		
+	readFromEditWindows(e, elem);
+
+	if (cache.elements[id] == undefined) cache.elements[id] = {aliases:[]};
+	if ((elem.type == 4) || (elem.type == 5)) {
 		elem.alias = parseInt(e.getElementsByClassName("cc_alias")[0].value);
 		var u = elem.alias;
 		if (u != -1) {
@@ -800,19 +762,21 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 			for (a = 0; a<cache.elements[u].aliases.length; a++) if (cache.elements[u].aliases[a] == id) break;
 			var x = project.elements[u];
 			if (a == cache.elements[u].aliases.length) cache.elements[u].aliases.push(id);
-			for (var i=0; i<cache.elements[id].aliases.length; i++) cache.elements[u].aliases.push(cache.elements[id].aliases[i]);
+			for (var i=0; i<cache.elements[id].aliases.length; i++) {
+				cache.elements[u].aliases.push(cache.elements[id].aliases[i]);
+				project.elements[cache.elements[id].aliases[i]].cost = x.cost;
+				project.elements[cache.elements[id].aliases[i]].val = x.val;
+				project.elements[cache.elements[id].aliases[i]].privateColor = x.privateColor;
+				project.elements[cache.elements[id].aliases[i]].name = x.name+' ['+(a+i+2)+']';
+			}
 			elem.cost = x.cost;
 			elem.val = x.val;
 			elem.privateColor = x.privateColor;
 			elem.name = x.name+' ['+(a+1)+']';
-			elem.desc = x.desc;
-			elem.z = x.z;
 		}
-		
 	}
-	if (!isNew) api.brush = type;
-	
-	
+	if (!isNew) api.brush = elem.type;
+		
 	var tx = project.elements[id].alias, ax = id;
 	while (tx > -1) {
 		ax = tx;
@@ -839,24 +803,17 @@ function createAndAddBond(el, isNew) {
 	var e = document.getElementById(el);
 	var id = parseInt(e.getElementsByClassName("cc_id")[0].value);
 	project.bonds[id] = {};
-	project.bonds[id].id = id;
-	project.bonds[id].first = parseInt(e.getElementsByClassName("cc_first")[0].value);
-	project.bonds[id].second = parseInt(e.getElementsByClassName("cc_second")[0].value);
-	project.bonds[id].val = parseFloat(e.getElementsByClassName("cc_v")[0].value);
+	var elem = project.bonds[id];
+	readFromEditWindows(e, elem);
 	if (project.bonds[id].val < 0) project.bonds[id].val = 0;
 	if (project.bonds[id].val > 1) project.bonds[id].val = 1;
 	
-	if (project.settings.term != -3) {
-		//project.bonds[id].val = getValueOfTerm(e.getElementsByClassName("cc_vsel")[0].selectedIndex);
-		project.bonds[id].tval = e.getElementsByClassName("cc_vsel")[0].selectedIndex;
-	}
-		
 	if (!isNew) api.brush = 0;
 	update();
 }
 
 function cancelCreation() {
-	api.brush = parseInt(document.getElementById("inst").getElementsByClassName("cc_type")[0].value);
+	api.brush = parseInt(document.getElementById("inst").querySelector('[data-val="type"]').value);
 	api.forceRedraw = true;
 }
 
@@ -946,50 +903,91 @@ function getTermName(val) {
 	return t.terms[getTermInterval(val)].term;
 }
 
+function fulfillTerms(cc, el) {
+	for (var i=0; i<cc.getElementsByClassName('termsrender').length; i++) {
+		var u = cc.getElementsByClassName('termsrender')[i];
+		if (u.classList.contains('rendered')) continue;
+		
+		e = u.parentNode;
+		u.innerHTML = '';
+		var t = api.getTermsPattern(project.settings.term);
+		for (var j=0; j<t.terms.length; j++) {
+			u.appendChild(InfernoAddElem('option',{selected:(j == el[u.dataset.val]), innerHTML:t.terms[j].term, value:j},[]));
+		}
+		
+		if (project.settings.term == -3) {
+			u.classList.add('hd');
+			e.querySelector('input[type="text"]').classList.remove('hd');
+		}
+		else {
+			u.classList.remove('hd');
+			e.querySelector('input[type="text"]').classList.add('hd');
+		}
+		u.classList.add('rendered');
+		
+	}
+}
+
+function setVisibility(cc, el) {
+	var elements = ['input','textarea','select'];
+	for (var i=0; i<cc.querySelectorAll('[data-display-types]').length; i++) {
+		var e = cc.querySelectorAll('[data-display-types]')[i];
+		var a = JSON.parse(e.dataset.displayTypes);
+		e.style.display = (a.indexOf(el.type) != -1)?'block':'none';
+		for (var j=0; j<elements.length; j++) {
+			for (var k=0; k<e.querySelectorAll(elements[j]).length; k++) {
+				e.querySelectorAll(elements[j])[k].dataset.active = (a.indexOf(el.type) != -1)?'true':'false';
+			}
+		}
+	}
+}
+
+function prepareEditWindows(cc, el) {
+	for (var i=0; i<cc.querySelectorAll('[data-val]').length; i++) {
+		var e = cc.querySelectorAll('[data-val]')[i];
+		
+		if (el[e.dataset.val] != undefined) {
+			e[e.type=="checkbox"?'checked':'value'] = el[e.dataset.val];
+			var thisValue = el[e.dataset.val];
+			if (e.dataset.specialInput != undefined) e[e.type=="checkbox"?'checked':(e.tagName=="SELECT"?'selectedIndex':'value')] = eval(e.dataset.specialInput);
+		}
+	}
+}
+
+function readFromEditWindows(cc, el) {
+	for (var i=0; i<cc.querySelectorAll('[data-val]').length; i++) {
+		var e = cc.querySelectorAll('[data-val]')[i];
+		
+		if (e.dataset.writeOnly == "true") continue;
+		if (e.dataset.active == "false") continue;
+		
+		if (e.dataset.readCondition != undefined) {
+			if (eval(e.dataset.readCondition)) continue;
+		}
+		
+		el[e.dataset.val] = e[e.type=="checkbox"?'checked':'value'];
+		if (el[e.dataset.val] == '' && e.dataset.parse != "string") {
+			if (e.dataset.default != undefined) el[e.dataset.val] = e.dataset.default;
+			else el[e.dataset.val] = 0;
+		}
+		if (e.dataset.parse == "string") el[e.dataset.val] = deXSS(el[e.dataset.val]);
+		else if (e.dataset.parse == "int") el[e.dataset.val] = parseInt(el[e.dataset.val]);
+		else el[e.dataset.val] = parseFloat(el[e.dataset.val]);
+		var thisValue = el[e.dataset.val];
+		
+		if (e.dataset.specialOutput != undefined) el[e.dataset.val] = eval(e.dataset.specialOutput);
+	}
+}
+
 function editElement(id) {
 	api.callWindow("","edit",id);
 	var e = document.getElementById("edite"+id);
 	var el = project.elements[id];
 	e.getElementsByClassName("h")[0].innerHTML = '<i>'+getName(id)+'</i>';
 	e.getElementsByClassName("hc")[0].innerHTML = '<i>'+getName(id)+'</i>';
-	e.getElementsByClassName("cc_id")[0].value = id;
-	e.getElementsByClassName("cc_X")[0].value = el.X;
-	e.getElementsByClassName("cc_Y")[0].value = el.Y;
-	e.getElementsByClassName("cc_type")[0].value = el.type;
-	e.getElementsByClassName("cc_color")[0].value = (project.elements[id].privateColor?project.elements[id].privateColor:api.settings.color[el.type-1]);
-	e.getElementsByClassName("cc_color2")[0].value = project.elements[id].privateColor;
-	e.getElementsByClassName("cc_color_check")[0].checked = project.elements[id].privateColor;
-	e.getElementsByClassName("cc_size")[0].value = project.elements[id].z*100;
 	
-	e.getElementsByClassName("cc_desc")[0].value = el.desc;
-	e.getElementsByClassName("cc_name")[0].value = el.name;
-	e.getElementsByClassName("cc_cost")[0].value = el.cost;
-	e.getElementsByClassName("cc_cost2")[0].value = el.cost;
-	e.getElementsByClassName("cc_state")[0].value = el.state;
-	e.getElementsByClassName("cc_limit")[0].value = el.lim;
-	e.getElementsByClassName("cc_value")[0].value = el.val;
-	e.getElementsByClassName("cc_effect")[0].value = el.val;
-	e.getElementsByClassName("cc_code")[0].value = getCode(id);
-	
-	var u = e.getElementsByClassName("cc_vsel")[0];
-	u.innerHTML = '';
-	var t = api.getTermsPattern(project.settings.term);
-	for (var i=0; i<t.terms.length; i++) {
-		var c = document.createElement('option');
-		c.selected = (i == el.tval);
-		c.innerHTML = t.terms[i].term;
-		c.value = i;
-		u.appendChild(c);
-	}
-	
-	if (project.settings.term == -3) {
-		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
-		e.getElementsByClassName("cc_effect")[0].classList.remove('hd');
-	}
-	else {
-		u.classList.remove('hd');
-		e.getElementsByClassName("cc_effect")[0].classList.add('hd');
-	}
+	fulfillTerms(e, el);
+	prepareEditWindows(e, el);
 	
 	var u = e.getElementsByClassName("cc_alias")[0];
 	u.innerHTML = '';
@@ -1010,49 +1008,22 @@ function editElement(id) {
 	}
 	
 	if (!(el.alias>=0)) {
-		e.getElementsByClassName("cc_color")[0].classList.remove('na');
-		e.getElementsByClassName("cc_color")[0].disabled = false;
-		e.getElementsByClassName("cc_color2")[0].classList.remove('na');
-		e.getElementsByClassName("cc_color2")[0].disabled = false;
-		e.getElementsByClassName("cc_color_check")[0].classList.remove('na');
-		e.getElementsByClassName("cc_color_check")[0].disabled = false;
-		e.getElementsByClassName("cc_desc")[0].classList.remove('na');
-		e.getElementsByClassName("cc_desc")[0].disabled = false;
-		e.getElementsByClassName("cc_name")[0].classList.remove('na');
-		e.getElementsByClassName("cc_name")[0].disabled = false;
-		e.getElementsByClassName("cc_effect")[0].classList.remove('na');
-		e.getElementsByClassName("cc_effect")[0].disabled = false;
-		e.getElementsByClassName("cc_cost2")[0].classList.remove('na');
-		e.getElementsByClassName("cc_cost2")[0].disabled = false;
-		e.getElementsByClassName("cc_vsel")[0].classList.remove('na');
-		e.getElementsByClassName("cc_vsel")[0].disabled = false;
-		e.getElementsByClassName("cc_size")[0].classList.remove('na');
-		e.getElementsByClassName("cc_size")[0].disabled = false;
+		for (var i=0; i<e.querySelectorAll('[data-val]').length; i++) {
+			e.querySelectorAll('[data-val]')[i].classList.remove('na');
+			e.querySelectorAll('[data-val]')[i].disabled = false;
+		}
 	}
 	else if ((el.type == 4) || (el.type == 5)) {
-		e.getElementsByClassName("cc_color")[0].classList.add('na');
-		e.getElementsByClassName("cc_color")[0].disabled = true;
-		e.getElementsByClassName("cc_color2")[0].classList.add('na');
-		e.getElementsByClassName("cc_color2")[0].disabled = true;
-		e.getElementsByClassName("cc_color_check")[0].classList.add('na');
-		e.getElementsByClassName("cc_color_check")[0].disabled = true;
-		e.getElementsByClassName("cc_desc")[0].classList.add('na');
-		e.getElementsByClassName("cc_desc")[0].disabled = true;
-		e.getElementsByClassName("cc_name")[0].classList.add('na');
-		e.getElementsByClassName("cc_name")[0].disabled = true;
-		e.getElementsByClassName("cc_effect")[0].classList.add('na');
-		e.getElementsByClassName("cc_effect")[0].disabled = true;
-		e.getElementsByClassName("cc_cost2")[0].classList.add('na');
-		e.getElementsByClassName("cc_cost2")[0].disabled = true;
-		e.getElementsByClassName("cc_vsel")[0].classList.add('na');
-		e.getElementsByClassName("cc_vsel")[0].disabled = true;
-		e.getElementsByClassName("cc_size")[0].classList.add('na');
-		e.getElementsByClassName("cc_size")[0].disabled = true;
+		for (var i=0; i<e.querySelectorAll('[data-val]').length; i++) {
+			if (e.querySelectorAll('[data-val]')[i].dataset.val == 'alias') continue;
+			if (e.querySelectorAll('[data-val]')[i].dataset.val == 'z') continue;
+			if (e.querySelectorAll('[data-val]')[i].dataset.val == 'desc') continue;
+			e.querySelectorAll('[data-val]')[i].classList.add('na');
+			e.querySelectorAll('[data-val]')[i].disabled = true;
+		}
 	}
 	
-	//e.getElementsByClassName("_cc_initator")[0].style.display = (((el.type == 1) || (el.type == 2))?"block":"none");
-	e.getElementsByClassName("_cc_target")[0].style.display = ((el.type == 3)?"block":"none");
-	e.getElementsByClassName("_cc_control")[0].style.display = (((el.type == 4) || (el.type == 5))?"block":"none");
+	setVisibility(e, el);
 	
 	api.includeBonds(e.getElementsByClassName("blist")[0].getElementsByTagName("table")[0],id);
 	includeNeighbours(id, e.getElementsByClassName("ellist")[0]);
@@ -1065,31 +1036,10 @@ function editBond(id) {
 	var el = project.bonds[id];
 	e.getElementsByClassName("h")[0].innerHTML = '<i>'+getName(el.first)+' — '+getName(el.second)+'</i>';
 	e.getElementsByClassName("hc")[0].innerHTML = '<i>'+getName(el.first)+' — '+getName(el.second)+'</i>';
-	e.getElementsByClassName("cc_id")[0].value = id;
-	e.getElementsByClassName("cc_first")[0].value = el.first;
-	e.getElementsByClassName("cc_second")[0].value = el.second;
-	e.getElementsByClassName("cc_v")[0].value = el.val;
+	fulfillTerms(e, el);
 	
-	var u = e.getElementsByClassName("cc_vsel")[0];
-	u.innerHTML = '';
+	prepareEditWindows(e, el);
 	
-	var t = api.getTermsPattern(project.settings.term);
-	for (var i=0; i<t.terms.length; i++) {
-		var c = document.createElement('option');
-		c.selected = (i == el.tval);
-		c.innerHTML = t.terms[i].term;
-		c.value = i;
-		u.appendChild(c);
-	}
-	
-	if (project.settings.term == -3) {
-		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
-		e.getElementsByClassName("cc_v")[0].classList.remove('hd');
-	}
-	else {
-		e.getElementsByClassName("cc_v")[0].classList.add('hd');
-		u.classList.remove('hd');
-	}
 	api.includeElements(e.getElementsByClassName("elist")[0].getElementsByTagName("table")[0], id);
 }
 
@@ -1103,43 +1053,6 @@ function AddElement(MouseX,MouseY,onBond) {
 	for (i=0;1;i++) if (project.elements[i] == undefined) break;
 	api.callWindow('inst');
 	var e = document.getElementById("inst");
-	e.getElementsByClassName("cc_id")[0].value = i;
-	e.getElementsByClassName("cc_X")[0].value = x;
-	e.getElementsByClassName("cc_Y")[0].value = y;
-	e.getElementsByClassName("cc_type")[0].value = api.brush;
-	e.getElementsByClassName("cc_color_check")[0].checked = false;
-	e.getElementsByClassName("cc_color")[0].value = api.settings.color[api.brush-1];
-	e.getElementsByClassName("cc_color2")[0].value = "";
-	e.getElementsByClassName("cc_size")[0].value = "100";
-	
-	e.getElementsByClassName("cc_desc")[0].value = "";
-	e.getElementsByClassName("cc_name")[0].value = cCode(i, api.brush);
-	e.getElementsByClassName("cc_cost")[0].value = "0";
-	e.getElementsByClassName("cc_cost2")[0].value = "0";
-	e.getElementsByClassName("cc_state")[0].value = "0";
-	e.getElementsByClassName("cc_limit")[0].value = "0";
-	e.getElementsByClassName("cc_value")[0].value = "0";
-	e.getElementsByClassName("cc_effect")[0].value = "0.5";
-	e.getElementsByClassName("cc_code")[0].value = cCode(i, api.brush);
-	
-	if (project.settings.term == -3) {
-		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
-		e.getElementsByClassName("cc_effect")[0].classList.remove('hd');
-	}
-	else {
-		e.getElementsByClassName("cc_effect")[0].classList.add('hd');
-		var u = e.getElementsByClassName("cc_vsel")[0];
-		u.classList.remove('hd');
-		u.innerHTML = '';
-		
-		var t = api.getTermsPattern(project.settings.term);
-		for (var i=0; i<t.terms.length; i++) {
-			var c = document.createElement('option');
-			c.innerHTML = t.terms[i].term;
-			c.value = i;
-			u.appendChild(c);
-		}
-	}
 	
 	var u = e.getElementsByClassName("cc_alias")[0];
 	u.innerHTML = '';
@@ -1148,8 +1061,8 @@ function AddElement(MouseX,MouseY,onBond) {
 	c.innerHTML = '[Не выбрано]';
 	c.value = -1;
 	u.appendChild(c);
-	for (var i=0; i<cache.types[api.brush-1].length; i++) {
-		var un = cache.types[api.brush-1][i];
+	for (var j=0; j<cache.types[api.brush-1].length; j++) {
+		var un = cache.types[api.brush-1][j];
 		if (project.elements[un].alias > -1) continue;
 		c = document.createElement('option');
 		c.innerHTML = getName(un);
@@ -1157,9 +1070,12 @@ function AddElement(MouseX,MouseY,onBond) {
 		u.appendChild(c);
 	}
 	
-	e.getElementsByClassName("_cc_initator")[0].style.display = (((api.brush == 1) || (api.brush == 2))?"block":"none");
-	e.getElementsByClassName("_cc_target")[0].style.display = ((api.brush == 3)?"block":"none");
-	e.getElementsByClassName("_cc_control")[0].style.display = (((api.brush == 4) || (api.brush == 5))?"block":"none");
+	prepareEditWindows(e, {id:i, X:x, Y:y, type:api.brush, privateColor:api.settings.color[api.brush-1], name:cCode(i, api.brush), code:cCode(i, api.brush), desc:'', size:1, alias:-1});
+	
+	fulfillTerms(e, {tval:'1',ftval:'1'});
+	
+	setVisibility(e, {type:api.brush});
+	
 	api.brush = 100;
 }
 
@@ -1197,28 +1113,10 @@ function AddBond(FirstElement,SecondElement) {
 	api.callWindow('instb');
 	var e = document.getElementById("instb");
 	e.getElementsByClassName("cc_id")[0].value = i;
-	e.getElementsByClassName("cc_first")[0].value = FirstElement;
-	e.getElementsByClassName("cc_second")[0].value = SecondElement;
-	e.getElementsByClassName("cc_v")[0].value = "0.5";
+	fulfillTerms(e, {tval:'1'});
 	
-	if (project.settings.term == -3) {
-		e.getElementsByClassName("cc_vsel")[0].classList.add('hd');
-		e.getElementsByClassName("cc_v")[0].classList.remove('hd');
-	}
-	else {
-		e.getElementsByClassName("cc_v")[0].classList.add('hd');
-		var u = e.getElementsByClassName("cc_vsel")[0];
-		u.classList.remove('hd');
-		u.innerHTML = '';
-		
-		var t = api.getTermsPattern(project.settings.term);
-		for (var i=0; i<t.terms.length; i++) {
-			var c = document.createElement('option');
-			c.innerHTML = t.terms[i].term;
-			c.value = i;
-			u.appendChild(c);
-		}
-	}
+	prepareEditWindows(e, {id:i, first:FirstElement, second:SecondElement});
+
 	api.brush = 100;
 }
 

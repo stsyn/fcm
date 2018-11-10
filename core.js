@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.3", s:"RC2", b:72};
+	this.version = {g:"0.9.3", s:"RC2", b:73};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -563,11 +563,11 @@ function exapi() {
 				autocalcTermRules(project.terms[i]);
 			}
 		}
-		for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
+		for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined && project.elements[i].tval == undefined) {
 			if (project.settings.term != -3) project.elements[i].tval = getTermInterval(project.elements[i].val);
 			project.elements[i].id = i;
 		}
-		for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) {
+		for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined && project.bonds[i].tval == undefined) {
 			if (project.settings.term != -3) project.bonds[i].tval = getTermInterval(project.bonds[i].val);
 			project.bonds[i].id = i;
 		}

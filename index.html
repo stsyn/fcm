@@ -485,50 +485,57 @@
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:17%">ID: <input type="text" class="b i cc_id" style="width:1.7em" disabled></div>
-							<div class="t de" style="width:58%">Имя: <input type="text" class="b i cc_name" style="width:12em"></div>
-							<div class="t de" style="width:25%">Код: <input type="text" class="b i cc_code" style="width:3.5em" disabled></div>
+							<div class="t de" style="width:17%">ID: <input type="text" class="b i" data-val="id" style="width:calc(100% - 3em)" disabled></div>
+							<div class="t de" style="width:58%">Имя: <input type="text" class="b i" data-val="name" data-parse="string"  style="width:calc(100% - 4em)"></div>
+							<div class="t de" style="width:25%">Код: <input type="text" class="b i" data-val="code" data-write-only="true"style="width:calc(100% - 4em)" disabled></div>
 						</div></div></div>
-						<div class="line de">Детальное описание: <textarea type="text" class="b i cc_desc" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
+						<div class="line de">Детальное описание: <textarea type="text" class="b i" data-val="desc" data-parse="string" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
+						<div class="line de" data-display-types="[2, 3, 6]">
+							Навязанный вес: 
+							<input type="checkbox" style="display:inline" id="b i cc_forced_check"> 
+							<input type="text" class="b i" data-val="fval" style="width:4em">
+							<select size="1" data-val="ftval" class="b ilb cc_ft_value termsrender"></select>
+						</div>
 					</div>
-					<div class="pad _cc_initator" style="display:none">
+					<div class="pad" data-display-types="[1, 2]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i cc_state na" style="width:3em" disabled></div>
-							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i cc_limit na" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i na" data-val="state" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i na" data-val="limit" style="width:3em" disabled></div>
 						</div></div></div>
 					</div>
-					<div class="pad _cc_target" style="display:block">
+					<div class="pad" data-display-types="[3]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost" style="width:4em"></div>
-							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i cc_value" style="width:4em"></div>
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
+							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i" data-val="val" style="width:4em"></div>
 						</div></div></div>
 					</div>
-					<div class="pad _cc_control" style="display:block">
+					<div class="pad" data-display-types="[4, 5]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost2" style="width:4em"></div>
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
 							<div class="t de" style="width:50%">Эффективность: 
-								<input type="text" class="b i cc_effect" style="width:4em">
-								<select size="1" class="b ilb cc_vsel"></select>
+								<input type="text" class="b i" data-val="val" style="width:4em">
+								<select size="1" data-val="tval" class="b ilb termsrender"></select>
 							</div>
 						</div></div></div>
 						<div class="line" style="font-size:120%">
-							Копия <select size="1" class="b ilb cc_alias"></select>
+							Копия <select size="1" class="b ilb cc_alias" data-val="alias"></select>
 						</div>
 						<div class="line">
 							Если выбрано, все остальные настройки будут приведены к элементу-исходнику.
 						</div>
 					</div>
-					<div class="pad debug" style="display:block">
+					<div class="pad debug">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:38%">X: <input type="text" class="b i cc_X" style="width:4em"></div>
-							<div class="t de" style="width:38%">Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
-							<div class="t de" style="width:24%">Тип: <input type="text" class="b i cc_type" style="width:2em" disabled></div>
+							<div class="t de" style="width:38%">X: <input type="text" class="b i" data-val="X" style="width:4em"></div>
+							<div class="t de" style="width:38%">Y: <input type="text" class="b i" data-val="Y" style="width:4em"></div>
+							<div class="t de" style="width:24%">Тип: <input type="text" class="b i" data-val="type" data-parse="int" style="width:2em" disabled></div>
 						</div></div></div>
 					</div>
 					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
-							<div class="t de" style="width:50%">Цвет: <input type="text" class="b i cc_color2 color2" style="width:6em"> 		<input type="checkbox" class="b i color cc_color_check"> <input type="color" class="b i cc_color color" style="width:5em"></div>
+							<div class="t de" style="width:30%">Размер %: <input type="text" class="b i" data-val="z" data-special-input="(thisValue*100)" data-default="100" data-special-output="(thisValue/100)" data-parse="int" style="width:4em"></div>
+							<div class="t de" style="width:30%">Цвет: <input type="text" class="b i color2" data-val="privateColor" data-parse="string" data-read-condition="!api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:6em">
+							<input type="checkbox" class="b i color cc_color_check"> <input type="color" class="b i color" data-parse="string" data-val="privateColor" data-read-condition="api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:5em"></div>
 						</div></div></div>
 					</div>
 				</div>
@@ -548,14 +555,14 @@
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:31%">ID: <input type="text" class="b i cc_id" style="width:3em" disabled></div>
-							<div class="t de" style="width:35%">Начало: <input type="text" class="b i cc_first" style="width:3em" disabled></div>
-							<div class="t de" style="width:34%">Конец: <input type="text" class="b i cc_second" style="width:8em" disabled></div>
+							<div class="t de" style="width:19%">ID: <input type="text" class="b i cc_id" data-val="id" style="width:2em" disabled></div>
+							<div class="t de" style="width:23%">Начало: <input type="text" class="b i" data-val="first" style="width:3em" disabled></div>
+							<div class="t de" style="width:24%">Конец: <input type="text" class="b i" data-val="second" style="width:3em" disabled></div>
+							<div class="t de" style="width:34%">Сила: 
+								<input type="text" class="b i" data-val="val" style="width:3em">
+								<select size="1" data-val="tval" class="b ilb termsrender"></select>
+							</div>
 						</div></div></div>
-						<div class="line de">Сила: 
-							<input type="text" class="b i cc_v" style="width:4em">
-							<select size="1" class="b ilb cc_vsel"></select>
-						</div>
 					</div>
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
@@ -580,12 +587,12 @@
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:22%">ID: <input type="text" class="b i cc_id" style="width:2em" disabled></div>
-							<div class="t de" style="width:24%">Начало: <input type="text" class="b i cc_first" style="width:3em" disabled></div>
-							<div class="t de" style="width:25%">Конец: <input type="text" class="b i cc_second" style="width:3em" disabled></div>
-							<div class="t de" style="width:29%">Сила: 
-								<input type="text" class="b i cc_v" style="width:3em">
-								<select size="1" class="b ilb cc_vsel"></select>
+							<div class="t de" style="width:19%">ID: <input type="text" class="b i cc_id" data-val="id" style="width:2em" disabled></div>
+							<div class="t de" style="width:23%">Начало: <input type="text" class="b i" data-val="first" style="width:3em" disabled></div>
+							<div class="t de" style="width:24%">Конец: <input type="text" class="b i" data-val="second" style="width:3em" disabled></div>
+							<div class="t de" style="width:34%">Сила: 
+								<input type="text" class="b i" data-val="val" style="width:3em">
+								<select size="1" data-val="tval" class="b ilb termsrender"></select>
 							</div>
 						</div></div></div>
 					</div>
@@ -615,56 +622,60 @@
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:15%">ID: <input type="text" class="b i cc_id" style="width:calc(100% - 3em)" disabled></div>
-							<div class="t de" style="width:58%">Имя: <input type="text" class="b i cc_name" style="width:calc(100% - 4em)"></div>
-							<div class="t de" style="width:27%">Код: <input type="text" class="b i cc_code" style="width:calc(100% - 4em)" disabled></div>
+							<div class="t de" style="width:17%">ID: <input type="text" class="b i cc_id" data-val="id" style="width:calc(100% - 3em)" disabled></div>
+							<div class="t de" style="width:58%">Имя: <input type="text" class="b i" data-val="name" data-parse="string"  style="width:calc(100% - 4em)"></div>
+							<div class="t de" style="width:25%">Код: <input type="text" class="b i" data-val="code" data-write-only="true"style="width:calc(100% - 4em)" disabled></div>
 						</div></div></div>
-						<div class="line de">Детальное описание: <textarea type="text" class="b i cc_desc" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
-					</div>
-					<div class="pad _cc_initator" style="display:none">
-						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i cc_state na" style="width:3em" disabled></div>
-							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i cc_limit na" style="width:3em" disabled></div>
-						</div></div></div>
-					</div>
-					<div class="pad _cc_target">
-						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i cc_cost" style="width:4em"></div>
-							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i cc_value" style="width:4em"></div>
-						</div></div></div>
-					</div>
-					<div class="pad _cc_control">
-						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:40%">Стоимость: <input type="text" class="b i cc_cost2" style="width:4em"></div>
-							<div class="t de" style="width:60%">Эффективность: 
-								<input type="text" class="b i cc_effect" style="width:4em">
-								<select size="1" class="b ilb cc_vsel"></select>
-							</div>
-						</div></div></div>
-						<div class="pad bl">
-							<div class="line" style="font-size:120%">
-								Копия <select size="1" class="b ilb cc_alias"></select>
-							</div>
-							<div class="line">
-								Если выбрано, все остальные настройки будут приведены к элементу-исходнику.<br>
-								Настройки копий этого элемента будут обновлены автоматически.
-							</div>
-							<div class="pad coplist" style="display:block">
-						
-							</div>
+						<div class="line de">Детальное описание: <textarea type="text" class="b i" data-val="desc" data-parse="string" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
+						<div class="line de" data-display-types="[2, 3, 6]">
+							Навязанный вес: 
+							<input type="checkbox" style="display:inline" id="b i cc_forced_check"> 
+							<input type="text" class="b i" data-val="fval" style="width:4em">
+							<select size="1" data-val="ftval" class="b ilb cc_ft_value termsrender"></select>
 						</div>
 					</div>
-					<div class="pad debug" style="display:block">
+					<div class="pad" data-display-types="[1, 2]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:38%">X: <input type="text" class="b i cc_X" style="width:4em"></div>
-							<div class="t de" style="width:38%">Y: <input type="text" class="b i cc_Y" style="width:4em"></div>
-							<div class="t de" style="width:24%">Тип: &nbsp;<input type="text" class="b i cc_type" style="width:2em" disabled></div>
+							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i na" data-val="state" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i na" data-val="limit" style="width:3em" disabled></div>
+						</div></div></div>
+					</div>
+					<div class="pad" data-display-types="[3]">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
+							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i" data-val="val" style="width:4em"></div>
+						</div></div></div>
+					</div>
+					<div class="pad" data-display-types="[4, 5]">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
+							<div class="t de" style="width:50%">Эффективность: 
+								<input type="text" class="b i" data-val="val" style="width:4em">
+								<select size="1" data-val="tval" class="b ilb termsrender"></select>
+							</div>
+						</div></div></div>
+						<div class="line" style="font-size:120%">
+							Копия <select size="1" class="b ilb cc_alias" data-val="alias"></select>
+						</div>
+						<div class="line">
+							Если выбрано, все остальные настройки будут приведены к элементу-исходнику.
+						</div>
+						<div class="pad coplist" style="display:block">
+					
+						</div>
+					</div>
+					<div class="pad debug">
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:38%">X: <input type="text" class="b i" data-val="X" style="width:4em"></div>
+							<div class="t de" style="width:38%">Y: <input type="text" class="b i" data-val="Y" style="width:4em"></div>
+							<div class="t de" style="width:24%">Тип: <input type="text" class="b i" data-val="type" data-parse="int" style="width:2em" disabled></div>
 						</div></div></div>
 					</div>
 					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Размер %: <input type="text" class="b i cc_size" style="width:4em"></div>
-							<div class="t de" style="width:50%">Цвет: <input type="text" class="b i cc_color2 color2" style="width:6em"> 		<input type="checkbox" class="b i color cc_color_check"> <input type="color" class="b i cc_color color" style="width:5em"></div>
+							<div class="t de" style="width:30%">Размер %: <input type="text" class="b i" data-val="z" data-special-input="(thisValue*100)" data-default="100" data-special-output="(thisValue/100)" data-parse="int" style="width:4em"></div>
+							<div class="t de" style="width:30%">Цвет: <input type="text" class="b i color2" data-val="privateColor" data-parse="string" data-read-condition="!api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:6em">
+							<input type="checkbox" class="b i color cc_color_check"> <input type="color" class="b i color" data-parse="string" data-val="privateColor" data-read-condition="api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:5em"></div>
 						</div></div></div>
 					</div>
 					<div class="pad selection blist" style="display:block"><table class="r" cellspacing="0" rules="all">
