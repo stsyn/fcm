@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.3", s:"RC2", b:73};
+	this.version = {g:"0.9.3", s:"RC2", b:74};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -2415,12 +2415,23 @@ function exapi() {
 					api.switchRadioElemState(elem);
 				}
 			}
+			else if (cat == 'change') {
+				if (elem.dataset.mark != undefined) {
+					for (var i=0; i<elem.parentNode.querySelectorAll(elem.dataset.mark).length; i++) {
+						elem.parentNode.querySelectorAll(elem.dataset.mark)[i].checked = true;
+					}
+				}
+			}
 		}
 		if (elem.tagName != 'BODY') api.parseEvent(elem.parentNode, cat);
 	}
 	
 	this.handleClickEvents = function (e) {
 		api.parseEvent(e.target, 'click');
+	}
+	
+	this.handleChangeEvents = function (e) {
+		api.parseEvent(e.target, 'change');
 	}
 }
 
@@ -2430,6 +2441,7 @@ window.onload = function () {
 	if (document.getElementById("loadstring") != undefined) document.getElementById("loadstring").innerHTML = returnRandomLoadingLine();
 	setTimeout(function() {api.init(true)},200);
 	document.body.addEventListener('click', api.handleClickEvents);
+	document.body.addEventListener('change', api.handleChangeEvents);
 }
 
 window.onbeforeunload = function (evt) {

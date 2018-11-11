@@ -753,7 +753,7 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	var elem = project.elements[id];
 	readFromEditWindows(e, elem);
 
-	if (cache.elements[id] == undefined) cache.elements[id] = {aliases:[]};
+	if (cache.elements[id] == undefined) cache.elements[id] = {aliases:[], inbonds:[]};
 	if ((elem.type == 4) || (elem.type == 5)) {
 		elem.alias = parseInt(e.getElementsByClassName("cc_alias")[0].value);
 		var u = elem.alias;
@@ -776,6 +776,13 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 		}
 	}
 	if (!isNew) api.brush = elem.type;
+	
+	if (elem.forced) {
+		for (var i=0; i<cache.elements[id].inbonds.length; i++) {
+			project.bonds[cache.elements[id].inbonds[i]].val = elem.fval;
+			project.bonds[cache.elements[id].inbonds[i]].tval = elem.ftval;
+		}
+	}
 		
 	var tx = project.elements[id].alias, ax = id;
 	while (tx > -1) {
@@ -970,9 +977,12 @@ function readFromEditWindows(cc, el) {
 			if (e.dataset.default != undefined) el[e.dataset.val] = e.dataset.default;
 			else el[e.dataset.val] = 0;
 		}
-		if (e.dataset.parse == "string") el[e.dataset.val] = deXSS(el[e.dataset.val]);
-		else if (e.dataset.parse == "int") el[e.dataset.val] = parseInt(el[e.dataset.val]);
-		else el[e.dataset.val] = parseFloat(el[e.dataset.val]);
+		
+		if (e.type=="text") {
+			if (e.dataset.parse == "string") el[e.dataset.val] = deXSS(el[e.dataset.val]);
+			else if (e.dataset.parse == "int") el[e.dataset.val] = parseInt(el[e.dataset.val]);
+			else el[e.dataset.val] = parseFloat(el[e.dataset.val]);
+		}
 		var thisValue = el[e.dataset.val];
 		
 		if (e.dataset.specialOutput != undefined) el[e.dataset.val] = eval(e.dataset.specialOutput);
@@ -1025,6 +1035,8 @@ function editElement(id) {
 	
 	setVisibility(e, el);
 	
+	e.getElementsByClassName("cc_color_check").checked = false;
+	
 	api.includeBonds(e.getElementsByClassName("blist")[0].getElementsByTagName("table")[0],id);
 	includeNeighbours(id, e.getElementsByClassName("ellist")[0]);
 	includeAliases(id, e.getElementsByClassName("coplist")[0]);
@@ -1039,6 +1051,24 @@ function editBond(id) {
 	fulfillTerms(e, el);
 	
 	prepareEditWindows(e, el);
+	
+	
+	if (project.elements[el.second].forced) {
+		e.querySelector('[data-val="val"]').classList.add('na');
+		e.querySelector('[data-val="val"]').disabled = true;
+		e.querySelector('[data-val="val"]').value = project.elements[el.second].fval;
+		
+		e.querySelector('[data-val="tval"]').classList.add('na');
+		e.querySelector('[data-val="tval"]').disabled = true;
+		e.querySelector('[data-val="tval"]').selectedIndex = project.elements[el.second].ftval;
+	}
+	else {
+		e.querySelector('[data-val="val"]').classList.remove('na');
+		e.querySelector('[data-val="val"]').disabled = false;
+		
+		e.querySelector('[data-val="tval"]').classList.remove('na');
+		e.querySelector('[data-val="tval"]').disabled = false;
+	}
 	
 	api.includeElements(e.getElementsByClassName("elist")[0].getElementsByTagName("table")[0], id);
 }
@@ -1075,6 +1105,8 @@ function AddElement(MouseX,MouseY,onBond) {
 	fulfillTerms(e, {tval:'1',ftval:'1'});
 	
 	setVisibility(e, {type:api.brush});
+	
+	e.getElementsByClassName("cc_color_check").checked = false;
 	
 	api.brush = 100;
 }
@@ -1113,9 +1145,26 @@ function AddBond(FirstElement,SecondElement) {
 	api.callWindow('instb');
 	var e = document.getElementById("instb");
 	e.getElementsByClassName("cc_id")[0].value = i;
-	fulfillTerms(e, {tval:'1'});
 	
+	fulfillTerms(e, {tval:'1'});
 	prepareEditWindows(e, {id:i, first:FirstElement, second:SecondElement});
+	
+	if (project.elements[SecondElement].forced) {
+		e.querySelector('[data-val="val"]').classList.add('na');
+		e.querySelector('[data-val="val"]').disabled = true;
+		e.querySelector('[data-val="val"]').value = project.elements[SecondElement].fval;
+		
+		e.querySelector('[data-val="tval"]').classList.add('na');
+		e.querySelector('[data-val="tval"]').disabled = true;
+		e.querySelector('[data-val="tval"]').selectedIndex = project.elements[SecondElement].ftval;
+	}
+	else {
+		e.querySelector('[data-val="val"]').classList.remove('na');
+		e.querySelector('[data-val="val"]').disabled = false;
+		
+		e.querySelector('[data-val="tval"]').classList.remove('na');
+		e.querySelector('[data-val="tval"]').disabled = false;
+	}
 
 	api.brush = 100;
 }

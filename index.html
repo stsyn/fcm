@@ -492,9 +492,9 @@
 						<div class="line de">Детальное описание: <textarea type="text" class="b i" data-val="desc" data-parse="string" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
 						<div class="line de" data-display-types="[2, 3, 6]">
 							Навязанный вес: 
-							<input type="checkbox" style="display:inline" id="b i cc_forced_check"> 
-							<input type="text" class="b i" data-val="fval" style="width:4em">
-							<select size="1" data-val="ftval" class="b ilb cc_ft_value termsrender"></select>
+							<input type="checkbox" style="display:inline" data-val="forced" id="b i"> 
+							<input type="text" data-mark="[data-val=&quot;forced&quot;]" class="b i" data-val="fval" style="width:4em">
+							<select size="1" data-val="ftval" data-mark="[data-val=&quot;forced&quot;]" class="b ilb cc_ft_value termsrender"></select>
 						</div>
 					</div>
 					<div class="pad" data-display-types="[1, 2]">
@@ -535,7 +535,8 @@
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:30%">Размер %: <input type="text" class="b i" data-val="z" data-special-input="(thisValue*100)" data-default="100" data-special-output="(thisValue/100)" data-parse="int" style="width:4em"></div>
 							<div class="t de" style="width:30%">Цвет: <input type="text" class="b i color2" data-val="privateColor" data-parse="string" data-read-condition="!api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:6em">
-							<input type="checkbox" class="b i color cc_color_check"> <input type="color" class="b i color" data-parse="string" data-val="privateColor" data-read-condition="api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:5em"></div>
+							<input type="checkbox" class="b i color cc_color_check"> 
+							<input type="color" class="b i color" data-mark=".cc_color_check" data-parse="string" data-val="privateColor" data-read-condition="api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:5em"></div>
 						</div></div></div>
 					</div>
 				</div>
@@ -629,9 +630,9 @@
 						<div class="line de">Детальное описание: <textarea type="text" class="b i" data-val="desc" data-parse="string" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
 						<div class="line de" data-display-types="[2, 3, 6]">
 							Навязанный вес: 
-							<input type="checkbox" style="display:inline" id="b i cc_forced_check"> 
-							<input type="text" class="b i" data-val="fval" style="width:4em">
-							<select size="1" data-val="ftval" class="b ilb cc_ft_value termsrender"></select>
+							<input type="checkbox" style="display:inline" data-val="forced" id="b i"> 
+							<input type="text" data-mark="[data-val=&quot;forced&quot;]" class="b i" data-val="fval" style="width:4em">
+							<select size="1" data-mark="[data-val=&quot;forced&quot;]" data-val="ftval" class="b ilb cc_ft_value termsrender"></select>
 						</div>
 					</div>
 					<div class="pad" data-display-types="[1, 2]">
@@ -675,7 +676,8 @@
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:30%">Размер %: <input type="text" class="b i" data-val="z" data-special-input="(thisValue*100)" data-default="100" data-special-output="(thisValue/100)" data-parse="int" style="width:4em"></div>
 							<div class="t de" style="width:30%">Цвет: <input type="text" class="b i color2" data-val="privateColor" data-parse="string" data-read-condition="!api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:6em">
-							<input type="checkbox" class="b i color cc_color_check"> <input type="color" class="b i color" data-parse="string" data-val="privateColor" data-read-condition="api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:5em"></div>
+							<input type="checkbox" class="b i color cc_color_check">
+							<input type="color" class="b i color" data-mark=".cc_color_check" data-parse="string" data-val="privateColor" data-read-condition="api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:5em"></div>
 						</div></div></div>
 					</div>
 					<div class="pad selection blist" style="display:block"><table class="r" cellspacing="0" rules="all">
