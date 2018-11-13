@@ -274,7 +274,7 @@ function appDrawElements(el) {
 		var isSelected = (cache.elements[i].active != 0);
 		
 		//определяем цвет заливки
-		if (el[i].privateColor != "") ctx.fillStyle = el[i].privateColor;
+		if (el[i].privateColor != "" && el[i].privateColor != "0") ctx.fillStyle = el[i].privateColor;
 		else ctx.fillStyle = api.settings.color[el[i].type-1];
 		
 		//выбираем обводку
@@ -953,7 +953,7 @@ function prepareEditWindows(cc, el) {
 	for (var i=0; i<cc.querySelectorAll('[data-val]').length; i++) {
 		var e = cc.querySelectorAll('[data-val]')[i];
 		
-		if (el[e.dataset.val] != undefined) {
+		if (el[e.dataset.val] != undefined || !e.dataset.specialInput != undefined) {
 			e[e.type=="checkbox"?'checked':'value'] = el[e.dataset.val];
 			var thisValue = el[e.dataset.val];
 			if (e.dataset.specialInput != undefined) e[e.type=="checkbox"?'checked':(e.tagName=="SELECT"?'selectedIndex':'value')] = eval(e.dataset.specialInput);
@@ -986,7 +986,9 @@ function readFromEditWindows(cc, el) {
 		var thisValue = el[e.dataset.val];
 		
 		if (e.dataset.specialOutput != undefined) el[e.dataset.val] = eval(e.dataset.specialOutput);
+		
 	}
+	console.log(el);
 }
 
 function editElement(id) {
@@ -1019,8 +1021,10 @@ function editElement(id) {
 	
 	if (!(el.alias>=0)) {
 		for (var i=0; i<e.querySelectorAll('[data-val]').length; i++) {
+			if (!e.querySelectorAll('[data-val]')[i].hasAttribute('data-no-edit')) {
 			e.querySelectorAll('[data-val]')[i].classList.remove('na');
 			e.querySelectorAll('[data-val]')[i].disabled = false;
+			}
 		}
 	}
 	else if ((el.type == 4) || (el.type == 5)) {
