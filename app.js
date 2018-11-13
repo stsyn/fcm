@@ -907,7 +907,7 @@ function getTermName(val) {
 	var t;
 	t = api.getTermsPattern(project.settings.term);
 	
-	return t.terms[getTermInterval(val)].term;
+	return t.terms[val].term;
 }
 
 function fulfillTerms(cc, el) {
@@ -988,7 +988,6 @@ function readFromEditWindows(cc, el) {
 		if (e.dataset.specialOutput != undefined) el[e.dataset.val] = eval(e.dataset.specialOutput);
 		
 	}
-	console.log(el);
 }
 
 function editElement(id) {

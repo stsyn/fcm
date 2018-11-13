@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.3", s:"RC2", b:75};
+	this.version = {g:"0.9.3", s:"RC2", b:76};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -225,7 +225,7 @@ function exapi() {
 	
 	this.includeElementsTLine = function (el, i) {
 		var u = el[i].val;
-		if ((project.settings.term != -3) && (u != undefined) && (u <= 1) && (u >= 0)) u = getTermName(u);
+		if ((project.settings.term != -3) && (el[i].tval != undefined)) u = getTermName(el[i].val);
 		return InfernoAddElem('tr', {className:'b fs linemenu', events:[{t:'click',f:function(){editElement(i)}}, {t:'mouseover', f:function(){api.elSel=i;}}]},[
 			InfernoAddElem('td',{innerHTML:i},[]),
 			InfernoAddElem('td',{innerHTML:api.structData.elements.types[el[i].type]},[]),
@@ -292,9 +292,9 @@ function exapi() {
 	
 	this.includeBondsTLine = function (b, el, i) {
 		var u = b[i].val;
-		if (project.settings.term != -3 && u != undefined) u = getTermName(u);
+		if (project.settings.term != -3 && b[i].tval != undefined) u = getTermName(b[i].tval);
 		var u2 = getBondVal(b[i], project.settings.currentCase);
-		if (project.settings.term != -3 && u2 != undefined) u2 = getTermName(u2);
+		if (project.settings.term != -3 && u2 != undefined) u2 = getTermName(getTermInterval(u2));
 		return InfernoAddElem('tr', {className:'b fs linemenu', events:[{t:'click',f:function(){editBond(i)}}, {t:'mouseover', f:function(){api.bSel=i;}}]},[
 			InfernoAddElem('td',{innerHTML:i},[]),
 			InfernoAddElem('td',{innerHTML:b[i].first+' — '+b[i].second},[]),
