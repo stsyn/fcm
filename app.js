@@ -891,7 +891,7 @@ function getTermInterval(val, x) {
 	if (typeof x == 'object') t = x;
 	else t = api.getTermsPattern(x == undefined?project.settings.term:x);
 	
-	for (var i=0; i<t.terms.length; i++) if (val <= t.terms[i].lim) return i;
+	for (var i=0; i<t.terms.length; i++) if (parseFloat(val) <= t.terms[i].lim) return i;
 }
 
 function getValueOfTerm(val, x) {

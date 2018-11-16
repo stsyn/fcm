@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.3", s:"RC2", b:76};
+	this.version = {g:"0.9.3", s:"RC2", b:77};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -1193,14 +1193,14 @@ function exapi() {
 				c = document.createElement('div');
 				c.className = 'line';
 				c.innerHTML = cache.elements[cache.types[2][i]].calcChance[cache.types[0][j]][val+2];
-				if (project.settings.term != -3) c.innerHTML = getTermName(c.innerHTML);
+				if (project.settings.term != -3) c.innerHTML = getTermName(getTermInterval(c.innerHTML));
 				u.appendChild(c);
 			}
 			c = document.createElement('div');
 			c.className = 'line';
 			c.style = 'font-weight:700';
 			c.innerHTML = cache.elements[cache.types[2][i]].finCalcChance[val+2];
-			if (project.settings.term != -3) c.innerHTML = getTermName(c.innerHTML);
+			if (project.settings.term != -3) c.innerHTML = getTermName(getTermInterval(c.innerHTML));
 			u.appendChild(c);
 		}
 	}
@@ -1365,7 +1365,7 @@ function exapi() {
 			if (project.bonds[i] == undefined) continue;
 			var x = ut3.getElementsByClassName('t2')[project.bonds[i].first+1].getElementsByClassName('t')[project.bonds[i].second+1];
 			if (project.settings.term == -3) x.innerHTML = getBondVal(i, val);
-			else x.innerHTML = getTermName(getBondVal(i, val));
+			else x.innerHTML = getTermName(project.bonds[i].tval);
 		}
 	}
 	
