@@ -3,7 +3,7 @@ var colorScheme = [
 {bg:"#fff",line:"#ddd",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",fakeconnt:"#800",
 selected:"#00f",aconnections:"rgba(17,17,17,0)",aactconn:"rgba(136,255,136,0)",afakeconnt:"rgba(136,0,0,0)",
 text:'#000',stext:'#fff',seltext:'#060'},
-{bg:"#001",line:"#012",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",fakeconnt:"#f88",
+{bg:"#001",line:"#001828",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",fakeconnt:"#f88",
 selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)",afakeconnt:"rgba(255,136,136,0)",    
 text:'#ccd',stext:'#111',seltext:'#8f8'}];
 var ctx, tcx, zoomprop, linePattern, frame=0;
@@ -29,6 +29,7 @@ function cCode(id, type) {
 }
 
 function getCode(id) {
+	if (e == undefined) return '';
 	var s='';
 	var e = project.elements[id];
 	if (e.alias > -1) {
@@ -105,11 +106,19 @@ function translateCoordsReverseNZY(i) {
 }
 
 function translateOnBondCoordsX(b, ac) {
-	return project.elements[project.bonds[b].first].X+((project.elements[project.bonds[b].second].X-project.elements[project.bonds[b].first].X)*ac);
+	var x = project.elements[project.bonds[b].first].X;
+	if (cache.bonds[b].pair != undefined) {
+		x += (project.elements[project.bonds[b].second].X - project.elements[project.bonds[b].first].X) / 2;
+	}
+	return x+((project.elements[project.bonds[b].second].X-x)*ac);
 }
 
 function translateOnBondCoordsY(b, ac) {
-	return project.elements[project.bonds[b].first].Y+((project.elements[project.bonds[b].second].Y-project.elements[project.bonds[b].first].Y)*ac);
+	var y = project.elements[project.bonds[b].first].Y;
+	if (cache.bonds[b].pair != undefined) {
+		y += (project.elements[project.bonds[b].second].Y - project.elements[project.bonds[b].first].Y) / 2;
+	}
+	return y+((project.elements[project.bonds[b].second].Y-y)*ac);
 }
 
 function getColor(a) {
@@ -127,7 +136,8 @@ function agetColor(a) {
 }
 
 function deXSS(s) {
-	return s.replace(RegExp('<', 'g'), '&lt;').replace(RegExp('>', 'g'), '&gt;').replace(RegExp('"', 'g'), '&#34;').replace(RegExp("'", 'g'), '&#39;');
+	//по сути, нас только <script> должно пугать
+	return s.replace(RegExp('<', 'g'), '&lt;')/*.replace(RegExp('>', 'g'), '&gt;').replace(RegExp('"', 'g'), '&#34;').replace(RegExp("'", 'g'), '&#39;')*/;
 }
 
 function gridCoords(i) {
@@ -148,7 +158,13 @@ function appDrawBond(el,b) {
 	}
 	for (var i=0; i<b.length; i++) {
 		if (b[i] == undefined) continue;
-		var x1 = translateCoordsX(el[b[i].first].X), y1 = translateCoordsY(el[b[i].first].Y);
+		var tx1 = el[b[i].first].X;
+		var ty1 = el[b[i].first].Y;
+		if (cache.bonds[i].pair != undefined) {
+			tx1 += (el[b[i].second].X - el[b[i].first].X) / 2;
+			ty1 += (el[b[i].second].Y - el[b[i].first].Y) / 2;
+		}
+		var x1 = translateCoordsX(tx1), y1 = translateCoordsY(ty1);
 		var x2 = translateCoordsX(el[b[i].second].X), y2 = translateCoordsY(el[b[i].second].Y);
 		
 		//выбрана ли?
@@ -295,9 +311,10 @@ function appDrawElements(el) {
 		//рисуем на связи
 		if ((el[i].type == 4) || (el[i].type == 5)) {
 			var b = project.bonds;
+			
 			var x1 = el[b[el[i].X].first].X;
-			var x2 = el[b[el[i].X].second].X;
 			var y1 = el[b[el[i].X].first].Y;
+			var x2 = el[b[el[i].X].second].X;
 			var y2 = el[b[el[i].X].second].Y;
 			var a = 3.14-Math.atan2(x1-x2, y1-y2);
 			var tcanvas = document.createElement('canvas');
@@ -526,6 +543,8 @@ function appMain() {
 	
 	document.getElementById('is_not_saved').style.display = (api.changed?'inline':'none');
 	document.getElementById('is_not_compiled').style.display = (!api.compiled?'inline':'none');
+	document.getElementById('save_timeout').innerHTML = api.autosaveInterval;
+	
 
 	if (api.mouse.button == 1 || api.mouse.button == 4) {
 		if (!doMoving.fact) {
@@ -722,6 +741,7 @@ function appMain() {
 			}
 		}
 	}
+	api.handleZoom();
 	setTimeout(appMain, api.settings.chInterval);
 }
 
@@ -957,6 +977,7 @@ function prepareEditWindows(cc, el) {
 			e[e.type=="checkbox"?'checked':'value'] = el[e.dataset.val];
 			var thisValue = el[e.dataset.val];
 			if (e.dataset.specialInput != undefined) e[e.type=="checkbox"?'checked':(e.tagName=="SELECT"?'selectedIndex':'value')] = eval(e.dataset.specialInput);
+			if (e[e.type=="checkbox"?'checked':(e.tagName=="SELECT"?'selectedIndex':'value')] == undefined || ((e.dataset.parse == 'int' || e.dataset.parse == 'float') && isNaN(e.value))) e[e.type=="checkbox"?'checked':(e.tagName=="SELECT"?'selectedIndex':'value')] = e.dataset.default;
 		}
 	}
 }
@@ -978,7 +999,7 @@ function readFromEditWindows(cc, el) {
 			else el[e.dataset.val] = 0;
 		}
 		
-		if (e.type=="text") {
+		if (e.type != "checkbox") {
 			if (e.dataset.parse == "string") el[e.dataset.val] = deXSS(el[e.dataset.val]);
 			else if (e.dataset.parse == "int") el[e.dataset.val] = parseInt(el[e.dataset.val]);
 			else el[e.dataset.val] = parseFloat(el[e.dataset.val]);
@@ -1103,7 +1124,7 @@ function AddElement(MouseX,MouseY,onBond) {
 		u.appendChild(c);
 	}
 	
-	prepareEditWindows(e, {id:i, X:x, Y:y, type:api.brush, privateColor:api.settings.color[api.brush-1], name:cCode(i, api.brush), code:cCode(i, api.brush), desc:'', size:1, alias:-1});
+	prepareEditWindows(e, {id:i, X:x, Y:y, type:api.brush, privateColor:api.settings.color[api.brush-1], name:cCode(i, api.brush), code:cCode(i, api.brush), desc:'', size:1, alias:-1, cost:0});
 	
 	fulfillTerms(e, {tval:'1',ftval:'1'});
 	
@@ -1209,9 +1230,15 @@ function FindTheClosestBond(MouseX,MouseY,Max) {
 
 	for (var key=0; key<project.bonds.length;key++) { 
 		if (project.bonds[key] == undefined) continue; 
+		
 		AuxX1=project.elements[project.bonds[key].first].X; 
-		AuxX2=project.elements[project.bonds[key].second].X; 
 		AuxY1=project.elements[project.bonds[key].first].Y; 
+		if (cache.bonds[key].pair != undefined) {
+			AuxX1 += (project.elements[project.bonds[key].second].X - project.elements[project.bonds[key].first].X) / 2;
+			AuxY1 += (project.elements[project.bonds[key].second].Y - project.elements[project.bonds[key].first].Y) / 2;
+		}
+		
+		AuxX2=project.elements[project.bonds[key].second].X; 
 		AuxY2=project.elements[project.bonds[key].second].Y; 
 		AuxA=AuxY1-AuxY2; 
 		AuxB=AuxX2-AuxX1; 
@@ -1269,6 +1296,12 @@ function BondPositon(MouseX,MouseY,key) {
     AuxX2=project.elements[project.bonds[key].second].X;
 	AuxY1=project.elements[project.bonds[key].first].Y;
 	AuxY2=project.elements[project.bonds[key].second].Y;
+	
+	if (cache.bonds[key].pair != undefined) {
+		AuxX1 += (project.elements[project.bonds[key].second].X - project.elements[project.bonds[key].first].X) / 2;
+		AuxY1 += (project.elements[project.bonds[key].second].Y - project.elements[project.bonds[key].first].Y) / 2;
+	}
+	
 	AuxRange=Math.sqrt((AuxX1-MouseX)*(AuxX1-MouseX)+(AuxY1-MouseY)*(AuxY1-MouseY));
 	Range=Math.sqrt((AuxX1-AuxX2)*(AuxX1-AuxX2)+(AuxY1-AuxY2)*(AuxY1-AuxY2));
 	Range=AuxRange/Range; 
@@ -1498,9 +1531,20 @@ function Recalculate() {
 	cache.bonds = [];
 	cache.types = [];
 	for (i=0; i<6; i++) cache.types[i] = [];
-	for (i=0; i<project.bonds.length;i++) {
+	for (i=0; i<project.bonds.length; i++) {
 		cache.bonds[i] = {};
 		cache.bonds[i].elems = [];
+		cache.bonds[i].pair = undefined;
+	}
+	for (i=0; i<project.bonds.length-1; i++) {
+		if (cache.bonds[i].pair == undefined && project.bonds[i] != undefined) {
+			for (j=i+1; j<project.bonds.length; j++) {
+				if (project.bonds[j] != undefined && (project.bonds[i].first == project.bonds[j].second) && (project.bonds[j].first == project.bonds[i].second)) {
+					cache.bonds[i].pair = j;
+					cache.bonds[j].pair = i;
+				}
+			}
+		}
 	}
 	for (i=0; i<project.elements.length;i++) {
 		cache.elements[i] = {};

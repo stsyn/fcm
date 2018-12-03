@@ -48,6 +48,7 @@
 			<span class="b debug na" id="debug_mouseInfo"></span>
 			<span class="b debug" id="debug_idle" onclick="api.overDraw = !api.overDraw"></span>
 			<span class="b debug na" id="debug_keyInfo">0</span>
+			<span class="b debug na" id="save_timeout">0</span>
 			<span class="control" style="float:right">
 				<span class="b bnorm bbig" onclick="document.getElementById('bottom').className='hide'"><i class="fa fa-arrow-down"></i><b>Скрыть</b></span>
 				<span class="b bhide" onclick="document.getElementById('bottom').className='norm'"><i class="fa fa-arrow-up"></i><b>Показать</b></span>
@@ -100,7 +101,7 @@
 							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_grid"> Сетка</label></div>
 							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_redGrid"> Красные "нулевые" линии</label></div>
 							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_cursor"> Собственный курсор и шрифты</label></div>
-							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_transparency"> Полупрозрачность неактивных окон</label></div>
+							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_transparency"> Графические прибамбасы</label></div>
 						</div>
 						<div class="pad" style="width:calc(40% - 10px);display:inline-block;text-align:left;border:none">
 							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_labels"> Подписи у иконок</label></div>
@@ -513,8 +514,8 @@
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
 							<div class="t de" style="width:50%">Эффективность: 
-								<input type="text" class="b i" data-val="val" style="width:4em">
-								<select size="1" data-val="tval" class="b ilb termsrender"></select>
+								<input type="text" class="b i" data-val="val" data-parse="float" style="width:4em">
+								<select size="1" data-val="tval" data-parse="int" class="b ilb termsrender"></select>
 							</div>
 						</div></div></div>
 						<div class="line" style="font-size:120%">
@@ -651,8 +652,8 @@
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
 							<div class="t de" style="width:50%">Эффективность: 
-								<input type="text" class="b i" data-val="val" style="width:4em">
-								<select size="1" data-val="tval" class="b ilb termsrender"></select>
+								<input type="text" class="b i" data-val="val" data-parse="float" style="width:4em">
+								<select size="1" data-val="tval" data-parse="int" class="b ilb termsrender"></select>
 							</div>
 						</div></div></div>
 						<div class="line" style="font-size:120%">

@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.3", s:"RC2", b:77};
+	this.version = {g:"0.9.3", s:"RC2", b:78};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -225,7 +225,7 @@ function exapi() {
 	
 	this.includeElementsTLine = function (el, i) {
 		var u = el[i].val;
-		if ((project.settings.term != -3) && (el[i].tval != undefined)) u = getTermName(el[i].val);
+		if ((project.settings.term != -3) && (el[i].tval != undefined)) u = getTermName(el[i].tval);
 		return InfernoAddElem('tr', {className:'b fs linemenu', events:[{t:'click',f:function(){editElement(i)}}, {t:'mouseover', f:function(){api.elSel=i;}}]},[
 			InfernoAddElem('td',{innerHTML:i},[]),
 			InfernoAddElem('td',{innerHTML:api.structData.elements.types[el[i].type]},[]),
@@ -431,7 +431,7 @@ function exapi() {
 			this.addMessage('Проект не может быть импортирован','red');
 		}
 		try {
-			project = JSON.parse(c);
+			project = JSON.parse(deXSS(c));
 			this.handleProject();
 			update();
 			api.initRTSCases();
@@ -576,7 +576,7 @@ function exapi() {
 	this.load = function (name, silent) {
 		try {
 			if (api.settings.debug) console.log("Loading... ", name);
-			project = JSON.parse(localStorage[name]);
+			project = JSON.parse(deXSS(localStorage[name]));
 			this.handleProject();
 			if (!silent) {
 				this.closeWindow("load");
@@ -758,7 +758,7 @@ function exapi() {
 	}
 	
 	this.requestDeletionBond = function(id) {
-		windows.sureDelete.buttons[0].functions = "RemoveBond("+id+",true);api.closeWindow('editb"+id+"');api.closePopup()";
+		windows.sureDelete.buttons[0].functions = "RemoveBond("+id+",false);api.closeWindow('editb"+id+"');api.closePopup()";
 		this.callPopup2(windows.sureDelete);
 	}
 	
@@ -2063,9 +2063,40 @@ function exapi() {
 		}
 	}
 	
+	this.handleZoom = function() {
+		if (api.smoothZoom == 0 || api.smoothZoom == undefined) return;
+		
+		if (api.smoothZoom > 0 && project.viewport.z<50) project.viewport.z*=(1+(api.smoothZoom/6000));
+		if (api.smoothZoom < 0 && project.viewport.z>0.0125) project.viewport.z*=(1+(api.smoothZoom/6000));
+		
+		if (api.smoothZoom > 0) {
+			api.smoothZoom -= api.settings.chInterval;
+			if (api.smoothZoom<0) api.smoothZoom = 0;
+		} else {
+			api.smoothZoom += api.settings.chInterval;
+			if (api.smoothZoom>0) api.smoothZoom = 0;
+		}
+		
+		api.forceRedraw = true;
+		document.getElementById("debug_viewport").innerHTML = parseInt(project.viewport.x)+':'+parseInt(project.viewport.y)+' '+parseInt(100/project.viewport.z)+'%';
+	}
+	
 	this.mouseWheelListener = function(e) {
-		if (e.deltaY > 0 && project.viewport.z<50) project.viewport.z*=1.25;
-		if (e.deltaY < 0 && project.viewport.z>0.0125) project.viewport.z/=1.25;
+		if (api.smoothZoom == undefined) api.smoothZoom = 0;
+		if (api.settings.transparency) {
+			if (e.deltaY > 0 && project.viewport.z<50) {
+				if (api.smoothZoom > 0) api.smoothZoom += (20000/api.smoothZoom);
+				else api.smoothZoom += 200;
+			}
+			if (e.deltaY < 0 && project.viewport.z>0.0125) {
+				if (api.smoothZoom < 0) api.smoothZoom += (20000/api.smoothZoom);
+				else api.smoothZoom -= 200;
+			}
+		}
+		else {
+			if (e.deltaY > 0 && project.viewport.z<50) project.viewport.z*=1.25;
+			if (e.deltaY < 0 && project.viewport.z>0.0125) project.viewport.z/=1.25;
+		}
 		if (e.deltaY != 0) api.forceRedraw = true;
 		document.getElementById("debug_viewport").innerHTML = parseInt(project.viewport.x)+':'+parseInt(project.viewport.y)+' '+parseInt(100/project.viewport.z)+'%';
 	}
