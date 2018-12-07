@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.3", s:"RC2", b:78};
+	this.version = {g:"0.9.3", s:"RC2", b:79};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -130,7 +130,7 @@ function exapi() {
 	}
 		
 	this.selectBrush = function (n) {
-		for (var i=-3; i<7; i++) {
+		for (var i=-4; i<7; i++) {
 			document.getElementById("brush"+i).classList.remove("sel");
 		}
 		document.getElementById("brush"+n).classList.add("sel");
@@ -1776,6 +1776,7 @@ function exapi() {
 		if (this.settings.autosave == undefined) this.settings.autosave = 0;
 		if (this.settings.autoload == undefined) this.settings.autoload = false;
 		if (this.settings.activeElems == undefined) this.settings.activeElems = false;
+		if (this.settings.noMultitool == undefined) this.settings.noMultitool = false;
 		this.saveSettings();
 		this.loadSettings();
 	}
@@ -1834,6 +1835,7 @@ function exapi() {
 		document.getElementById("st_autoload").checked = this.settings.autoload;
 		document.getElementById("st_elemLabels").checked = this.settings.elemLabels;
 		document.getElementById("st_actualNames").checked = this.settings.actualNames;
+		document.getElementById("st_noMultitool").checked = this.settings.noMultitool;
 		
 		document.getElementById("st_debugInterval").value = this.settings.chInterval;
 		document.getElementById("st_debugCanvasSize").value = this.settings.canvasSize;
@@ -1856,6 +1858,7 @@ function exapi() {
 		this.settings.autoload = document.getElementById("st_autoload").checked;
 		this.settings.elemLabels = document.getElementById("st_elemLabels").checked;
 		this.settings.actualNames = document.getElementById("st_actualNames").checked;
+		this.settings.noMultitool = document.getElementById("st_noMultitool").checked;
 		
 		this.settings.chInterval = parseInt(document.getElementById("st_debugInterval").value);
 		this.settings.canvasSize = parseInt(document.getElementById("st_debugCanvasSize").value);
@@ -1879,6 +1882,8 @@ function exapi() {
 		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.styleSwitch('transparentActive','transparency',false,false,false);
 		this.styleSwitch('customCursor','cursor',false,false,false);
+		this.styleSwitch('noMultitool','noMultitool',false,false,false);
+		if (api.brush<0) this.selectBrush(api.settings.noMultitool?-1:-4);
 		this.topFontSize();
 		this.glFontSize();
 		this.fontSwitch();
@@ -2367,9 +2372,10 @@ function exapi() {
 		this.styleSwitch('debugEnabled','debug',false,false,false);
 		this.styleSwitch('transparentActive','transparency',false,false,false);
 		this.styleSwitch('customCursor','cursor',false,false,false);
+		this.styleSwitch('noMultitool','noMultitool',false,false,false);
 		//this.changeSidePad(0);
 		//this.changeBottomPad(0);
-		this.selectBrush(-1);
+		this.selectBrush(api.settings.noMultitool?-1:-4);
 		this.popUp = "popUp";
 		this.colorMode(this.settings.palette);
 		

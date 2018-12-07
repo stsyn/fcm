@@ -109,6 +109,7 @@
 							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_actualNames"> Имена вместо кодов</label></div>
 							<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_debug"> Режим отладки</label></div>
 						</div>
+						<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="st_noMultitool"> 3 инструмента редактирования вместо одного</label></div>
 					</div>
 					<div class="pad" style="display:block">
 						<div class="line" style="text-align:center;font-weight:700;font-size:120%;margin-bottom:8px">Цвета элементов</div>
@@ -221,7 +222,7 @@
 				<div class="cc" data-tab-id="side">
 					<div class="table ps"><div class="t3"><div class="t2">
 						<span class="t"><span class="b fs sel" data-tab-select="1" data-tab-id="side">Граф</span></span>
-						<span class="t"><span class="b fs" data-tab-select="2" data-tab-id="side">Рисование</span></span>
+						<span class="t"><span class="b fs" data-tab-select="2" data-tab-id="side">Массовое</span></span>
 						<span class="t"><span class="b fs" data-tab-select="3" data-tab-id="side">Проект</span></span>
 					</div></div></div>
 					
@@ -239,12 +240,14 @@
 							
 							<span class="t de l">Редактирование</span>
 							<div class="table r"><div class="t3"><div class="t2">
-								<span class="t"><span class="b fs" id="brush-1" onclick="api.selectBrush(-1)">Просмотр</span></span>
-								<span class="t"><span class="b fs" id="brush-2" onclick="api.selectBrush(-2)">Перемещение</span></span>
+								<span class="t"><span class="b fs party_of_three" id="brush-1" onclick="api.selectBrush(-1)">Просмотр</span></span>
+								<span class="t"><span class="b fs party_of_three" id="brush-2" onclick="api.selectBrush(-2)">Перемещение</span></span>
+								<!--									VS								 -->
+								<span class="t"><span class="b fs one_new_guy_who_wanna_remove_them_all" id="brush-4" onclick="api.selectBrush(-4)">Выбрать/переместить</span></span>
 							</div></div></div>
 							<span class="t de l">Связи</span>
 							<div class="table r"><div class="t3"><div class="t2">
-								<span class="t"><span class="b fs" id="brush-3" onclick="api.selectBrush(-3)">Просмотр</span></span>
+								<span class="t"><span class="b fs party_of_three" id="brush-3" onclick="api.selectBrush(-3)">Просмотр</span></span>
 								<span class="t"><span class="b fs" id="brush0" onclick="api.selectBrush(0)">Размещение</span></span>
 							</div></div></div>
 						</div>
@@ -500,21 +503,21 @@
 					</div>
 					<div class="pad" data-display-types="[1, 2]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i na" data-no-edit data-val="state" style="width:3em" disabled></div>
-							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i na" data-no-edit data-val="limit" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i na" data-no-edit data-val="state" data-parse="int" data-default="1" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i na" data-no-edit data-val="limit" data-parse="int" data-default="1" style="width:3em" disabled></div>
 						</div></div></div>
 					</div>
 					<div class="pad" data-display-types="[3]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
-							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i" data-val="val" style="width:4em"></div>
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" data-parse="int" data-default="0" style="width:4em"></div>
+							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i" data-val="val" data-parse="int" data-default="1" style="width:4em"></div>
 						</div></div></div>
 					</div>
 					<div class="pad" data-display-types="[4, 5]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
+							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" data-parse="int" data-default="0" style="width:4em"></div>
 							<div class="t de" style="width:50%">Эффективность: 
-								<input type="text" class="b i" data-val="val" data-parse="float" style="width:4em">
+								<input type="text" class="b i" data-val="val" data-default="0.5" data-parse="float" style="width:4em">
 								<select size="1" data-val="tval" data-parse="int" class="b ilb termsrender"></select>
 							</div>
 						</div></div></div>

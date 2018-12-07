@@ -504,6 +504,10 @@ body.night .lit {background: #144}
 .debug {display:none !important}
 body.debugEnabled .debug {display:block !important}
 
+.party_of_three {display:none !important}
+body.noMultitool .party_of_three {display:block !important}
+body.noMultitool .one_new_guy_who_wanna_remove_them_all {display:none !important}
+
 .labelHidden .b b {display:none !important}
 
 #bottom.hide {height:1.75em}
