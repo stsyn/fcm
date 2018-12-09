@@ -69,6 +69,7 @@ function resetProject(crash) {
 	api.initRTSCases();
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
+	selection.tryAllowStuff();
 	if (crash) {
 		resetViewport();
 		setTimeout(appMain, api.settings.chInterval);
@@ -81,6 +82,7 @@ function resetViewport() {
 	project.viewport.z=0.5;
 }
 
+//холст -> экран
 function translateCoordsX(i) {
 	return (i-project.viewport.x)/project.viewport.z+ctx.canvas.width/2;
 }
@@ -89,6 +91,7 @@ function translateCoordsY(i) {
 	return (i-project.viewport.y)/project.viewport.z+ctx.canvas.height/2;
 }
 
+//экран -> холст
 function translateCoordsReverseX(i) {
 	return (i-ctx.canvas.width/2-0.5/project.viewport.z)*project.viewport.z+project.viewport.x+(i-ctx.canvas.width/2>0?1:0);
 }
@@ -97,6 +100,7 @@ function translateCoordsReverseY(i) {
 	return (i-ctx.canvas.height/2-0.5/project.viewport.z)*project.viewport.z+project.viewport.y+(i-ctx.canvas.height/2>0?1:0);
 }
 
+//то же без учета масштаба
 function translateCoordsReverseNZX(i) {
 	return (i-ctx.canvas.width/2)+project.viewport.x;
 }
@@ -105,6 +109,7 @@ function translateCoordsReverseNZY(i) {
 	return (i-ctx.canvas.height/2)+project.viewport.y;
 }
 
+//на связи -> холст
 function translateOnBondCoordsX(b, ac) {
 	var x = project.elements[project.bonds[b].first].X;
 	if (cache.bonds[b].pair != undefined) {
@@ -145,6 +150,10 @@ function gridCoords(i) {
 }
 
 function appDrawBond(el,b) {
+	if (project.viewport.z>4) ctx.lineWidth = 1;
+	else if (project.viewport.z>1) ctx.lineWidth = 2;
+	else ctx.lineWidth = 3;
+	
 	if ((AuxBonds2 != undefined) && api.settings.tooltips && api.brush == 99) {
 		ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].actconn;
 		if (!isBondUnique(AuxBonds,AuxBonds2) || AuxBonds==AuxBonds2) ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].fakeconn;
@@ -261,10 +270,12 @@ function getSize(i) {
 		ac/=2;
 	}
 	else ac = project.elements[i].z;
+	if (project.viewport.z>10) return api.settings.elemSize*ac/10;
+	if (project.viewport.z>8) return api.settings.elemSize*ac/8;
+	if (project.viewport.z>4) return api.settings.elemSize*ac/4;
+	if (project.viewport.z>2) return api.settings.elemSize*ac/3;
 	if (project.viewport.z>1) return api.settings.elemSize*ac/2;
-	if (project.viewport.z>3) return api.settings.elemSize*ac/3;
-	if (project.viewport.z>6) return api.settings.elemSize*ac/4;
-	if (project.viewport.z>16) return api.settings.elemSize*ac/7;
+	if (project.viewport.z>0.5) return api.settings.elemSize*ac/1.5;
 	return api.settings.elemSize*ac;
 }
 
@@ -287,16 +298,23 @@ function appDrawElements(el) {
 		}
 		
 		//выбран ли?
-		var isSelected = (cache.elements[i].active != 0);
+		var isSelected = (cache.elements[i].active != 0 || selection.elements[i]);
 		
 		//определяем цвет заливки
-		if (el[i].privateColor != "" && el[i].privateColor != "0") ctx.fillStyle = el[i].privateColor;
-		else ctx.fillStyle = api.settings.color[el[i].type-1];
+		if (el[i].privateColor != "" && el[i].privateColor != "0") {
+			ctx.fillStyle = el[i].privateColor;
+			ctx.strokeStyle = el[i].privateColor;
+		}
+		else {
+			ctx.fillStyle = api.settings.color[el[i].type-1];
+			ctx.strokeStyle = api.settings.color[el[i].type-1];
+		}
 		
 		//выбираем обводку
 		if ((api.brush == 99) && (AuxBonds == i)) ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].actconn;
 		if (isSelected) {
 			if (cache.elements[i].active == 1) ctx.strokeStyle = api.settings.color[6];
+			else if (selection.elements[i]) ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].text;
 			else ctx.strokeStyle = colorScheme[(api.settings.nightMode?1:0)].fakeconn;
 		}
 		if ((AuxBonds == i) && api.settings.tooltips) {
@@ -356,7 +374,7 @@ function appDrawElements(el) {
 		
 		//выбран ли?
 		var isSelected = (cache.elements[i].active != 0);
-		if ((api.settings.activeElems && api.hasActiveElems) && !isSelected) continue; 
+		if (((api.settings.activeElems && api.hasActiveElems) || project.viewport.z>2) && !isSelected) continue; 
 		
 		//получаем коорды
 		var x = el[i].X, y = el[i].Y;
@@ -525,6 +543,8 @@ function appRedraw() {
 	appDrawBond(project.elements, project.bonds);
 	appDrawElements(project.elements);
 	
+	if (selection.processing || selection.keep) selection.draw();
+	
 	api.forceRedraw = false;
 }
 
@@ -550,12 +570,25 @@ function appMain() {
 		if (!doMoving.fact) {
 			doMoving.fact = true;
 			doMoving.act = false;
+			doMoving.selectionMove = false;
 			doMoving.elem = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
-			doMoving.moveElem = (doMoving.elem != undefined && (api.brush == -2 || api.brush == -4));
+			doMoving.moveElem = (doMoving.elem != undefined && (api.brush == -2 || api.brush == -4) && api.mouse.button == 1);
+			if (api.brush <= -10 && api.brush >= -20 && api.mouse.button == 1) selection.new();
 			if (doMoving.moveElem) {
 				AuxMove = doMoving.elem;
+				doMoving.selectionMove = selection.elements[AuxMove];
 				tElemX = project.elements[AuxMove].X;
 				tElemY = project.elements[AuxMove].Y;
+				
+				if (doMoving.selectionMove) {
+					for (var i=0; i<project.elements.length; i++) {
+						if (project.elements == undefined || isOnBond(i) || !selection.elements[i] || i == AuxMove) continue;
+						
+						cache.elements[i].oldX = project.elements[i].X;
+						cache.elements[i].oldY = project.elements[i].Y;
+					}
+				}
+				
 			}
 			doMoving.stX = api.mouse.X;
 			doMoving.stY = api.mouse.Y;
@@ -572,6 +605,17 @@ function appMain() {
 						project.elements[AuxMove].Y = gridCoords(translateCoordsReverseY(api.mouse.Y));
 						api.forceRedraw = true;
 					}
+					if (doMoving.selectionMove) {
+						for (var i=0; i<project.elements.length; i++) {
+							if (project.elements == undefined || isOnBond(i) || !selection.elements[i] || i == AuxMove) continue;
+							x = gridCoords(cache.elements[i].oldX + (translateCoordsReverseX(api.mouse.X) - tElemX));
+							y = gridCoords(cache.elements[i].oldY + (translateCoordsReverseY(api.mouse.Y) - tElemY));
+							if (isElementThere(x,y,i)) continue;
+							
+							project.elements[i].X = x;
+							project.elements[i].Y = y;
+						}
+					}
 				}
 				else {
 					var el = FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize*2);
@@ -587,6 +631,10 @@ function appMain() {
 					}
 				}
 			}
+			else if (selection.processing) {
+				selection.update(); 
+				api.forceRedraw = true;
+			}
 			else {
 				project.viewport.x = doMoving.cStX - (api.mouse.X - doMoving.stX)*project.viewport.z;
 				project.viewport.y = doMoving.cStY - (api.mouse.Y - doMoving.stY)*project.viewport.z;
@@ -600,6 +648,7 @@ function appMain() {
 			MoveElement(AuxMove,translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y));
 			doMoving.moveElem = false;
 		}
+		if (selection.processing) selection.complete();
 		doMoving.fact = false;
 		doMoving.act = false;
 	}
@@ -633,8 +682,8 @@ function appMain() {
 		}
 	}
 	if ((api.brush == -1 || api.brush == -4) && api.settings.tooltips) {
-		el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize);
-        if (el != undefined) {
+		el = api.mouse.onCanvas?FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize):undefined;
+        if (el != undefined && api.mouse.onCanvas) {
 			if (tElem != el) {
 				tElem = el;
 				tBond = undefined;
@@ -650,8 +699,8 @@ function appMain() {
 		}
 	}
 	if ((api.brush == -3 || api.brush == -4) && api.settings.tooltips && tElem == undefined) {
-		var el = FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize);
-        if (el != undefined) {
+		var el = api.mouse.onCanvas?FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize):undefined;
+        if (el != undefined && api.mouse.onCanvas) {
 			if (tBond != el) {
 				tBond = el;
 				tElem = undefined;
@@ -1252,7 +1301,7 @@ function FindTheClosestBond(MouseX,MouseY,Max) {
 		T=Math.sqrt((AuxX2-AuxX1)*(AuxX2-AuxX1)+(AuxY2-AuxY1)*(AuxY2-AuxY1)); 
 		AuxRange=(Math.abs(AuxA*MouseX+AuxB*MouseY+AuxC))/(Math.sqrt(AuxA*AuxA+AuxB*AuxB)); 
 		if (E>T || R>T) AuxRange=Range+1; 
-		if (AuxRange<Range*project.viewport.z) { 
+		if (AuxRange<Range/**project.viewport.z*/) { 
 			Range=AuxRange; 
 			TheClosest=key; 
 		} 
@@ -1624,7 +1673,7 @@ function DrawRemoveSelector() {
 		
 	}
 	else if (api.brush == 97) MoveElement(AuxMove,translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y));
-	else if (api.brush != -4) AddElement(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y), false);
+	else if (api.brush > 0) AddElement(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y), false);
 }
 
 function rClickListener(e) {
@@ -1636,6 +1685,14 @@ function rClickListener(e) {
 	else if (api.brush == 97) {
 		api.brush = -2;
 		MoveElement(AuxMove,tElemX,tElemY,true);
+		if (doMoving.selectionMove) {
+			for (var i=0; i<project.elements.length; i++) {
+				if (project.elements == undefined || isOnBond(i) || !selection.elements[i] || i == AuxMove) continue;
+				
+				project.elements[i].X = cache.elements[i].oldX;
+				project.elements[i].Y = cache.elements[i].oldY;
+			}
+		}
 		api.forceRedraw = true;
 		e.preventDefault();
 	}

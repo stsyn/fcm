@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.3", s:"RC2", b:79};
+	this.version = {g:"0.9.4", s:"RC3", b:80};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -130,9 +130,11 @@ function exapi() {
 	}
 		
 	this.selectBrush = function (n) {
-		for (var i=-4; i<7; i++) {
+		for (var i=-20; i<10; i++) {
+			if (document.getElementById("brush"+i) == undefined) continue
 			document.getElementById("brush"+i).classList.remove("sel");
 		}
+		if (n > -1) selection.reset();
 		document.getElementById("brush"+n).classList.add("sel");
 		this.brush = n;
 		api.forceRedraw = true;
@@ -571,6 +573,7 @@ function exapi() {
 			if (project.settings.term != -3) project.bonds[i].tval = getTermInterval(project.bonds[i].val);
 			project.bonds[i].id = i;
 		}
+		selection.tryAllowStuff();
 	}
 	
 	this.load = function (name, silent) {
@@ -1433,7 +1436,7 @@ function exapi() {
 		}
 		else if (id == "project") {
 			this.putMetas();
-			document.getElementById("project_button").classList.add("del");
+			document.getElementById("project_button").classList.add("sel");
 			document.getElementById("project").classList.toggle("d");
 		}
 		else if (id == "cases") {
@@ -1708,6 +1711,7 @@ function exapi() {
 		if (this.windows[id] == undefined) return;
 		document.getElementById(id).classList.toggle("d");
 		if (id == "settings") document.getElementById("settings_button").classList.remove("sel");
+		else if (id == "project") document.getElementById("project_button").classList.remove("sel");
 		else if (id == "terms") {
 			setTimeout(api.invokeTermUpdate, 1);
 			this.callPopup2(windows.loader);
@@ -1981,6 +1985,7 @@ function exapi() {
 	
 	this.mouseListener = function(e, ec) {
 		var cc = document.getElementById("c").getBoundingClientRect();
+		api.mouse.onCanvas = e.target.tagName == "CANVAS";
 		api.mouse.X = parseInt(e.clientX-cc.left);
 		api.mouse.Y = parseInt(e.clientY-cc.top);
 		if (ec || (e.which == 0)) api.mouse.button = e.buttons;
@@ -2090,11 +2095,11 @@ function exapi() {
 		if (api.smoothZoom == undefined) api.smoothZoom = 0;
 		if (api.settings.transparency) {
 			if (e.deltaY > 0 && project.viewport.z<50) {
-				if (api.smoothZoom > 0) api.smoothZoom += (20000/api.smoothZoom);
+				if (api.smoothZoom > 0) api.smoothZoom += (20000/(api.smoothZoom<150?150:api.smoothZoom));
 				else api.smoothZoom += 200;
 			}
 			if (e.deltaY < 0 && project.viewport.z>0.0125) {
-				if (api.smoothZoom < 0) api.smoothZoom += (20000/api.smoothZoom);
+				if (api.smoothZoom < 0) api.smoothZoom += (20000/(api.smoothZoom>-150?-150:api.smoothZoom));
 				else api.smoothZoom -= 200;
 			}
 		}
@@ -2265,6 +2270,8 @@ function exapi() {
 			});
 			
 			document.getElementsByTagName("body")[0].addEventListener("click", function() {
+				selection.keep = false;
+				api.forceRedraw = true;
 				t=false;
 			});
 			document.getElementById("c").addEventListener("wheel", function(event) {
@@ -2392,6 +2399,9 @@ function exapi() {
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:1,buttons:[{red:false,functions:'api.closePopup();',name:'Продолжить'}],windowsize:'sm'};
 		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент и все, что на нем находится. Вы не сможете все это вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		
+		windows.sureDeleteSelection = {header:'Внимание!',content:'Вы удалите все выбранные элементы, все относящиеся к ним связи и элементы на этих связях! Вы не сможете все это вернуть!',size:2,buttons:[{red:true,name:'Продолжить',functions:'selection.deleteSelection();api.closePopup();'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		
 		windows.deleteSave = {header:'Внимание!',content:'Подтвердите удаление этого слота.',size:2,buttons:[{red:true,functions:'api.deleteSave(undefined, false)',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.deleteCase = {header:'Внимание!',content:'Подтвердите удаление этого кейса.',size:2,buttons:[{red:true,functions:'',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.deleteTerm = {header:'Внимание!',content:'Подтвердите удаление этого терма.',size:2,buttons:[{red:true,functions:'',name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
