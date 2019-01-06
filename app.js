@@ -852,6 +852,7 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	
 	if (elem.forced) {
 		for (var i=0; i<cache.elements[id].inbonds.length; i++) {
+			if (project.bonds[cache.elements[id].inbonds[i]].forced) continue;
 			project.bonds[cache.elements[id].inbonds[i]].val = elem.fval;
 			project.bonds[cache.elements[id].inbonds[i]].tval = elem.ftval;
 		}
@@ -885,8 +886,15 @@ function createAndAddBond(el, isNew) {
 	project.bonds[id] = {};
 	var elem = project.bonds[id];
 	readFromEditWindows(e, elem);
-	if (project.bonds[id].val < 0) project.bonds[id].val = 0;
-	if (project.bonds[id].val > 1) project.bonds[id].val = 1;
+	if (elem.val < 0) elem.val = 0;
+	if (elem.val > 1) elem.val = 1;
+	
+	if (!elem.forced) {
+		if (project.elements[elem.second].forced) {
+			elem.val = project.elements[elem.second].fval;
+			elem.tval = project.elements[elem.second].ftval;
+		}
+	}
 	
 	if (!isNew) api.brush = 0;
 	update();
@@ -1130,7 +1138,7 @@ function editBond(id) {
 	prepareEditWindows(e, el);
 	
 	
-	if (project.elements[el.second].forced) {
+	if (project.elements[el.second].forced && !el.forced) {
 		e.querySelector('[data-val="val"]').classList.add('na');
 		e.querySelector('[data-val="val"]').disabled = true;
 		e.querySelector('[data-val="val"]').value = project.elements[el.second].fval;
@@ -1226,7 +1234,7 @@ function AddBond(FirstElement,SecondElement) {
 	fulfillTerms(e, {tval:'1'});
 	prepareEditWindows(e, {id:i, first:FirstElement, second:SecondElement});
 	
-	if (project.elements[SecondElement].forced) {
+	if (project.elements[SecondElement].forced && !el.forced) {
 		e.querySelector('[data-val="val"]').classList.add('na');
 		e.querySelector('[data-val="val"]').disabled = true;
 		e.querySelector('[data-val="val"]').value = project.elements[SecondElement].fval;
@@ -1633,7 +1641,7 @@ function Recalculate() {
 
 function DrawRemoveSelector() {
 	tElem = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize*3);
-	if (api.brush < 0) tBond = FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize);
+	if (api.brush < 0 && api.brush >-10) tBond = FindTheClosestBond(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),api.settings.elemSize);
 	if (api.brush == 0) {
 		var el = FindTheClosest(translateCoordsReverseX(api.mouse.X),translateCoordsReverseY(api.mouse.Y),"Element",api.settings.elemSize*3);
 		if (el != undefined) {

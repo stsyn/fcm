@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.4", s:"RC3", b:80};
+	this.version = {g:"0.9.4", s:"RC3", b:81};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -1749,7 +1749,7 @@ function exapi() {
 		this.settings.elemLabels = true;
 		this.settings.actualNames = true;
 		
-		this.settings.chInterval = 33;
+		this.settings.chInterval = 16;
 		this.settings.canvasSize = 100;
 		this.settings.elemSize = 20;
 		this.settings.tooltips = true;

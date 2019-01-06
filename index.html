@@ -389,7 +389,7 @@
 					<div id="matrixbutt" style="float:left;width:100%);white-space:pre-wrap;word-wrap:break-word"> </div>
 				</div>
 				<div class="cc btns" style="width:calc(100% - 8px)">
-					<div id="matrixpad" class="pad" style="display:block;height:calc(100% - 6px);white-space:pre-wrap;word-wrap:break-word;border:none"></div>
+					<div id="matrixpad" class="pad" style="display:block;height:calc(100% - 6px);white-space:pre-wrap;word-wrap:break-word;border:none;overflow:auto"></div>
 				</div>
 			</div>
 		</div>
@@ -611,13 +611,17 @@
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:19%">ID: <input type="text" class="b i cc_id na" data-no-edit data-val="id" style="width:2em" disabled></div>
-							<div class="t de" style="width:23%">Начало: <input type="text" class="b i" data-val="first" style="width:3em" disabled></div>
-							<div class="t de" style="width:24%">Конец: <input type="text" class="b i" data-val="second" style="width:3em" disabled></div>
-							<div class="t de" style="width:34%">Сила: 
+							<div class="t de" style="width:29%">ID: <input type="text" class="b i na cc_id" data-no-edit data-val="id" style="width:2em" disabled></div>
+							<div class="t de" style="width:35%">Начало: <input type="text" class="b i" data-val="first" style="width:3em" disabled></div>
+							<div class="t de" style="width:36%">Конец: <input type="text" class="b i" data-val="second" style="width:3em" disabled></div>
+						</div></div></div>
+						<br>
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Сила: 
 								<input type="text" class="b i" data-val="val" style="width:3em">
 								<select size="1" data-val="tval" class="b ilb termsrender"></select>
 							</div>
+							<label class="b ilb stillsel ac t de" style="font-weight:normal"><input type="checkbox" data-val="forced"> Не перезаписывать</label>
 						</div></div></div>
 					</div>
 				</div>
@@ -643,13 +647,17 @@
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:19%">ID: <input type="text" class="b i na cc_id" data-no-edit data-val="id" style="width:2em" disabled></div>
-							<div class="t de" style="width:23%">Начало: <input type="text" class="b i" data-val="first" style="width:3em" disabled></div>
-							<div class="t de" style="width:24%">Конец: <input type="text" class="b i" data-val="second" style="width:3em" disabled></div>
-							<div class="t de" style="width:34%">Сила: 
+							<div class="t de" style="width:29%">ID: <input type="text" class="b i na cc_id" data-no-edit data-val="id" style="width:2em" disabled></div>
+							<div class="t de" style="width:35%">Начало: <input type="text" class="b i" data-val="first" style="width:3em" disabled></div>
+							<div class="t de" style="width:36%">Конец: <input type="text" class="b i" data-val="second" style="width:3em" disabled></div>
+						</div></div></div>
+						<br>
+						<div class="table r"><div class="t3"><div class="t2">
+							<div class="t de" style="width:50%">Сила: 
 								<input type="text" class="b i" data-val="val" style="width:3em">
 								<select size="1" data-val="tval" class="b ilb termsrender"></select>
 							</div>
+							<label class="b ilb stillsel ac t de" style="font-weight:normal"><input type="checkbox" data-val="forced"> Не перезаписывать</label>
 						</div></div></div>
 					</div>
 					<div class="pad selection elist" style="display:block"><table class="r" cellspacing="0" rules="all">
@@ -685,7 +693,7 @@
 						<div class="line de">Детальное описание: <textarea type="text" class="b i" data-val="desc" data-parse="string" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
 						<div class="line de" data-display-types="[2, 3, 6]">
 							Навязанный вес: 
-							<input type="checkbox" style="display:inline" data-val="forced" id="b i"> 
+							<input type="checkbox" style="display:inline" data-val="forced"> 
 							<input type="text" data-mark="[data-val=&quot;forced&quot;]" class="b i" data-val="fval" style="width:4em">
 							<select size="1" data-mark="[data-val=&quot;forced&quot;]" data-val="ftval" class="b ilb cc_ft_value termsrender"></select>
 						</div>

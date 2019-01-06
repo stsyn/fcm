@@ -532,3 +532,6 @@ body.noMultitool .one_new_guy_who_wanna_remove_them_all {display:none !important
 .fa.fa-window-restore {display:none}
 .huge .fa.fa-window-maximize {display:none}
 .huge .fa.fa-window-restore {display:inline}
+
+#matrixpad .t3 .t2 .t:first-child {position:absolute;width:3em}
+#matrixpad .t3 .t2 .t:nth-child(2) {padding-left:3em}
