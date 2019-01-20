@@ -548,8 +548,12 @@
 						<div class="line de" data-display-types="[2, 3, 6]">
 							Навязанный вес: 
 							<input type="checkbox" style="display:inline" data-val="forced" id="b i"> 
-							<input type="text" data-mark="[data-val=&quot;forced&quot;]" class="b i" data-val="fval" style="width:4em">
+							<input type="text" data-mark="[data-val=&quot;forced&quot;]" class="b i" data-default="0.5" data-parse="float" data-val="fval" style="width:4em">
 							<select size="1" data-val="ftval" data-mark="[data-val=&quot;forced&quot;]" class="b ilb cc_ft_value termsrender"></select>
+							<span data-gray="true">
+								-
+								<input type="text" class="b i" data-val="fval2" data-mark="[data-val=&quot;forced&quot;]" data-parse="float" data-default="0.5" style="width:4em">
+							</span>
 						</div>
 					</div>
 					<div class="pad" data-display-types="[1, 2]">
@@ -561,7 +565,14 @@
 					<div class="pad" data-display-types="[3]">
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" data-parse="int" data-default="0" style="width:4em"></div>
-							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i" data-val="val" data-parse="int" data-default="1" style="width:4em"></div>
+							<div class="t de" style="width:50%">Значимость: 
+								<input type="text" class="b i" data-val="val" data-default="1" data-parse="float" style="width:4em">
+								<select size="1" data-val="tval" data-parse="int" class="b ilb termsrender"></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i" data-val="val2" data-default="1" data-parse="float" style="width:4em">
+								</span>
+							</div>
 						</div></div></div>
 					</div>
 					<div class="pad" data-display-types="[4, 5]">
@@ -570,6 +581,10 @@
 							<div class="t de" style="width:50%">Эффективность: 
 								<input type="text" class="b i" data-val="val" data-default="0.5" data-parse="float" style="width:4em">
 								<select size="1" data-val="tval" data-parse="int" class="b ilb termsrender"></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i" data-val="val2" data-parse="float" style="width:4em">
+								</span>
 							</div>
 						</div></div></div>
 						<div class="line" style="font-size:120%">
@@ -620,6 +635,10 @@
 							<div class="t de" style="width:50%">Сила: 
 								<input type="text" class="b i" data-val="val" style="width:3em">
 								<select size="1" data-val="tval" class="b ilb termsrender"></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i" data-val="val2" data-parse="float" style="width:4em">
+								</span>
 							</div>
 							<label class="b ilb stillsel ac t de" style="font-weight:normal"><input type="checkbox" data-val="forced"> Не перезаписывать</label>
 						</div></div></div>
@@ -654,8 +673,12 @@
 						<br>
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Сила: 
-								<input type="text" class="b i" data-val="val" style="width:3em">
+								<input type="text" class="b i" data-val="val" data-parse="float" style="width:3em">
 								<select size="1" data-val="tval" class="b ilb termsrender"></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i" data-val="val2" data-parse="float" style="width:4em">
+								</span>
 							</div>
 							<label class="b ilb stillsel ac t de" style="font-weight:normal"><input type="checkbox" data-val="forced"> Не перезаписывать</label>
 						</div></div></div>
@@ -694,8 +717,12 @@
 						<div class="line de" data-display-types="[2, 3, 6]">
 							Навязанный вес: 
 							<input type="checkbox" style="display:inline" data-val="forced"> 
-							<input type="text" data-mark="[data-val=&quot;forced&quot;]" class="b i" data-val="fval" style="width:4em">
+							<input type="text" data-mark="[data-val=&quot;forced&quot;]" class="b i" data-val="fval" data-default="0.5" data-parse="float" style="width:4em">
 							<select size="1" data-mark="[data-val=&quot;forced&quot;]" data-val="ftval" class="b ilb cc_ft_value termsrender"></select>
+							<span data-gray="true">
+								-
+								<input type="text" class="b i" data-val="fval2" data-mark="[data-val=&quot;forced&quot;]" data-parse="float" data-default="0.5" style="width:4em">
+							</span>
 						</div>
 					</div>
 					<div class="pad" data-display-types="[1, 2]">
@@ -707,7 +734,14 @@
 					<div class="pad" data-display-types="[3]">
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
-							<div class="t de" style="width:50%">Значимость: <input type="text" class="b i" data-val="val" style="width:4em"></div>
+							<div class="t de" style="width:50%">Значимость: 
+								<input type="text" class="b i" data-val="val" data-default="1" data-parse="float" style="width:4em">
+								<select size="1" data-val="tval" data-parse="int" class="b ilb termsrender"></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i" data-val="val2" data-default="1" data-parse="float" style="width:4em">
+								</span>
+							</div>
 						</div></div></div>
 					</div>
 					<div class="pad" data-display-types="[4, 5]">
@@ -716,6 +750,10 @@
 							<div class="t de" style="width:50%">Эффективность: 
 								<input type="text" class="b i" data-val="val" data-parse="float" style="width:4em">
 								<select size="1" data-val="tval" data-parse="int" class="b ilb termsrender"></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i" data-val="val2" data-parse="float" style="width:4em">
+								</span>
 							</div>
 						</div></div></div>
 						<div class="line" style="font-size:120%">
@@ -743,7 +781,7 @@
 							<input type="color" class="b i color" data-mark=".cc_color_check" data-parse="string" data-val="privateColor" data-read-condition="api.settings.palette" data-special-output="(thisValue==api.settings.color[el.type-1]?0:thisValue)" style="width:5em"></div>
 						</div></div></div>
 					</div>
-					<div class="pad selection blist" style="display:block"><table class="r" cellspacing="0" rules="all">
+					<div class="pad selection blist" style="display:block;margin-top:2em"><table class="r" cellspacing="0" rules="all">
 						
 					</table></div>
 					<div class="pad ellist" style="display:block">

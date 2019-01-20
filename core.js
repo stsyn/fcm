@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.4", s:"RC3", b:81};
+	this.version = {g:"0.9.5", s:"RC3", b:82};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -128,7 +128,7 @@ function exapi() {
 	this.glFontSize = function() {
 		document.getElementsByTagName("body")[0].style.fontSize = this.settings.glFontSize+"%";
 	}
-		
+
 	this.selectBrush = function (n) {
 		for (var i=-20; i<10; i++) {
 			if (document.getElementById("brush"+i) == undefined) continue
@@ -154,7 +154,6 @@ function exapi() {
 		this.settings.palette = t;
 	}
 	
-		
 	this.putMetaData = function (proj, el, l, test) {
 		
 		if (proj != "null") {
@@ -236,7 +235,7 @@ function exapi() {
 			//InfernoAddElem('td',{innerHTML:((el[i].state===undefined)?"—":el[i].state)},[]),
 			//InfernoAddElem('td',{innerHTML:((el[i].lim===undefined)?"—":el[i].lim)},[]),
 			InfernoAddElem('td',{innerHTML:((el[i].cost===undefined)?"—":el[i].cost)},[]),
-			InfernoAddElem('td',{innerHTML:((el[i].val===undefined)?"—":u)},[])
+			InfernoAddElem('td',{innerHTML:((el[i].val===undefined)?"—":(u+(project.settings.grayMap?(' — '+el[i].val2):'')))},[])
 		]);
 	}
 	
@@ -294,14 +293,16 @@ function exapi() {
 	
 	this.includeBondsTLine = function (b, el, i) {
 		var u = b[i].val;
+		var ug = b[i].val2;
 		if (project.settings.term != -3 && b[i].tval != undefined) u = getTermName(b[i].tval);
 		var u2 = getBondVal(b[i], project.settings.currentCase);
+		var ug2 = getBondVal(b[i], project.settings.currentCase, '2');
 		if (project.settings.term != -3 && u2 != undefined) u2 = getTermName(getTermInterval(u2));
 		return InfernoAddElem('tr', {className:'b fs linemenu', events:[{t:'click',f:function(){editBond(i)}}, {t:'mouseover', f:function(){api.bSel=i;}}]},[
 			InfernoAddElem('td',{innerHTML:i},[]),
 			InfernoAddElem('td',{innerHTML:b[i].first+' — '+b[i].second},[]),
-			InfernoAddElem('td',{innerHTML:u},[]),
-			InfernoAddElem('td',{innerHTML:u2}),
+			InfernoAddElem('td',{innerHTML:(u+(project.settings.grayMap?(' — '+ug):''))},[]),
+			InfernoAddElem('td',{innerHTML:(u2+(project.settings.grayMap?(' — '+ug2):''))}),
 			InfernoAddElem('td',{innerHTML:getName(b[i].first)},[]),
 			InfernoAddElem('td',{innerHTML:getName(b[i].second)},[])
 		]);
@@ -820,14 +821,15 @@ function exapi() {
 		return sum;
 	}
 	
-	this.calcCSum = function(val) {
+	this.calcCSum = function(val, subname) {
+		if (subname == undefined) subname = '';
 		var sum = 0;
-		for (var c=0; c<cache.types[2].length; c++) sum+=parseInt(cache.elements[cache.types[2][c]].costs[val+2]*project.elements[cache.types[2][c]].val);
+		for (var c=0; c<cache.types[2].length; c++) sum+=parseInt(cache.elements[cache.types[2][c]]['costs'+subname][val+2]*project.elements[cache.types[2][c]].val);
 		return sum;
 	}
 	
-	this.calcTSum = function(val) {
-		return this.calcSum(val) + this.calcCSum(val);
+	this.calcTSum = function(val, subname) {
+		return this.calcSum(val) + this.calcCSum(val, subname);
 	}
 	
 	this.renderCase = function(val) {
@@ -1095,7 +1097,13 @@ function exapi() {
 		p.style = 'display:block';
 		p.innerHTML = '';
 		if (val == -3) {
-			p.innerHTML = 'В данном режиме отствует возможность выбрать или создать терм. Вместо этого используется явное цифровое обозначение.<br><br>';
+			p.innerHTML = 'В данном режиме отствует возможность выбрать или создать терм. Вместо этого используется явное цифровое обозначение.<br>';
+			p.appendChild(InfernoAddElem('label',{style:'float:none;display:inline-block',className:'b ac stillsel'+(project.settings.grayMap?' sel':'')},[
+				InfernoAddElem('input',{type:'checkbox', id:'prj_gray', checked:project.settings.grayMap},[]),
+				InfernoAddElem('span',{innerHTML:' Использовать серые карты'},[])
+			]));
+			p.appendChild(InfernoAddElem('br',{},[]));
+			p.appendChild(InfernoAddElem('br',{},[]));
 		}
 		else {
 			api.renderTermElem(val, -1, u);
@@ -1110,7 +1118,7 @@ function exapi() {
 			}
 		}
 		
-		p.innerHTML += 'Изменения сохраняются автоматически. Используется терм, который был открыт последним. <b>Все значения элементов и связей корректируются после закрытия редактирования!</b><hr><ul><li>В случае перехода к режиму <i>Без термов</i>, вычисляется среднее значение;<li>В случае перехода из режима <i>Без термов</i>, выбираетс терм, на интервале которого лежит значение;<li>В случае изменения набора индексы выбранных термов не изменяются. При необходимости сменить набор с примерным сохранением заданных значений выберите режим <i>Без термов</i> и сохраните изменения, после чего выберите желаемый набор.</ul>';
+		p.appendChild(InfernoAddElem('span',{innerHTML:'Изменения сохраняются автоматически. Используется терм, который был открыт последним. <b>Все значения элементов и связей корректируются после закрытия редактирования!</b><hr><ul><li>В случае перехода к режиму <i>Без термов</i>, вычисляется среднее значение;<li>В случае перехода из режима <i>Без термов</i>, выбираетс терм, на интервале которого лежит значение;<li>В случае изменения набора индексы выбранных термов не изменяются. При необходимости сменить набор с примерным сохранением заданных значений выберите режим <i>Без термов</i> и сохраните изменения, после чего выберите желаемый набор.</ul>'},[]));
 		document.getElementById('termoptions').appendChild(p);
 		document.getElementById('t_name').value = (val >= 0?project.terms[val].name : (val == -1 ? api.defTerms[2].name : (val == -2 ?api.defTerms[1].name: api.defTerms[0].name)));
 		document.getElementById('t_name').disabled = !(val>=0);
@@ -1195,14 +1203,18 @@ function exapi() {
 			for (var j=0; j<cache.types[0].length; j++) {
 				c = document.createElement('div');
 				c.className = 'line';
-				c.innerHTML = cache.elements[cache.types[2][i]].calcChance[cache.types[0][j]][val+2];
+				c.innerHTML = cache.elements[cache.types[2][i]].calcChance[cache.types[0][j]][val+2]+(project.settings.grayMap?
+					' — '+cache.elements[cache.types[2][i]].calcChance2[cache.types[0][j]][val+2]
+				:'');
 				if (project.settings.term != -3) c.innerHTML = getTermName(getTermInterval(c.innerHTML));
 				u.appendChild(c);
 			}
 			c = document.createElement('div');
 			c.className = 'line';
 			c.style = 'font-weight:700';
-			c.innerHTML = cache.elements[cache.types[2][i]].finCalcChance[val+2];
+			c.innerHTML = cache.elements[cache.types[2][i]].finCalcChance[val+2]+(project.settings.grayMap?
+				' — '+cache.elements[cache.types[2][i]].finCalcChance2[val+2]
+			:'');
 			if (project.settings.term != -3) c.innerHTML = getTermName(getTermInterval(c.innerHTML));
 			u.appendChild(c);
 		}
@@ -1260,7 +1272,7 @@ function exapi() {
 		var gel = document.getElementById('graphpad');
 		el2.innerHTML = '';
 		gel.innerHTML = '';
-		var maxsum = 0;
+		var maxsum = 4;
 		
 		var els = [];
 		for (var j=0; j<=4; j++) {
@@ -1277,7 +1289,12 @@ function exapi() {
 			
 			el2.appendChild(InfernoAddElem('div',{innerHTML:s,className:'line'},[]));
 			
+			
 			if (maxsum < api.calcTSum(i)) maxsum = api.calcTSum(i);
+			if (project.settings.grayMap) {
+				el2.appendChild(InfernoAddElem('div',{innerHTML:'&nbsp;',className:'line'},[]));
+				if (maxsum < api.calcTSum(i, '2')) maxsum = api.calcTSum(i, '2');
+			}
 		}
 		
 		var el4 = document.getElementById('graphscale');
@@ -1287,16 +1304,20 @@ function exapi() {
 			el4.appendChild(InfernoAddElem('div',{innerHTML:parseInt(maxsum*i/4),style:{right:(4-i)*25+'%'}},[]));
 		}
 		for (i = -2; i<project.cases.length; i++) {
-			els = [];
-			for (var j=0; j<=4; j++) {
-				els.push(InfernoAddElem('div',{innerHTML:'&nbsp',style:{right:(4-j)*25+'%'}},[]));
+			for (let ix=(project.settings.grayMap?1:0); ix>=0; ix--) {
+				let sname = (ix == 0?'':'2');
+				
+				els = [];
+				for (var j=0; j<=4; j++) {
+					els.push(InfernoAddElem('div',{innerHTML:'&nbsp',style:{right:(4-j)*25+'%'}},[]));
+				}
+							
+				els.push(InfernoAddElem('span',{className:'c_b',innerHTML:api.calcCSum(i, sname),style:{width:100*(api.calcCSum(i, sname)/maxsum)+'%'}},[]));
+				
+				els.push(InfernoAddElem('span',{className:'c_c',innerHTML:api.calcTSum(i),style:{width:100*(api.calcSum(i)/maxsum)+'%'}},[]));
+				
+				gel.appendChild(InfernoAddElem('div',{className:'line scale'},els));
 			}
-						
-			els.push(InfernoAddElem('span',{className:'c_b',innerHTML:api.calcCSum(i),style:{width:100*(api.calcCSum(i)/maxsum)+'%'}},[]));
-			
-			els.push(InfernoAddElem('span',{className:'c_c',innerHTML:api.calcTSum(i),style:{width:100*(api.calcSum(i)/maxsum)+'%'}},[]));
-			
-			gel.appendChild(InfernoAddElem('div',{className:'line scale'},els));
 		}
 		
 		for (var k=0; k<cache.types[2].length; k++) {
@@ -1314,15 +1335,19 @@ function exapi() {
 				else if (i == -1) s = 'Все включено';
 				else s = project.cases[i].name;
 				el2.appendChild(InfernoAddElem('div',{innerHTML:s,className:'line'},[]));
+				if (project.settings.grayMap) el2.appendChild(InfernoAddElem('div',{innerHTML:'&nbsp;',className:'line'},[]));
 			
-				els = [];
-				for (var j=0; j<=4; j++) {
-					els.push(InfernoAddElem('div',{innerHTML:'&nbsp',style:{right:(4-j)*25+'%'}},[]));
+				for (let ix=(project.settings.grayMap?1:0); ix>=0; ix--) {
+					let sname = (ix == 0?'':'2');
+					els = [];
+					for (var j=0; j<=4; j++) {
+						els.push(InfernoAddElem('div',{innerHTML:'&nbsp',style:{right:(4-j)*25+'%'}},[]));
+					}
+					
+					els.push(InfernoAddElem('span',{className:'c_b',innerHTML:(cache.elements[n]['costs'+sname][i+2]),style:{width:100*((cache.elements[n]['costs'+sname][i+2])/maxsum)+'%'}},[]));
+					
+					gel.appendChild(InfernoAddElem('div',{className:'line scale'},els));
 				}
-				
-				els.push(InfernoAddElem('span',{className:'c_b',innerHTML:(cache.elements[n].costs[i+2]),style:{width:100*((cache.elements[n].costs[i+2])/maxsum)+'%'}},[]));
-				
-				gel.appendChild(InfernoAddElem('div',{className:'line scale'},els));
 			}
 		}
 	}
@@ -1367,7 +1392,7 @@ function exapi() {
 		for (i = 0; i<project.bonds.length; i++) {
 			if (project.bonds[i] == undefined) continue;
 			var x = ut3.getElementsByClassName('t2')[project.bonds[i].first+1].getElementsByClassName('t')[project.bonds[i].second+1];
-			if (project.settings.term == -3) x.innerHTML = getBondVal(i, val);
+			if (project.settings.term == -3) x.innerHTML = getBondVal(i, val)+(project.settings.grayMap?' — '+getBondVal(i, val, '2'):'');
 			else x.innerHTML = getTermName(project.bonds[i].tval);
 		}
 	}
@@ -1418,8 +1443,7 @@ function exapi() {
 		else if (arg1 == "editb") {
 			id = arg1+arg2;
 		}
-		if (this.windows[id]) 
-		{	
+		if (this.windows[id]) {	
 			var e = document.getElementById(id).getElementsByClassName("w")[0];
 			this.windowOnTop(id);
 			return;
@@ -1693,14 +1717,48 @@ function exapi() {
 			}
 		}
 		for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
-			if (api.selectedTerm != -3 && project.settings.term == -3) project.elements[i].tval = getTermInterval(project.elements[i].val, api.selectedTerm);
-			else if (api.selectedTerm == -3 && project.settings.term != -3) project.elements[i].val = getValueOfTerm(project.elements[i].tval);
-			else if (api.selectedTerm != -3 && project.settings.term != -3) project.elements[i].tval = project.elements[i].tval>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.elements[i].tval;
+			if (api.selectedTerm != -3 && project.settings.term == -3) {
+				if (project.elements[i].val != undefined) 
+					project.elements[i].tval = getTermInterval(project.settings.grayMap?(project.elements[i].val2-project.elements[i].val)/2+project.elements[i].val:project.elements[i].val, api.selectedTerm);
+				if (project.elements[i].fval != undefined) 
+					project.elements[i].ftval = getTermInterval(project.settings.grayMap?(project.elements[i].fval2-project.elements[i].fval)/2+project.elements[i].fval:project.elements[i].fval, api.selectedTerm);
+			}
+			else if (api.selectedTerm == -3 && project.settings.term != -3) {
+				if (project.elements[i].tval != undefined) {
+					project.elements[i].val = project.settings.grayMap?getDownValueOfTerm(project.elements[i].tval):getValueOfTerm(project.elements[i].tval);
+					project.elements[i].val2 = project.settings.grayMap?getUpValueOfTerm(project.elements[i].tval):getValueOfTerm(project.elements[i].tval);
+				}
+				if (project.elements[i].ftval != undefined) {
+					project.elements[i].fval = project.settings.grayMap?getDownValueOfTerm(project.elements[i].ftval):getValueOfTerm(project.elements[i].ftval);
+					project.elements[i].fval2 = project.settings.grayMap?getUpValueOfTerm(project.elements[i].ftval):getValueOfTerm(project.elements[i].ftval);
+				}
+			}
+			else if (api.selectedTerm != -3 && project.settings.term != -3) {
+				if (project.elements[i].tval != undefined) 
+					project.elements[i].tval = project.elements[i].tval>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.elements[i].tval;
+				if (project.elements[i].ftval != undefined) 
+					project.elements[i].ftval = project.elements[i].ftval>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.elements[i].ftval;
+			}
+			else if (api.selectedTerm == -3 && project.settings.term == -3) {
+				if (project.settings.grayMap && project.elements[i].val != undefined && project.elements[i].val2 == undefined) {
+					project.elements[i].val2 = project.elements[i].val;
+					project.elements[i].fval2 = project.elements[i].fval;
+				}
+				if (project.settings.grayMap && (project.elements[i].val2 < project.elements[i].val)) project.elements[i].val2 = project.elements[i].val;
+				if (project.settings.grayMap && (project.elements[i].fval2 < project.elements[i].fval)) project.elements[i].fval2 = project.elements[i].fval;
+			}
 		}
 		for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) {
-			if (api.selectedTerm != -3 && project.settings.term == -3) project.bonds[i].tval = getTermInterval(project.bonds[i].val, api.selectedTerm);
-			else if (api.selectedTerm == -3 && project.settings.term != -3) project.bonds[i].val = getValueOfTerm(project.bonds[i].tval);
+			if (api.selectedTerm != -3 && project.settings.term == -3) project.bonds[i].tval = getTermInterval(project.settings.grayMap?(project.bonds[i].val2-project.bonds[i].val)/2+project.bonds[i].val:project.bonds[i].val, api.selectedTerm);
+			else if (api.selectedTerm == -3 && project.settings.term != -3) {
+				project.bonds[i].val = project.settings.grayMap?getDownValueOfTerm(project.bonds[i].tval):getValueOfTerm(project.bonds[i].tval);
+				project.bonds[i].val2 = project.settings.grayMap?getUpValueOfTerm(project.bonds[i].tval):getValueOfTerm(project.bonds[i].tval);
+			}
 			else if (api.selectedTerm != -3 && project.settings.term != -3) project.bonds[i].tval = project.bonds[i].tval>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.bonds[i].tval;
+			else if (api.selectedTerm == -3 && project.settings.term == -3) {
+				if (project.settings.grayMap && project.bonds[i].val2 == undefined)
+					project.bonds[i].val2 = project.bonds[i].val;
+			}
 		}
 		project.settings.term = api.selectedTerm;
 		update();
@@ -1713,6 +1771,8 @@ function exapi() {
 		if (id == "settings") document.getElementById("settings_button").classList.remove("sel");
 		else if (id == "project") document.getElementById("project_button").classList.remove("sel");
 		else if (id == "terms") {
+			if (document.getElementById('prj_gray') != undefined && document.getElementById('prj_gray').checked) project.settings.grayMap = true;
+			else project.settings.grayMap = false;
 			setTimeout(api.invokeTermUpdate, 1);
 			this.callPopup2(windows.loader);
 		}

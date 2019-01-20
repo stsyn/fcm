@@ -1,10 +1,10 @@
 ﻿var project = {settings:{},elements:[],bonds:[],viewport:{}};
 var colorScheme = [
 {bg:"#fff",line:"#ddd",coord:"#f88",connections:"#111",actconn:"#8f8",fakeconn:"#f88",fakeconnt:"#800",
-selected:"#00f",aconnections:"rgba(17,17,17,0)",aactconn:"rgba(136,255,136,0)",afakeconnt:"rgba(136,0,0,0)",
+selected:"#00f",aconnections:"rgba(17,17,17,0)",aactconn:"rgba(136,255,136,0)",afakeconn:"rgba(255,136,136,0)",afakeconnt:"rgba(136,0,0,0)",
 text:'#000',stext:'#fff',seltext:'#060'},
 {bg:"#001",line:"#001828",coord:"#600",connections:"#4bb",actconn:"#060",fakeconn:"#600",fakeconnt:"#f88",
-selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)",afakeconnt:"rgba(255,136,136,0)",    
+selected:"#880",aconnections:"rgba(68,187,187,0)",aactconn:"rgba(0,102,0,0)",afakeconn:"rgba(102,0,0,0)",afakeconnt:"rgba(255,136,136,0)",    
 text:'#ccd',stext:'#111',seltext:'#8f8'}];
 var ctx, tcx, zoomprop, linePattern, frame=0;
 var doMoving = {};
@@ -140,6 +140,33 @@ function agetColor(a) {
 	else return 'rgba(255,'+parseInt((255-511*(c-0.5))/(api.settings.nightMode?1:1.5))+',0,0)';
 }
 
+function colorToA(a) {
+	return a.replace('rgb','rgba').replace(')',',0');
+}
+
+function grad(a, b, c) {
+	let ac = [], bc = [];
+	let s = a.split('(')[1].split(',');
+	let sb = b.split('(')[1].split(',');
+	for (let i=0; i<3; i++) {
+		ac[i] = parseInt(s[i]);
+		bc[i] = parseInt(sb[i]);
+		
+		ac[i] += parseInt((bc[i]-ac[i])*c);
+	}
+	return 'rgba('+ac[0]+','+ac[1]+','+ac[2]+',1)';
+}
+
+function hexToRgb(hex) {
+	if (hex.length == 4) hex = '#'+hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3];
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? ('rgb('+
+        parseInt(result[1], 16)+','+
+        parseInt(result[2], 16)+','+
+        parseInt(result[3], 16)+')')
+     : null;
+}
+
 function deXSS(s) {
 	//по сути, нас только <script> должно пугать
 	return s.replace(RegExp('<', 'g'), '&lt;')/*.replace(RegExp('>', 'g'), '&gt;').replace(RegExp('"', 'g'), '&#34;').replace(RegExp("'", 'g'), '&#39;')*/;
@@ -179,8 +206,41 @@ function appDrawBond(el,b) {
 		//выбрана ли?
 		var isSel = (cache.bonds[i].active != 0);
 		var tc = (cache.bonds[i].active==1?'actconn':'fakeconn');
+		let color1, color2;
+
+		if (isSel) {
+			color1 = colorScheme[(api.settings.nightMode?1:0)][tc];
+			color2 = colorScheme[(api.settings.nightMode?1:0)][tc];
+		}
+		else {
+			if (project.settings.propColor) {
+				color1 = getColor(getBondVal(i, project.settings.currentCase));
+				color2 = getColor(getBondVal(i, project.settings.currentCase, (project.settings.grayMap?'2':'')));
+			}
+			else {
+				color1 = colorScheme[(api.settings.nightMode?1:0)].connections;
+				color2 = colorScheme[(api.settings.nightMode?1:0)].connections;
+			}
+		}
 		
-		if (project.settings.propColor) {
+		if (color1.startsWith('#')) color1 = hexToRgb(color1);
+		if (color2.startsWith('#')) color2 = hexToRgb(color2);
+		
+		if (api.settings.transparency || (project.settings.grayMap && project.settings.propColor)) {
+			var grd=ctx.createLinearGradient(x1,y1,x2,y2);
+			grd.addColorStop(0,api.settings.transparency?colorToA(color1):color1);
+			grd.addColorStop(0.3,color1);
+			grd.addColorStop(0.7,color2);
+			ctx.fillStyle = grd;
+			ctx.strokeStyle = grd;
+		}
+		else {
+			ctx.strokeStyle = color1;
+			ctx.fillStyle = color1;
+			
+		}
+		
+		/*if (project.settings.propColor) {
 			if (api.settings.transparency) {
 				var grd=ctx.createLinearGradient(x1,y1,x2,y2);
 				if (isSel) {	
@@ -231,7 +291,7 @@ function appDrawBond(el,b) {
 					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
 				}
 			}
-		}
+		}*/
 		ctx.beginPath();
 		ctx.moveTo(x1,y1);
 		ctx.lineTo(x2,y2);
@@ -844,11 +904,14 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 			}
 			elem.cost = x.cost;
 			elem.val = x.val;
+			elem.val2 = x.val2;
 			elem.privateColor = x.privateColor;
 			elem.name = x.name+' ['+(a+1)+']';
 		}
 	}
 	if (!isNew) api.brush = elem.type;
+	if (elem.val2 < elem.val) elem.val2 = elem.val;
+	if (elem.fval2 < elem.fval) elem.fval2 = elem.fval;
 	
 	if (elem.forced) {
 		for (var i=0; i<cache.elements[id].inbonds.length; i++) {
@@ -984,6 +1047,23 @@ function getValueOfTerm(val, x) {
 	else return (t.terms[val].lim-t.terms[val-1].lim)/2+t.terms[val-1].lim;
 }
 
+function getUpValueOfTerm(val, x) {
+	var t;
+	if (typeof x == 'object') t = x;
+	else t = api.getTermsPattern(x == undefined?project.settings.term:x);
+	
+	return t.terms[val].lim;
+}
+
+function getDownValueOfTerm(val, x) {
+	var t;
+	if (typeof x == 'object') t = x;
+	else t = api.getTermsPattern(x == undefined?project.settings.term:x);
+	
+	if (val == 0) return 0;
+	return t.terms[val-1].lim;
+}
+
 function getTermName(val) {
 	var t;
 	t = api.getTermsPattern(project.settings.term);
@@ -994,7 +1074,7 @@ function getTermName(val) {
 function fulfillTerms(cc, el) {
 	for (var i=0; i<cc.getElementsByClassName('termsrender').length; i++) {
 		var u = cc.getElementsByClassName('termsrender')[i];
-		if (u.classList.contains('rendered')) continue;
+		//if (u.classList.contains('rendered')) continue;
 		
 		e = u.parentNode;
 		u.innerHTML = '';
@@ -1005,13 +1085,13 @@ function fulfillTerms(cc, el) {
 		
 		if (project.settings.term == -3) {
 			u.classList.add('hd');
-			e.querySelector('input[type="text"]').classList.remove('hd');
+			e.querySelectorAll('input[type="text"]').forEach(function (v) {v.classList.remove('hd');});
 		}
 		else {
 			u.classList.remove('hd');
-			e.querySelector('input[type="text"]').classList.add('hd');
+			e.querySelectorAll('input[type="text"]').forEach(function (v) {v.classList.add('hd');});
 		}
-		u.classList.add('rendered');
+		//u.classList.add('rendered');
 		
 	}
 }
@@ -1041,6 +1121,8 @@ function prepareEditWindows(cc, el) {
 			if (e[e.type=="checkbox"?'checked':(e.tagName=="SELECT"?'selectedIndex':'value')] == undefined || ((e.dataset.parse == 'int' || e.dataset.parse == 'float') && isNaN(e.value))) e[e.type=="checkbox"?'checked':(e.tagName=="SELECT"?'selectedIndex':'value')] = e.dataset.default;
 		}
 	}
+	for (var i=0; i<cc.querySelectorAll('[data-gray]').length; i++) 
+		cc.querySelectorAll('[data-gray]')[i].style.display = (project.settings.grayMap?'inline':'none');
 }
 
 function readFromEditWindows(cc, el) {
@@ -1140,8 +1222,11 @@ function editBond(id) {
 	
 	if (project.elements[el.second].forced && !el.forced) {
 		e.querySelector('[data-val="val"]').classList.add('na');
+		e.querySelector('[data-val="val2"]').classList.add('na');
 		e.querySelector('[data-val="val"]').disabled = true;
+		e.querySelector('[data-val="val2"]').disabled = true;
 		e.querySelector('[data-val="val"]').value = project.elements[el.second].fval;
+		e.querySelector('[data-val="val2"]').value = project.elements[el.second].fval2;
 		
 		e.querySelector('[data-val="tval"]').classList.add('na');
 		e.querySelector('[data-val="tval"]').disabled = true;
@@ -1149,7 +1234,9 @@ function editBond(id) {
 	}
 	else {
 		e.querySelector('[data-val="val"]').classList.remove('na');
+		e.querySelector('[data-val="val2"]').classList.remove('na');
 		e.querySelector('[data-val="val"]').disabled = false;
+		e.querySelector('[data-val="val2"]').disabled = false;
 		
 		e.querySelector('[data-val="tval"]').classList.remove('na');
 		e.querySelector('[data-val="tval"]').disabled = false;
@@ -1388,11 +1475,12 @@ function autocalcTermRules(term) {
 	}
 }
 
-function getBondVal(el, caseid) {
+function getBondVal(el, caseid, subname) {
+	if (subname == undefined) subname = '';
 	var c;
 	if (el == undefined) return 0;
 	if (typeof el == 'object') el = el.id;
-	c = project.bonds[el].val;
+	c = project.bonds[el]['val'+subname];
 	var i;
 	if (project.settings.term != -3) {
 		//c = getValueOfTerm(getTermInterval(c));
@@ -1407,7 +1495,7 @@ function getBondVal(el, caseid) {
 		if (caseid == -2 && t) continue;		//не учитываем защитные меры, если все выключено
 		if (caseid == -1 && !t) continue;       //не учитываем дестабилизаторы, если все включено
 		if (caseid >= 0 && (project.cases[caseid].enabled[u] ^ t)) continue;
-		var uv = project.elements[u].val;
+		var uv = project.elements[u]['val'+subname];
 		if (project.settings.term != -3) {
 			//uv = getValueOfTerm(getTermInterval(uv));
 			uv = project.elements[u].tval;
@@ -1425,25 +1513,25 @@ function getBondVal(el, caseid) {
 	return +c.toFixed(4);
 }
 
-function iteration(i, cur, val, roadmap) {
+function iteration(i, cur, val, roadmap, subname) {
 	var c;
 	if (project.elements[cur].type == 3) {
 		roadmap.push(cur);
 		if (api.settings.debug) console.log('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.');
-		if (cache.elements[cur].calcChance[roadmap[0]] == undefined) {
-			cache.elements[cur].calcChance[roadmap[0]] = [];
-			for (var j=0; j<val.length; j++) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];
+		if (cache.elements[cur]['calcChance'+subname][roadmap[0]] == undefined) {
+			cache.elements[cur]['calcChance'+subname][roadmap[0]] = [];
+			for (var j=0; j<val.length; j++) cache.elements[cur]['calcChance'+subname][roadmap[0]][j] = val[j];
 		}
 		else for (var j=0; j<val.length; j++) 		//досчитали
-			if (cache.elements[cur].calcChance[roadmap[0]][j] < val[j]) {
-				cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
+			if (cache.elements[cur]['calcChance'+subname][roadmap[0]][j] < val[j]) {
+				cache.elements[cur]['calcChance'+subname][roadmap[0]][j] = val[j];	
 				
-				cache.elements[cur].calcRoadMap[roadmap[0]][j] = [];
-				cache.elements[roadmap[0]].calcRoadMap[cur][j] = [];
+				cache.elements[cur]['calcRoadMap'+subname][roadmap[0]][j] = [];
+				cache.elements[roadmap[0]]['calcRoadMap'+subname][cur][j] = [];
 				
 				for (var k=0; k<roadmap.length; k++) {
-					cache.elements[cur].calcRoadMap[roadmap[0]][j][k] = roadmap[k];
-					cache.elements[roadmap[0]].calcRoadMap[cur][j][k] = roadmap[k];
+					cache.elements[cur]['calcRoadMap'+subname][roadmap[0]][j][k] = roadmap[k];
+					cache.elements[roadmap[0]]['calcRoadMap'+subname][cur][j][k] = roadmap[k];
 				}
 			}
 		// return; пытаемся продолжать вычисления
@@ -1457,40 +1545,40 @@ function iteration(i, cur, val, roadmap) {
 		if (api.settings.debug) console.log('Находимся на итерации '+i+'. Текущий элемент №'+cur+', пока что '+val+'.');
 		
 		var axval = [];
-		for (i = 0; i<val.length; i++) axval.push(val[i]);
+		for (let ix = 0; ix<val.length; ix++) axval.push(val[i]);
 		
 		var j=0;
 		for (j = -2; j<project.cases.length; j++) {
-			axval[j+2] = (axval[j+2]<getBondVal(cache.elements[cur].outbonds[c], j)?axval[j+2]:getBondVal(cache.elements[cur].outbonds[c], j));
+			axval[j+2] = (axval[j+2]<getBondVal(cache.elements[cur].outbonds[c], j, subname)?axval[j+2]:getBondVal(cache.elements[cur].outbonds[c], j, subname));
 		}
 		
 		iteration(i+1, 
 			project.bonds[cache.elements[cur].outbonds[c]].second, 				//следующий элемент
 			axval,	//меньшую силу передаем
-			roadmap.concat(cur));
+			roadmap.concat(cur), subname);
 	}
 }
 
-function iteration2(i, cur, val, roadmap) {
+function iteration2(i, cur, val, roadmap, subname) {
 	//версия с умножением
 	var c;
 	if (project.elements[cur].type == 3) {
 		roadmap.push(cur);
 		if (api.settings.debug) console.log('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.');
-		if (cache.elements[cur].calcChance[roadmap[0]] == undefined) {
-			cache.elements[cur].calcChance[roadmap[0]] = [];
-			for (var j=0; j<val.length; j++) cache.elements[cur].calcChance[roadmap[0]][j] = val[j];
+		if (cache.elements[cur]['calcChance'+subname][roadmap[0]] == undefined) {
+			cache.elements[cur]['calcChance'+subname][roadmap[0]] = [];
+			for (var j=0; j<val.length; j++) cache.elements[cur]['calcChance'+subname][roadmap[0]][j] = val[j];
 		}
 		else for (var j=0; j<val.length; j++) 		//досчитали
-			if (cache.elements[cur].calcChance[roadmap[0]][j]<val[j]) {
-				cache.elements[cur].calcChance[roadmap[0]][j] = val[j];	
+			if (cache.elements[cur]['calcChance'+subname][roadmap[0]][j]<val[j]) {
+				cache.elements[cur]['calcChance'+subname][roadmap[0]][j] = val[j];	
 				
-				cache.elements[cur].calcRoadMap[roadmap[0]][j] = [];
-				cache.elements[roadmap[0]].calcRoadMap[cur][j] = [];
+				cache.elements[cur]['calcRoadMap'+subname][roadmap[0]][j] = [];
+				cache.elements[roadmap[0]]['calcRoadMap'+subname][cur][j] = [];
 				
 				for (var k=0; k<roadmap.length; k++) {
-					cache.elements[cur].calcRoadMap[roadmap[0]][j][k] = roadmap[k];
-					cache.elements[roadmap[0]].calcRoadMap[cur][j][k] = roadmap[k];
+					cache.elements[cur]['calcRoadMap'+subname][roadmap[0]][j][k] = roadmap[k];
+					cache.elements[roadmap[0]]['calcRoadMap'+subname][cur][j][k] = roadmap[k];
 				}
 		}
 		// return; пытаемся продолжать вычисления
@@ -1505,72 +1593,69 @@ function iteration2(i, cur, val, roadmap) {
 		if (api.settings.debug) console.log('Находимся на итерации '+i+'. Текущий элемент №'+cur+', пока что '+val+'.');
 		
 		var axval = [];
-		for (i = 0; i<val.length; i++) axval.push(val[i]);
+		for (let ix = 0; ix<val.length; ix++) axval.push(val[ix]);
 		
 		var j=0;
 		for (j = -2; j<project.cases.length; j++) {
-			axval[j+2] *= getBondVal(cache.elements[cur].outbonds[c], j);
+			axval[j+2] *= getBondVal(cache.elements[cur].outbonds[c], j, subname);
 		}
 		
 		iteration2(i+1, 
 			project.bonds[cache.elements[cur].outbonds[c]].second, 				//следующий элемент
 			axval,	
-			roadmap.concat(cur));
+			roadmap.concat(cur), subname);
 	}
 }
 	
-function Recompile() {
-	api.callPopup2(windows.loader);
+function Recompile_Process(subname) {
 	var calcFuncs = [iteration, iteration2];
 	var inital = [999, 1];
 	if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
-	if (api.compiled) {
-		api.closePopup();
-		return;
-	}
 	var uv = [];
 	if (project.cases == undefined) project.cases = [];
 	var c = project.cases.length+2;
 	while (c--) uv.push(inital[project.settings.calcFunc]);
 	//инициализация
 	for (c=0; c<cache.types[2].length; c++) {
-		cache.elements[cache.types[2][c]].calcChance = [];
-		cache.elements[cache.types[2][c]].calcRoadMap = [];
-		cache.elements[cache.types[2][c]].finCalcChance = [];
+		let elemCache = cache.elements[cache.types[2][c]];
+		elemCache['calcChance'+subname] = [];
+		elemCache['calcRoadMap'+subname] = [];
+		elemCache['finCalcChance'+subname] = [];
 		for (var k=0; k<cache.types[0].length; k++)  {
-			cache.elements[cache.types[2][c]].calcChance[cache.types[0][k]] = [];
-			cache.elements[cache.types[2][c]].calcRoadMap[cache.types[0][k]] = [];
+			elemCache['calcChance'+subname][cache.types[0][k]] = [];
+			elemCache['calcRoadMap'+subname][cache.types[0][k]] = [];
 			for (var j=-2; j<project.cases.length; j++)
-				cache.elements[cache.types[2][c]].calcChance[cache.types[0][k]].push(0);
+				elemCache['calcChance'+subname][cache.types[0][k]].push(0);
 		}
 		for (var j=-2; j<project.cases.length; j++)
-			cache.elements[cache.types[2][c]].finCalcChance.push(0);
-		cache.elements[cache.types[2][c]].costs = [];
+			elemCache['finCalcChance'+subname].push(0);
+		elemCache['costs'+subname] = [];
 	}
 	
 	for (c=0; c<cache.types[0].length; c++) {
-		cache.elements[cache.types[0][c]].calcRoadMap = [];
+		let elemCache = cache.elements[cache.types[0][c]];
+		elemCache['calcRoadMap'+subname] = [];
 		for (var k=0; k<cache.types[2].length; k++)  {
-			cache.elements[cache.types[0][c]].calcRoadMap[cache.types[2][k]] = [];
+			elemCache['calcRoadMap'+subname][cache.types[2][k]] = [];
 		}
 	}
 	
 	//поиск путей
 	for (c=0; c<cache.types[0].length; c++)
-		calcFuncs[project.settings.calcFunc](0, cache.types[0][c], uv, []);
+		calcFuncs[project.settings.calcFunc](0, cache.types[0][c], uv, [], subname);
 		
-	//поиск путей
+	//выбор путей
 	for (c=0; c<cache.types[2].length; c++) {
-		var e = cache.types[2][c];
-		if (cache.elements[e].calcChance.length > 0) {
-			cache.elements[e].finCalcChance = [];
+		var elemCache = cache.elements[cache.types[2][c]];
+		if (elemCache['calcChance'+subname].length > 0) {
+			elemCache['finCalcChance'+subname] = [];
 			for (var j=-2; j<project.cases.length; j++) {
-				cache.elements[e].finCalcChance[j+2] = 0;
+				elemCache['finCalcChance'+subname][j+2] = 0;
 				for (var k=0; k<cache.types[0].length; k++) {
 					var i = cache.types[0][k];
-					if (cache.elements[e].calcChance[i] != undefined) {
-						if (cache.elements[e].finCalcChance[j+2] < cache.elements[e].calcChance[i][j+2]) 
-							cache.elements[e].finCalcChance[j+2] = cache.elements[e].calcChance[i][j+2];
+					if (elemCache['calcChance'+subname][i] != undefined) {
+						if (elemCache['finCalcChance'+subname][j+2] < elemCache['calcChance'+subname][i][j+2]) 
+							elemCache['finCalcChance'+subname][j+2] = elemCache['calcChance'+subname][i][j+2];
 					}
 				}
 			}
@@ -1580,9 +1665,19 @@ function Recompile() {
 	//собираем стоимость
 	for (c=0; c<cache.types[2].length; c++) {
 		for (var j=-2; j<project.cases.length; j++) {
-			cache.elements[cache.types[2][c]].costs[j+2] = cache.elements[cache.types[2][c]].finCalcChance[j+2]*project.elements[cache.types[2][c]].cost;
+			cache.elements[cache.types[2][c]]['costs'+subname][j+2] = cache.elements[cache.types[2][c]]['finCalcChance'+subname][j+2]*project.elements[cache.types[2][c]].cost;
 		}
 	}
+}
+
+function Recompile() {
+	api.callPopup2(windows.loader);
+	if (api.compiled) {
+		api.closePopup();
+		return;
+	}
+	Recompile_Process('');
+	if (project.settings.grayMap) Recompile_Process('2');
 	api.compiled = true;
 	api.closePopup();
 }
