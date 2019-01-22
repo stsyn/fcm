@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.5", s:"RC3", b:82};
+	this.version = {g:"0.9.5", s:"RC3", b:83};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -596,6 +596,7 @@ function exapi() {
 			return false;
 		}
 		catch (ex) {
+			api.prepareErrorExport(JSON.stringify(project));
 			if (project.settings == undefined) {
 				if (project.meta.encrypt) {
 					windows.loadError.content = 'Не удалось загрузить проект "'+name+'". Проект поврежден или пароль неверный.<br><br>Описание ошибки:<br>'+ex;
@@ -1515,7 +1516,7 @@ function exapi() {
 			document.getElementById("save_button").classList.add("sel");
 			document.getElementById("export").classList.toggle("d");
 			var tproject = (project.meta.compress?api.compressProject(project):project);
-			document.getElementsByClassName("ex_c")[0].value = JSON.stringify(tproject);
+			if (arg1 != false) document.getElementsByClassName("ex_c")[0].value = JSON.stringify(tproject);
 			document.querySelector('#export .exportlink').innerHTML = '';
 		}
 		else if (id == "import") {
@@ -2284,6 +2285,10 @@ function exapi() {
 		api.forceRedraw = true;
 	}
 	
+	this.prepareErrorExport = function (pr) {
+		document.getElementsByClassName('ex_c')[0].value = pr;
+	}
+	
 	this.init = function(fatal) {
 		!localStorage && (l = location, p = l.pathname.replace(/(^..)(:)/, "$1$$"), (l.href = l.protocol + "//127.0.0.1" + p));
 		windows.startupError = {header:'Ошибка!',size:1,buttons:[{functions:'api.loadDefault();api.saveSettings();api.closePopup();',red:true,name:'Установить умолчания'}],windowsize:'sm'};
@@ -2469,8 +2474,8 @@ function exapi() {
 		windows.update = {header:'Обновление!',content:'Программа была обновлена до версии <b>'+this.updated+'</b>! Рекомендуется перезапустить программу, чтобы загрузились все обновленные файлы.',size:3,buttons:[{functions:'api.closePopup();',red:false,name:'Закрыть'},{functions:'api.callPopup2(windows.changelog);',red:false,name:'Список изменений'},{functions:'location.reload(true);',red:true,name:'Перезапустить'}],windowsize:'sm'};
 		
 		
-		windows.saveError = {header:'Ошибка!',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
-		windows.loadError = {header:'Ошибка!',size:3,buttons:[{functions:'api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'location.reload();',red:false,name:'Перезагрузить программу'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		windows.saveError = {header:'Ошибка!',size:2,buttons:[{functions:'api.callWindow("export",false);api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
+		windows.loadError = {header:'Ошибка!',size:3,buttons:[{functions:'api.callWindow("export",false);api.closePopup();',red:false,name:'Выполнить экспорт'},{functions:'location.reload();',red:false,name:'Перезагрузить программу'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		
 		if (this.settings.autoload && this.settings.lastLoaded != undefined) this.error = this.error || this.load(this.settings.lastLoaded,true);
 		

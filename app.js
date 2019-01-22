@@ -1477,6 +1477,7 @@ function autocalcTermRules(term) {
 
 function getBondVal(el, caseid, subname) {
 	if (subname == undefined) subname = '';
+	if (subname == '2' && !project.settings.grayMap) return undefined;
 	var c;
 	if (el == undefined) return 0;
 	if (typeof el == 'object') el = el.id;
