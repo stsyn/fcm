@@ -70,6 +70,8 @@ function resetProject(crash) {
 	api.changed=false;
 	api.settings.lastLoaded = undefined;
 	selection.tryAllowStuff();
+	Recalculate();
+	api.showElSel = undefined;
 	if (crash) {
 		resetViewport();
 		setTimeout(appMain, api.settings.chInterval);
@@ -915,6 +917,7 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 	
 	if (elem.forced) {
 		for (var i=0; i<cache.elements[id].inbonds.length; i++) {
+			
 			if (project.bonds[cache.elements[id].inbonds[i]].forced) continue;
 			project.bonds[cache.elements[id].inbonds[i]].val = elem.fval;
 			project.bonds[cache.elements[id].inbonds[i]].tval = elem.ftval;
@@ -951,11 +954,16 @@ function createAndAddBond(el, isNew) {
 	readFromEditWindows(e, elem);
 	if (elem.val < 0) elem.val = 0;
 	if (elem.val > 1) elem.val = 1;
+	if (elem.val2 < 0) elem.val2 = 0;
+	if (elem.val2 > 1) elem.val2 = 1;
+	if (elem.val2 < elem.val) elem.val2 = elem.val;
 	
 	if (!elem.forced) {
 		if (project.elements[elem.second].forced) {
 			elem.val = project.elements[elem.second].fval;
+			elem.val2 = project.elements[elem.second].fval2;
 			elem.tval = project.elements[elem.second].ftval;
+			
 		}
 	}
 	
@@ -1145,7 +1153,7 @@ function readFromEditWindows(cc, el) {
 		if (e.type != "checkbox") {
 			if (e.dataset.parse == "string") el[e.dataset.val] = deXSS(el[e.dataset.val]);
 			else if (e.dataset.parse == "int") el[e.dataset.val] = parseInt(el[e.dataset.val]);
-			else el[e.dataset.val] = parseFloat(el[e.dataset.val]);
+			else if (e.dataset.parse == "float") el[e.dataset.val] = parseFloat(el[e.dataset.val].replace(',','.'));
 		}
 		var thisValue = el[e.dataset.val];
 		
@@ -1321,10 +1329,13 @@ function AddBond(FirstElement,SecondElement) {
 	fulfillTerms(e, {tval:'1'});
 	prepareEditWindows(e, {id:i, first:FirstElement, second:SecondElement});
 	
-	if (project.elements[SecondElement].forced && !el.forced) {
+	if (project.elements[SecondElement].forced) {
 		e.querySelector('[data-val="val"]').classList.add('na');
 		e.querySelector('[data-val="val"]').disabled = true;
 		e.querySelector('[data-val="val"]').value = project.elements[SecondElement].fval;
+		e.querySelector('[data-val="val2"]').classList.add('na');
+		e.querySelector('[data-val="val2"]').disabled = true;
+		e.querySelector('[data-val="val2"]').value = project.elements[SecondElement].fval2;
 		
 		e.querySelector('[data-val="tval"]').classList.add('na');
 		e.querySelector('[data-val="tval"]').disabled = true;
@@ -1333,6 +1344,8 @@ function AddBond(FirstElement,SecondElement) {
 	else {
 		e.querySelector('[data-val="val"]').classList.remove('na');
 		e.querySelector('[data-val="val"]').disabled = false;
+		e.querySelector('[data-val="val2"]').classList.remove('na');
+		e.querySelector('[data-val="val2"]').disabled = false;
 		
 		e.querySelector('[data-val="tval"]').classList.remove('na');
 		e.querySelector('[data-val="tval"]').disabled = false;
@@ -1686,6 +1699,7 @@ function Recompile() {
 function Recalculate() {
 	var i,j,k;
 	cache.bonds = [];
+	cache.elements = [];
 	cache.types = [];
 	for (i=0; i<6; i++) cache.types[i] = [];
 	for (i=0; i<project.bonds.length; i++) {
