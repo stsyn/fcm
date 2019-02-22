@@ -162,7 +162,10 @@ input:disabled.b {
 	vertical-align: middle;
 	text-align:center;
 	width:100%}
-.table .t{display:table-cell}
+.table .t{display:table-cell;padding:2px 4px; background:#fff}
+.table .t:not(.lit) {background:#fff}
+body.night .table .t:not(.lit) {background:#001}
+
 .table .t3{display:table;
 	table-layout:auto;
 	width:100%}
@@ -174,6 +177,8 @@ width:100%;}
 td {display:table-cell !important}
 tr {display:table-row !important}
 tr.headline, tbody, table.r {width:100%}
+tr.headline td {background:#f2f6f9}
+body.night tr.headline td {background:#091630}
 table.r td {text-align:center}
 
 input[type="checkbox"], input[type="radio"] {
@@ -533,5 +538,6 @@ body.noMultitool .one_new_guy_who_wanna_remove_them_all {display:none !important
 .huge .fa.fa-window-maximize {display:none}
 .huge .fa.fa-window-restore {display:inline}
 
-#matrixpad .t3 .t2 .t:first-child {position:absolute;width:3em}
-#matrixpad .t3 .t2 .t:nth-child(2) {padding-left:3em}
+#matrixpad .t3 .t2:first-child, #statepad .t3 .t2:first-child {font-weight:600}
+#matrixpad .t3 .t2 .t:first-child, #statepad .t3 .t2 .t:first-child {position:absolute;width:4em;font-weight:600}
+#matrixpad .t3 .t2 .t:nth-child(2), #statepad .t3 .t2 .t:nth-child(2) {padding-left:5em}

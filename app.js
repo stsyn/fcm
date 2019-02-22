@@ -64,6 +64,7 @@ function resetProject(crash) {
 	project.cases = [];
 	project.terms = [];
 	project.settings.term = -3;
+	project.settings.propColor = true;
 	update();
 	api.initRTS();
 	api.initRTSCases();
@@ -72,6 +73,7 @@ function resetProject(crash) {
 	selection.tryAllowStuff();
 	Recalculate();
 	api.showElSel = undefined;
+	api.showBSel = undefined;
 	if (crash) {
 		resetViewport();
 		setTimeout(appMain, api.settings.chInterval);
@@ -130,14 +132,20 @@ function translateOnBondCoordsY(b, ac) {
 
 function getColor(a) {
 	var c = a;
-	if (c<0) c=0; if (c>1) c=1;
+	if (c<-1) c=-1; 
+	if (c>1) c=1;
+	if (c<-0.5) return 'rgb(0, '+parseInt((255-511*(Math.abs(c)-0.5))/(api.settings.nightMode?1:1.5))+','+(api.settings.nightMode?255:170)+')';
+	if (c<0) return 'rgb(0, '+(api.settings.nightMode?255:170)+','+parseInt(511*Math.abs(c)/(api.settings.nightMode?1:1.5))+')';
 	if (c<0.5) return 'rgb('+parseInt(511*c/(api.settings.nightMode?1:1.5))+','+(api.settings.nightMode?255:170)+',0)';
 	else return 'rgb(255,'+parseInt((255-511*(c-0.5))/(api.settings.nightMode?1:1.5))+',0)';
 }
 
 function agetColor(a) {
 	var c = a;
-	if (c<0) c=0; if (c>1) c=1;
+	if (c<-1) c=-1; 
+	if (c>1) c=1;
+	if (c<-0.5) return 'rgb(0, '+parseInt((255-511*(Math.abs(c)-0.5))/(api.settings.nightMode?1:1.5))+','+(api.settings.nightMode?255:170)+',0)';
+	if (c<0) return 'rgb(0, '+(api.settings.nightMode?255:170)+','+parseInt(511*Math.abs(c)/(api.settings.nightMode?1:1.5))+',0)';
 	if (c<0.5) return 'rgba('+parseInt(511*c/(api.settings.nightMode?1:1.5))+','+(api.settings.nightMode?255:170)+',0,0)';
 	else return 'rgba(255,'+parseInt((255-511*(c-0.5))/(api.settings.nightMode?1:1.5))+',0,0)';
 }
@@ -216,8 +224,8 @@ function appDrawBond(el,b) {
 		}
 		else {
 			if (project.settings.propColor) {
-				color1 = getColor(getBondVal(i, project.settings.currentCase));
-				color2 = getColor(getBondVal(i, project.settings.currentCase, (project.settings.grayMap?'2':'')));
+				color1 = getColor((getBondVal(i, project.settings.currentCase)));
+				color2 = getColor((getBondVal(i, project.settings.currentCase, (project.settings.grayMap?'2':''))));
 			}
 			else {
 				color1 = colorScheme[(api.settings.nightMode?1:0)].connections;
@@ -242,58 +250,6 @@ function appDrawBond(el,b) {
 			
 		}
 		
-		/*if (project.settings.propColor) {
-			if (api.settings.transparency) {
-				var grd=ctx.createLinearGradient(x1,y1,x2,y2);
-				if (isSel) {	
-					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)]['a'+tc]);
-					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)][tc]);
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
-				}
-				else {
-					grd.addColorStop(0,agetColor(getBondVal(i, project.settings.currentCase)));
-					grd.addColorStop(0.3,getColor(getBondVal(i, project.settings.currentCase)));
-					ctx.fillStyle=getColor(getBondVal(i, project.settings.currentCase));
-				}
-				ctx.strokeStyle=grd;
-			}
-			else {
-				if (isSel) {
-					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
-				}
-				else {
-					ctx.strokeStyle=getColor(getBondVal(i, project.settings.currentCase));
-					ctx.fillStyle=getColor(getBondVal(i, project.settings.currentCase));
-				}
-			}
-		}
-		else {
-			if (api.settings.transparency) {
-				var grd=ctx.createLinearGradient(x1,y1,x2,y2);
-				if (isSel) {
-					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)]['a'+tc]);
-					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)][tc]);
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)][tc];	
-				}
-				else {
-					grd.addColorStop(0,colorScheme[(api.settings.nightMode?1:0)].aconnections);
-					grd.addColorStop(0.3,colorScheme[(api.settings.nightMode?1:0)].connections);
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
-				}
-				ctx.strokeStyle=grd;
-			}
-			else {
-				if (isSel) {
-					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)][tc];
-				}
-				else {
-					ctx.strokeStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
-					ctx.fillStyle=colorScheme[(api.settings.nightMode?1:0)].connections;
-				}
-			}
-		}*/
 		ctx.beginPath();
 		ctx.moveTo(x1,y1);
 		ctx.lineTo(x2,y2);
@@ -517,6 +473,8 @@ function appRedraw() {
 		cache.elements[tElem].active = 1;
 		api.hasActiveElems = true;
 	}
+	if (cache.elements[api.showElSel] == undefined) 
+		api.showElSel = undefined;
 	if (api.showElSel != undefined) {
 		cache.elements[api.showElSel].active = 1;
 		api.hasActiveElems = true;
@@ -530,6 +488,8 @@ function appRedraw() {
 	}
 	
 	// активные связи
+	if (cache.bonds[api.showBSel] == undefined) 
+		api.showBSel = undefined;
 	if (tBond != undefined) {
 		cache.bonds[tBond].active = 1;
 	}
@@ -881,6 +841,13 @@ function update() {
 	api.forceRedraw = true;
 }
 
+function weightsValidate(input, index) {
+	if (input[index] < -1) input[index] = -1;
+	if (input[index] > 1) input[index] = 1;
+	if (input[index+'2'] > 1) input[index+'2'] = 1;
+	if (input[index+'2'] < input[index]) input[index+'2'] = input[index];
+}
+
 function createAndAddElement(el, isNew) { //createElement already defined >:c
 	var e = document.getElementById(el);
 	var id = parseInt(e.querySelector('[data-val="id"]').value);
@@ -912,8 +879,10 @@ function createAndAddElement(el, isNew) { //createElement already defined >:c
 		}
 	}
 	if (!isNew) api.brush = elem.type;
-	if (elem.val2 < elem.val) elem.val2 = elem.val;
-	if (elem.fval2 < elem.fval) elem.fval2 = elem.fval;
+	
+	weightsValidate(elem, 'val');
+	weightsValidate(elem, 'fval');
+	weightsValidate(elem, 'state');
 	
 	if (elem.forced) {
 		for (var i=0; i<cache.elements[id].inbonds.length; i++) {
@@ -952,11 +921,7 @@ function createAndAddBond(el, isNew) {
 	project.bonds[id] = {};
 	var elem = project.bonds[id];
 	readFromEditWindows(e, elem);
-	if (elem.val < 0) elem.val = 0;
-	if (elem.val > 1) elem.val = 1;
-	if (elem.val2 < 0) elem.val2 = 0;
-	if (elem.val2 > 1) elem.val2 = 1;
-	if (elem.val2 < elem.val) elem.val2 = elem.val;
+	weightsValidate(elem, 'val');
 	
 	if (!elem.forced) {
 		if (project.elements[elem.second].forced) {
@@ -1154,6 +1119,11 @@ function readFromEditWindows(cc, el) {
 			if (e.dataset.parse == "string") el[e.dataset.val] = deXSS(el[e.dataset.val]);
 			else if (e.dataset.parse == "int") el[e.dataset.val] = parseInt(el[e.dataset.val]);
 			else if (e.dataset.parse == "float") el[e.dataset.val] = parseFloat(el[e.dataset.val].replace(',','.'));
+			
+			if (isNaN(el[e.dataset.val])) {
+				if (e.dataset.parse == "int") el[e.dataset.val] = parseInt(e.dataset.default);
+				else if (e.dataset.parse == "float") el[e.dataset.val] = parseFloat(e.dataset.default.replace(',','.'));
+			}
 		}
 		var thisValue = el[e.dataset.val];
 		
@@ -1527,7 +1497,30 @@ function getBondVal(el, caseid, subname) {
 	return +c.toFixed(4);
 }
 
-function iteration(i, cur, val, roadmap, subname) {
+function getElemState(el, caseid, subname) {
+	if (subname == undefined) subname = '';
+	if (subname == '2' && !project.settings.grayMap) return undefined;
+	var c;
+	if (el == undefined) return 0;
+	if (typeof el == 'object') el = el.id;
+	c = cache.elements[el]['cstate'+subname][caseid];
+	return +c.toFixed(4);
+}
+
+
+function iteration(i, cur, val, roadmap, options) {
+	let subname = options.subname;
+	
+	let calcFunctions = [
+		function(a, b) {
+			if (a>b) return a;
+			else return b;
+		},
+		function (a, b) {
+			return a*b;
+		}
+	];
+	
 	var c;
 	if (project.elements[cur].type == 3) {
 		roadmap.push(cur);
@@ -1563,71 +1556,62 @@ function iteration(i, cur, val, roadmap, subname) {
 		
 		var j=0;
 		for (j = -2; j<project.cases.length; j++) {
-			axval[j+2] = (axval[j+2]<getBondVal(cache.elements[cur].outbonds[c], j, subname)?axval[j+2]:getBondVal(cache.elements[cur].outbonds[c], j, subname));
+			axval[j+2] = calcFunctions[options.calcFunction](axval[j+2], getBondVal(cache.elements[cur].outbonds[c], j, subname));
 		}
 		
 		iteration(i+1, 
 			project.bonds[cache.elements[cur].outbonds[c]].second, 				//следующий элемент
 			axval,	//меньшую силу передаем
-			roadmap.concat(cur), subname);
+			roadmap.concat(cur), options);
 	}
 }
 
-function iteration2(i, cur, val, roadmap, subname) {
-	//версия с умножением
-	var c;
-	if (project.elements[cur].type == 3) {
-		roadmap.push(cur);
-		if (api.settings.debug) console.log('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.');
-		if (cache.elements[cur]['calcChance'+subname][roadmap[0]] == undefined) {
-			cache.elements[cur]['calcChance'+subname][roadmap[0]] = [];
-			for (var j=0; j<val.length; j++) cache.elements[cur]['calcChance'+subname][roadmap[0]][j] = val[j];
+function Recompile_States(options) {
+	let temp = [];
+	let subname = options.subname;
+	cache.maxEpochs = 20;
+	let actFunctions = [
+		function(x) {
+			if (Math.abs(x) <= 1) return x;
+			return Math.sign(x);
+		},
+		function (x) {
+			return Math.tanh(x/2);
 		}
-		else for (var j=0; j<val.length; j++) 		//досчитали
-			if (cache.elements[cur]['calcChance'+subname][roadmap[0]][j]<val[j]) {
-				cache.elements[cur]['calcChance'+subname][roadmap[0]][j] = val[j];	
-				
-				cache.elements[cur]['calcRoadMap'+subname][roadmap[0]][j] = [];
-				cache.elements[roadmap[0]]['calcRoadMap'+subname][cur][j] = [];
-				
-				for (var k=0; k<roadmap.length; k++) {
-					cache.elements[cur]['calcRoadMap'+subname][roadmap[0]][j][k] = roadmap[k];
-					cache.elements[roadmap[0]]['calcRoadMap'+subname][cur][j][k] = roadmap[k];
+	];
+	
+	for (let x=0; x<cache.maxEpochs; x++) {
+		for (let c=0; c<project.elements.length; c++) {
+			temp[c] = [];
+			if (isOnBond(c)) continue;
+			let elemCache = cache.elements[c];
+			
+			for (j = -2; j<project.cases.length; j++) {
+				elemCache['stateHistory'+subname][j].push(getElemState(c, j, subname));
+				if (elemCache.inbonds.length == 0) {
+					temp[c][j] = getElemState(c, j, subname);
+					continue;
 				}
+				let val = elemCache['cstate'+subname][j];
+				for (let x=0; x<elemCache.inbonds.length; x++) {
+					let pelem = project.bonds[elemCache.inbonds[x]].first;
+					val += (getBondVal(elemCache.inbonds[x], j, subname))*getElemState(pelem, j, subname);
+				}
+				temp[c][j] = actFunctions[options.actFunction](val);
+			}
 		}
-		// return; пытаемся продолжать вычисления
-	}
-	
-	for (var u=0; u<roadmap.length; u++) if (roadmap[u] == cur) {
-		if (api.settings.debug) console.log('Вошли в цикл на итерации '+i+'. Текущий элемент №'+cur+', путь '+roadmap+'.');
-		return;	//не зацикливаемся
-	}
-	
-	for (c=0; c<cache.elements[cur].outbonds.length; c++) {
-		if (api.settings.debug) console.log('Находимся на итерации '+i+'. Текущий элемент №'+cur+', пока что '+val+'.');
-		
-		var axval = [];
-		for (let ix = 0; ix<val.length; ix++) axval.push(val[ix]);
-		
-		var j=0;
-		for (j = -2; j<project.cases.length; j++) {
-			axval[j+2] *= getBondVal(cache.elements[cur].outbonds[c], j, subname);
-		}
-		
-		iteration2(i+1, 
-			project.bonds[cache.elements[cur].outbonds[c]].second, 				//следующий элемент
-			axval,	
-			roadmap.concat(cur), subname);
+		for (let c=0; c<project.elements.length; c++) 
+			for (j = -2; j<project.cases.length; j++) 
+				cache.elements[c]['cstate'+subname][j] = temp[c][j];
 	}
 }
-	
+
 function Recompile_Process(subname) {
-	var calcFuncs = [iteration, iteration2];
-	var inital = [999, 1];
+	let inital = [999, 1];
 	if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
-	var uv = [];
+	let uv = [];
 	if (project.cases == undefined) project.cases = [];
-	var c = project.cases.length+2;
+	let c = project.cases.length+2;
 	while (c--) uv.push(inital[project.settings.calcFunc]);
 	//инициализация
 	for (c=0; c<cache.types[2].length; c++) {
@@ -1635,13 +1619,13 @@ function Recompile_Process(subname) {
 		elemCache['calcChance'+subname] = [];
 		elemCache['calcRoadMap'+subname] = [];
 		elemCache['finCalcChance'+subname] = [];
-		for (var k=0; k<cache.types[0].length; k++)  {
+		for (let k=0; k<cache.types[0].length; k++)  {
 			elemCache['calcChance'+subname][cache.types[0][k]] = [];
 			elemCache['calcRoadMap'+subname][cache.types[0][k]] = [];
-			for (var j=-2; j<project.cases.length; j++)
+			for (let j=-2; j<project.cases.length; j++)
 				elemCache['calcChance'+subname][cache.types[0][k]].push(0);
 		}
-		for (var j=-2; j<project.cases.length; j++)
+		for (let j=-2; j<project.cases.length; j++)
 			elemCache['finCalcChance'+subname].push(0);
 		elemCache['costs'+subname] = [];
 	}
@@ -1649,24 +1633,42 @@ function Recompile_Process(subname) {
 	for (c=0; c<cache.types[0].length; c++) {
 		let elemCache = cache.elements[cache.types[0][c]];
 		elemCache['calcRoadMap'+subname] = [];
-		for (var k=0; k<cache.types[2].length; k++)  {
+		for (let k=0; k<cache.types[2].length; k++)  {
 			elemCache['calcRoadMap'+subname][cache.types[2][k]] = [];
+		}
+	}
+	
+	for (c=0; c<cache.elements.length; c++) {
+		if (isOnBond(c)) continue;
+		let elemCache = cache.elements[c];
+		elemCache['stateHistory'+subname] = [];
+		elemCache['cstate'+subname] = [];
+		for (let j=-2; j<project.cases.length; j++) {
+			elemCache['stateHistory'+subname][j] = [];
+			if (project.elements[c]['state'+subname] == undefined) project.elements[c]['state'+subname] = 0;
+			if (project.settings.term != -3)
+				elemCache['cstate'+subname][j] = getValueOfTerm(project.elements[c].tstate);
+			else
+				elemCache['cstate'+subname][j] = project.elements[c]['state'+subname];
 		}
 	}
 	
 	//поиск путей
 	for (c=0; c<cache.types[0].length; c++)
-		calcFuncs[project.settings.calcFunc](0, cache.types[0][c], uv, [], subname);
+		iteration(0, cache.types[0][c], uv, [], {subname:subname, calcFunction:project.settings.calcFunc});
 		
+	//пересчет состояний
+	Recompile_States({subname:subname, actFunction:project.settings.actFunc});
+	
 	//выбор путей
 	for (c=0; c<cache.types[2].length; c++) {
-		var elemCache = cache.elements[cache.types[2][c]];
+		let elemCache = cache.elements[cache.types[2][c]];
 		if (elemCache['calcChance'+subname].length > 0) {
 			elemCache['finCalcChance'+subname] = [];
-			for (var j=-2; j<project.cases.length; j++) {
+			for (let j=-2; j<project.cases.length; j++) {
 				elemCache['finCalcChance'+subname][j+2] = 0;
-				for (var k=0; k<cache.types[0].length; k++) {
-					var i = cache.types[0][k];
+				for (let k=0; k<cache.types[0].length; k++) {
+					let i = cache.types[0][k];
 					if (elemCache['calcChance'+subname][i] != undefined) {
 						if (elemCache['finCalcChance'+subname][j+2] < elemCache['calcChance'+subname][i][j+2]) 
 							elemCache['finCalcChance'+subname][j+2] = elemCache['calcChance'+subname][i][j+2];
@@ -1678,7 +1680,7 @@ function Recompile_Process(subname) {
 	
 	//собираем стоимость
 	for (c=0; c<cache.types[2].length; c++) {
-		for (var j=-2; j<project.cases.length; j++) {
+		for (let j=-2; j<project.cases.length; j++) {
 			cache.elements[cache.types[2][c]]['costs'+subname][j+2] = cache.elements[cache.types[2][c]]['finCalcChance'+subname][j+2]*project.elements[cache.types[2][c]].cost;
 		}
 	}

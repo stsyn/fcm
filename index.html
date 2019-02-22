@@ -43,6 +43,7 @@
 			<span class="b in" onclick="api.callWindow('cases')"><i class="fa fa-archive"></i><b>Кейсы</b></span>
 			<span class="b in" onclick="api.callWindow('matrix')"><i class="fa fa-bullseye"></i><b style="font-size:90%">Достижимость</b></span>
 			<span class="b in" onclick="api.callWindow('effect')"><i class="fa fa-cogs"></i><b style="font-size:85%">Полный эффект</b></span>
+			<span class="b in" onclick="api.callWindow('states')"><i class="fa fa-heartbeat"></i><b>Состояния</b></span>
 			<span class="b in" onclick="api.callWindow('graphs')"><i class="fa fa-bolt"></i><b>Общий риск</b></span>
 		</span>
 		
@@ -185,9 +186,14 @@
 					</div>
 					<div class="pad" style="display:block" id="m_calcfunc">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Способ расчета</div>
-						<div class="line">Выбирайте в зависимости от цели построения когнитивной карты!</div>
+						<div class="line">Выбирайте в зависимости от цели построения когнитивной карты и ее типа!</div>
 						<label class="b ilb stillsel acr fs" style="font-weight:normal"><input type="radio" name="m_cf" value="0"> Сравнение (стандартный)</label>
 						<label class="b ilb stillsel acr fs" style="font-weight:normal"><input type="radio" name="m_cf" value="1"> Умножение</label>
+					</div>
+					<div class="pad" style="display:block" id="m_actfunc">
+						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Функция активации</div>
+						<label class="b ilb stillsel acr fs" style="font-weight:normal"><input type="radio" name="m_af" value="0"> Линейная (стандартная)</label>
+						<label class="b ilb stillsel acr fs" style="font-weight:normal"><input type="radio" name="m_af" value="1"> Гиперболический тангенс</label>
 					</div>
 					<div class="pad debug">
 						<div class="line">Создан: <input type="text" class="b i" id="m_ts_created" style="width:10em" disabled></div>
@@ -394,6 +400,24 @@
 			</div>
 		</div>
 		
+		<div id="states">
+			<div class="back"></div>
+			<div class="w huge">
+				<div class="hc">
+					<span>Состояния концептов</span>
+				</div>
+				<div class="controls">
+					<div class="close" onclick="api.closeWindow(this.parentNode.parentNode.parentNode.id)"><i class="fa fa-lg fa-close"></i></div>
+				</div>
+				<div class="bt up">
+					<div id="statebutt" style="float:left;width:100%);white-space:pre-wrap;word-wrap:break-word"> </div>
+				</div>
+				<div class="cc btns" style="width:calc(100% - 8px)">
+					<div id="statepad" class="pad" style="display:block;height:calc(100% - 6px);white-space:pre-wrap;word-wrap:break-word;border:none;overflow:auto"></div>
+				</div>
+			</div>
+		</div>
+		
 		<div id="cases">
 			<div class="back"></div>
 			<div class="w huge defhuge">
@@ -556,10 +580,24 @@
 							</span>
 						</div>
 					</div>
-					<div class="pad" data-display-types="[1, 2]">
+					<div class="pad" data-display-types="[1, 2, 3, 6]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i na" data-no-edit data-val="state" data-parse="int" data-default="1" style="width:3em" disabled></div>
-							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i na" data-no-edit data-val="limit" data-parse="int" data-default="1" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Состояние: 
+								<input type="text" class="b i" data-val="state" data-default="0.0" data-parse="float" style="width:4em">
+								<select size="1" data-val="tstate" data-parse="int" class="b ilb termsrender"></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i" data-val="state2" data-default="0.0" data-parse="float" style="width:4em">
+								</span>
+							</div>
+							<div class="t de" style="width:50%">Текущее: 
+								<input type="text" class="b i na" disabled data-val="cstate" data-no-edit data-default="0.0" data-parse="float" style="width:4em">
+								<select size="1" data-val="tcstate" disabled data-no-edit data-parse="int" class="b ilb termsrender"></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i na" disabled data-no-edit data-default="0.0" data-val="cstate2" data-parse="float" style="width:4em">
+								</span>
+							</div>
 						</div></div></div>
 					</div>
 					<div class="pad" data-display-types="[3]">
@@ -583,7 +621,7 @@
 								<select size="1" data-val="tval" data-parse="int" class="b ilb termsrender"></select>
 								<span data-gray="true">
 									-
-									<input type="text" class="b i" data-val="val2" data-parse="float" style="width:4em">
+									<input type="text" class="b i" data-val="val2" data-default="0.5" data-parse="float" style="width:4em">
 								</span>
 							</div>
 						</div></div></div>
@@ -626,9 +664,9 @@
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:29%">ID: <input type="text" class="b i na cc_id" data-no-edit data-val="id" style="width:2em" disabled></div>
-							<div class="t de" style="width:35%">Начало: <input type="text" class="b i" data-val="first" style="width:3em" disabled></div>
-							<div class="t de" style="width:36%">Конец: <input type="text" class="b i" data-val="second" style="width:3em" disabled></div>
+							<div class="t de" style="width:29%">ID: <input type="text" class="b i na cc_id" data-no-edit data-parse="int" data-val="id" style="width:2em" disabled></div>
+							<div class="t de" style="width:35%">Начало: <input type="text" class="b i" data-val="first" data-parse="int" style="width:3em" disabled></div>
+							<div class="t de" style="width:36%">Конец: <input type="text" class="b i" data-val="second" data-parse="int" style="width:3em" disabled></div>
 						</div></div></div>
 						<br>
 						<div class="table r"><div class="t3"><div class="t2">
@@ -666,18 +704,18 @@
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:29%">ID: <input type="text" class="b i na cc_id" data-no-edit data-val="id" style="width:2em" disabled></div>
-							<div class="t de" style="width:35%">Начало: <input type="text" class="b i" data-val="first" style="width:3em" disabled></div>
-							<div class="t de" style="width:36%">Конец: <input type="text" class="b i" data-val="second" style="width:3em" disabled></div>
+							<div class="t de" style="width:29%">ID: <input type="text" class="b i na cc_id" data-no-edit data-val="id" data-parse="int" style="width:2em" disabled></div>
+							<div class="t de" style="width:35%">Начало: <input type="text" class="b i" data-val="first" data-parse="int" style="width:3em" disabled></div>
+							<div class="t de" style="width:36%">Конец: <input type="text" class="b i" data-val="second" data-parse="int" style="width:3em" disabled></div>
 						</div></div></div>
 						<br>
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Сила: 
-								<input type="text" class="b i" data-val="val" data-parse="float" style="width:3em">
+								<input type="text" class="b i" data-val="val" data-default="0.5" data-parse="float" style="width:3em">
 								<select size="1" data-val="tval" class="b ilb termsrender"></select>
 								<span data-gray="true">
 									-
-									<input type="text" class="b i" data-val="val2" data-parse="float" style="width:4em">
+									<input type="text" class="b i" data-val="val2" data-default="0.5" data-parse="float" style="width:4em">
 								</span>
 							</div>
 							<label class="b ilb stillsel ac t de" style="font-weight:normal"><input type="checkbox" data-val="forced"> Не перезаписывать</label>
@@ -725,10 +763,24 @@
 							</span>
 						</div>
 					</div>
-					<div class="pad" data-display-types="[1, 2]">
+					<div class="pad" data-display-types="[1, 2, 3, 6]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Состояние: <input type="text" class="b i na" data-val="state" style="width:3em" disabled></div>
-							<div class="t de" style="width:50%">Предельное: <input type="text" class="b i na" data-val="limit" style="width:3em" disabled></div>
+							<div class="t de" style="width:50%">Состояние: 
+								<input type="text" class="b i" data-val="state" data-default="0.0" data-parse="float" style="width:4em">
+								<select size="1" data-val="tstate" data-parse="int" class="b ilb termsrender"></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i" data-val="state2" data-default="0.0" data-parse="float" style="width:4em">
+								</span>
+							</div>
+							<div class="t de" style="width:50%">Текущее: 
+								<input type="text" class="b i na" data-val="cstate" data-no-edit data-default="0.0" data-parse="float" style="width:4em" disabled>
+								<select size="1" data-val="tcstate" data-no-edit data-parse="int" class="b na ilb termsrender" disabled></select>
+								<span data-gray="true">
+									-
+									<input type="text" class="b i na" data-no-edit data-default="0.0" data-val="cstate2" data-parse="float" style="width:4em" disabled>
+								</span>
+							</div>
 						</div></div></div>
 					</div>
 					<div class="pad" data-display-types="[3]">
@@ -748,11 +800,11 @@
 						<div class="table r"><div class="t3"><div class="t2">
 							<div class="t de" style="width:50%">Стоимость: <input type="text" class="b i" data-val="cost" style="width:4em"></div>
 							<div class="t de" style="width:50%">Эффективность: 
-								<input type="text" class="b i" data-val="val" data-parse="float" style="width:4em">
+								<input type="text" class="b i" data-val="val" data-default="0.5" data-parse="float" style="width:4em">
 								<select size="1" data-val="tval" data-parse="int" class="b ilb termsrender"></select>
 								<span data-gray="true">
 									-
-									<input type="text" class="b i" data-val="val2" data-parse="float" style="width:4em">
+									<input type="text" class="b i" data-val="val2" data-default="0.5" data-parse="float" style="width:4em">
 								</span>
 							</div>
 						</div></div></div>

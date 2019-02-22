@@ -9,3 +9,14 @@ if (!String.prototype.startsWith) {
     }
   });
 }
+
+Math.tanh = Math.tanh || function(x) {
+  if (x === Infinity) {
+    return 1;
+  } else if (x === -Infinity) {
+    return -1;
+  } else {
+    var y = Math.exp(2 * x);
+    return (y - 1) / (y + 1);
+  }
+}

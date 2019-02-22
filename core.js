@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.5", s:"RC3", b:84};
+	this.version = {g:"0.9.6", s:"RC3", b:85};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -358,7 +358,7 @@ function exapi() {
 		var i, j;
 		if (filter != -1) {
 			if ((el[filter].type == 4) || (el[filter].type == 5)) {
-				e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
+				e.appendChild(InfernoAddElem('tr', {className:'b fs na'},[
 					InfernoAddElem('td',{className:'b fs na',colspan:'6', innerHTML:'Родительская связь'},[])
 				]));
 				e.appendChild(this.includeBondsTLine (b, el, el[filter].X));
@@ -368,7 +368,7 @@ function exapi() {
 			for (i=0; i<cache.elements[filter].inbonds.length; i++) {
 				if (t) {
 					t = false;
-					e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
+					e.appendChild(InfernoAddElem('tr', {className:'b fs na'},[
 						InfernoAddElem('td',{className:'b fs na',colspan:'6', innerHTML:'Входящие связи'},[])
 					]));
 				}
@@ -378,7 +378,7 @@ function exapi() {
 			for (i=0; i<cache.elements[filter].outbonds.length; i++) {
 				if (t) {
 					t = false;
-					e.appendChild(InfernoAddElem('tr', {className:'b fs headline na'},[
+					e.appendChild(InfernoAddElem('tr', {className:'b fs na'},[
 						InfernoAddElem('td',{className:'b fs na',colspan:'6', innerHTML:'Исходящие связи'},[])
 					]));
 				}
@@ -560,6 +560,7 @@ function exapi() {
 		if (project.settings.term == undefined) project.settings.term = -3;
 		if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
 		if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
+		if (project.settings.actFunc == undefined) project.settings.actFunc = 0;
 		if (project.terms != undefined) {
 			for (var i=0; i<project.terms.length; i++) {
 				project.terms.autoTerms = true;
@@ -1392,7 +1393,7 @@ function exapi() {
 		
 		for (i = 0; i<project.bonds.length; i++) {
 			if (project.bonds[i] == undefined) continue;
-			var x = ut3.getElementsByClassName('t2')[project.bonds[i].first+1].getElementsByClassName('t')[project.bonds[i].second+1];
+			var x = ut3.getElementsByClassName('t2')[parseInt(project.bonds[i].first)+1].getElementsByClassName('t')[parseInt(project.bonds[i].second)+1];
 			if (project.settings.term == -3) x.innerHTML = getBondVal(i, val)+(project.settings.grayMap?' — '+getBondVal(i, val, '2'):'');
 			else x.innerHTML = getTermName(project.bonds[i].tval);
 		}
@@ -1432,6 +1433,94 @@ function exapi() {
 			document.getElementById('matrixbutt').getElementsByClassName('t2')[0].appendChild(el2);
 		}
 		api.renderMatrix(-2);
+	}
+	
+	this.renderStates= function(val) {
+		var i;
+		for (i=-2; i<project.cases.length; i++)
+			document.getElementById('statebutt').getElementsByClassName('b')[i+2].classList.remove('sel');
+		document.getElementById('statebutt').getElementsByClassName('b')[val+2].classList.add('sel');
+		
+		var u = document.getElementById('statepad');
+		u.innerHTML = '<div class="table r"><div class="t3"></div></div>';
+		
+		var ut3 = u.getElementsByClassName('t3')[0];
+		for (i=-1; i<project.elements.length; i++) {
+			if ((i>-1) && (project.elements[i] == undefined)) continue;
+			let elem = cache.elements[i];
+			var ut2 = document.createElement('div');
+			ut2.className = 't2';
+			if ((i != -1) && ((project.elements[i].type == 4) || (project.elements[i].type == 5))) ut2.classList.add('hd');
+			for (var j=-1; j<cache.maxEpochs; j++) {
+				if ((i != -1) && ((project.elements[i].type == 4) || (project.elements[i].type == 5))) continue;
+				var ut = document.createElement('div');
+				ut.className = 't';
+				if ((j != -1) && (i == -1)) {
+					ut.innerHTML = j;
+				}
+				else if (j == -1) {
+					ut.innerHTML = getCode(i);
+					ut.title = getName(i);
+				}
+				else {
+					let ix = elem.stateHistory[val][j];
+					if (j == elem.stateHistory[val].length) ix = elem.cstate;
+					if (project.settings.term != -3) ut.innerHTML = getTermName(getTermInterval(ix));
+					else {
+						ut.innerHTML = ix;
+						if (project.settings.grayMap) {
+							ix = elem.stateHistory2[val][j];
+							if (j == elem.stateHistory2[val].length) ix = elem.cstate2;
+							ut.innerHTML += ' — '+ix;
+						}
+					}
+				}
+				ut.style = "white-space: pre;";
+				ut.row = i;
+				ut.column = j;
+				ut.addEventListener('mouseover',api.statesRefreshHighLight);
+				ut2.appendChild(ut);
+			}
+			ut3.appendChild(ut2);
+		}
+	}
+	
+	this.statesRefreshHighLight = function() {
+		for (var i=0; i<=cache.maxEpochs; i++) {
+			document.getElementById('statepad').getElementsByClassName('t2')[0].getElementsByClassName('t')[i].classList.remove('lit');
+		}
+		for (var i=0; i<=project.elements.length; i++) {
+			document.getElementById('statepad').getElementsByClassName('t2')[i].getElementsByClassName('t')[0].classList.remove('lit');
+		}
+		document.getElementById('statepad').getElementsByClassName('t2')[0].getElementsByClassName('t')[this.column+1].classList.add('lit');
+		document.getElementById('statepad').getElementsByClassName('t2')[this.row+1].getElementsByClassName('t')[0].classList.add('lit');
+	}
+	
+	this.drawStates = function() {
+		api.hoveredStateColumn = -1;
+		api.hoveredStateRow = -1;
+		document.getElementById('statebutt').innerHTML = '<div class="table r"><div class="t3"><div class="t2"></div></div></div>';
+		document.getElementById('statebutt').getElementsByClassName('t2')[0].innerHTML = '';
+		if (project.cases == undefined) project.cases = [];
+		for (var i = -2; i<project.cases.length; i++) {
+			var s = '';
+			if (i == -2) s = 'Все отключено';
+			else if (i == -1) s = 'Все включено';
+			else s = project.cases[i].name;
+			
+			var el2 = document.createElement('span');
+			el2.className = 't';
+			
+			var el = document.createElement('span');
+			el.className = 'b fs';
+			el.innerHTML = s;
+			el.value = i;
+			el.addEventListener("click",function() {
+				api.renderStates(this.value)});
+			el2.appendChild(el);
+			document.getElementById('statebutt').getElementsByClassName('t2')[0].appendChild(el2);
+		}
+		api.renderStates(-2);
 	}
 	
 	this.callWindow = function(id,arg1,arg2,arg3) {
@@ -1475,6 +1564,11 @@ function exapi() {
 		else if (id == "matrix") {
 			this.drawMatrix();
 			document.getElementById("matrix").classList.toggle("d");
+		}
+		else if (id == "states") {
+			Recompile();
+			this.drawStates();
+			document.getElementById("states").classList.toggle("d");
 		}
 		else if (id == "effect") {
 			Recompile();
@@ -1988,6 +2082,17 @@ function exapi() {
 			}
 		}
 		
+		ec = document.getElementById('m_actfunc');
+		for (var i=0; i<ec.querySelectorAll('.acr').length; i++) {
+			if (i == project.settings.actFunc) {
+				ec.querySelectorAll('.acr input')[i].checked = true;
+				api.switchRadioElemState(ec.querySelectorAll('.acr')[i]);
+			}
+			else {
+				ec.querySelectorAll('.acr')[i].checked = false;
+			}
+		}
+		
 		for (i=0; i<document.getElementById('project').getElementsByClassName("ac").length; i++) api.switchElemState(document.getElementById('project').getElementsByClassName("ac")[i]);
 	}
 	
@@ -2016,7 +2121,7 @@ function exapi() {
 		if (isNaN(project.meta.timeSaved)) project.meta.timeSaved = t.getTime();
 		project.meta.compress = document.getElementById('m_compress').checked;
 		project.meta.encrypt = document.getElementById('m_encrypt').checked;
-		project.settings = {term:project.settings.term, currentCase:project.settings.currentCase};
+		//project.settings = {term:project.settings.term, currentCase:project.settings.currentCase};
 		project.settings.strict = document.getElementById('m_strict').checked;
 		project.settings.proportional = document.getElementById('m_propsize').checked;
 		project.settings.propColor = document.getElementById('m_propcolor').checked;
@@ -2029,6 +2134,15 @@ function exapi() {
 			}
 		}
 		project.settings.calcFunc = t;
+		
+		ec = document.getElementById('m_actfunc'), t=0;
+		for (var i=0; i<ec.querySelectorAll('.acr').length; i++) {
+			if (ec.querySelectorAll('.acr input')[i].checked) {
+				t=i;
+				break;
+			}
+		}
+		project.settings.actFunc = t;
 		api.compiled = false;
 		api.initRTS();
 		this.closeWindow('project');
