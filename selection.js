@@ -41,7 +41,7 @@ selection.isInside = function(el) {
 selection.reset = function() {
 	selection.keep = false;
 	for (var i=0; i<project.elements.length; i++) {
-		if (project.elements == undefined || isOnBond(i)) continue;
+		if (project.elements[i] == undefined || isOnBond(i)) continue;
 		selection.elements[i] = false;
 	}
 	selection.allowStuff(false);

@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.6", s:"RC3", b:85};
+	this.version = {g:"0.9.6", s:"RC3", b:86};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -575,6 +575,9 @@ function exapi() {
 			if (project.settings.term != -3) project.bonds[i].tval = getTermInterval(project.bonds[i].val);
 			project.bonds[i].id = i;
 		}
+		for (var i=0; i<project.cases.length; i++) if (project.cases[i] != undefined && project.cases[i].states == undefined) {
+			project.cases[i].states = {};
+		}
 		selection.tryAllowStuff();
 	}
 	
@@ -745,14 +748,17 @@ function exapi() {
 		checkWindowPos(t);
 	}
 	
-	this.requestReset = function() {
-		if (this.changed) {
-			windows.warning.buttons[0].functions='resetProject();resetViewport();api.closePopup();delete api.settings.lastLoaded;api.saveSettings();';
+	this.requestReset = function(trueReset) {
+		if (this.changed && !trueReset) {
+			windows.warning.buttons[0].functions='api.requestReset(true);';
 			this.callPopup2(windows.warning);
 		}
 		else {
 			resetProject();
 			resetViewport();
+			api.callWindow("project");
+			api.callWindow("terms");
+			api.callPopup2(windows.newProject);
 			delete this.settings.lastLoaded;
 			this.saveSettings();
 		}
@@ -769,7 +775,7 @@ function exapi() {
 	}
 	
 	this.renderCaseElem = function (caseid, elem, u) {
-		if (caseid>0 && elem>0) if (project.cases[caseid].enabled[elem] == undefined) project.cases[caseid].enabled[elem] = true;
+		if (caseid>=0 && elem>0) if (project.cases[caseid].enabled[elem] == undefined) project.cases[caseid].enabled[elem] = true;
 		var e = document.createElement('div');
 		var isEnabled = (elem == -1 ? false : (caseid == -2 ? false : (caseid == -1 ? true : project.cases[caseid].enabled[elem])));
 		e.className = 't2 b fs'+(isEnabled ? (caseid>=0 ? ' sel stillsel' : ' sel') : (caseid>=0 ? '' : ' na'))+(elem == -1 ? ' na' : '');
@@ -784,7 +790,11 @@ function exapi() {
 		
 		c = document.createElement('div');
 		c.className = 't';
-		c.innerHTML = (elem == -1 ? 'Значение':project.elements[elem].val);
+		if (elem != -1) {
+			if (project.settings.term == -3) c.innerHTML = project.elements[elem].val+(project.settings.grayMap?' — '+project.elements[elem].val2:'');
+			else c.innerHTML = getTermName(project.elements[elem].tval);
+		}
+		else c.innerHTML = 'Значение';
 		e.appendChild(c);
 		
 		c = document.createElement('div');
@@ -797,6 +807,78 @@ function exapi() {
 			api.renderCase(this.value);
 		});
 		
+		u.appendChild(e);
+	}
+	
+	this.renderCaseElemState = function (caseid, elem, u) {
+		
+		if (caseid>=0 && elem>0) if (project.cases[caseid].enabled[elem] == undefined) project.cases[caseid].enabled[elem] = true;
+		var isEnabled = (elem == -1 ? false : (caseid<0 ? false : project.cases[caseid].enabled[elem] === true));
+				
+		let cc;
+		if (elem == -1) {
+			cc = [
+				InfernoAddElem('div', {innerHTML:'Имя', className:'t'}, []),
+				InfernoAddElem('div', {innerHTML:'Состояние', className:'t'}, []),
+				InfernoAddElem('div', {innerHTML:'Переписывать', className:'t'}, [])
+			];
+		} else {
+			let c;
+			if (caseid>=0) c = project.cases[caseid].states[elem];
+			if (c == undefined) {
+				c = {};
+				c.state = 0;
+				c.tstate = 0;
+				c.state2 = 0;
+				if (caseid>=0) project.cases[caseid].states[elem] = c;
+			};
+			cc = [
+				InfernoAddElem('div', {innerHTML:getName(elem), className:'t'}, []),
+				InfernoAddElem('div', {className:'t'}, [
+					InfernoAddElem('input', {className:'b i'+(isEnabled?'':' na'), value:c.state, disabled:!isEnabled, type:'text', name:'state', style:'width:4em;height:1.7em'}, []),
+					InfernoAddElem('select', {className:'b ilb termsrender'+(isEnabled?'':' na'), disabled:!isEnabled, size:'1', name:'tstate', style:''}, []),
+					(project.settings.grayMap?
+					InfernoAddElem('span', {dataset:{gray:true}}, [
+						InfernoAddElem('span', {innerHTML:' — '}, []),
+						InfernoAddElem('input', {className:'b i'+(isEnabled?'':' na'), value:c.state2, disabled:!isEnabled, type:'text', name:'state2', style:'width:4em;height:1.7em'}, [])
+					]):InfernoAddElem('span', {innerHTML:''}, []))
+					
+				]),
+				InfernoAddElem('div', {className:'t'}, [
+					InfernoAddElem('label', {className:'b ilb ac de'+(caseid>=0?'':' na')+(isEnabled?' sel stillsel':'')}, [
+						InfernoAddElem('input', {type:'checkbox',checked:isEnabled, name:'enabled', disabled:caseid<0}, [])
+					])
+				])
+			];
+		}
+		
+		let e = InfernoAddElem('div', {value:caseid, dataset:{elemId:elem}, style:'cursor:default;text-align:left'}, cc);
+		e.className = 't2 b fs'+(isEnabled ? ' sel' : (caseid>=0 ? '' : ' na'))+(elem == -1 ? ' na' : '');
+		
+		if (elem >= 0 && caseid >= 0) {
+			for (let i=0; i<e.getElementsByTagName('input').length; i++) {
+				e.getElementsByTagName('input')[i].addEventListener("change", function(e) {
+					let elem = e.target;
+					let ex = elem.parentNode;
+					while (!ex.classList.contains('t2')) ex = ex.parentNode;
+					if (elem.name == 'enabled') {
+						project.cases[ex.value].enabled[ex.dataset.elemId] = elem.checked;
+						api.renderCase(ex.value);
+					}
+					else {
+						let x = parseFloat(elem.value.replace(',','.'));
+						if (isNaN(x)) x = 0;
+						if (x<-1) x = -1;
+						if (x>1) x = 1;
+						if (project.cases[ex.value].states[ex.dataset.elemId] == undefined) project.cases[ex.value].states[ex.dataset.elemId] = {state:0,cstate:0,state2:0};
+						project.cases[ex.value].states[ex.dataset.elemId][elem.name] = x;
+						elem.value = x;
+					}
+				});
+			}
+		}
+		
+		fulfillTerms(e, elem);
 		u.appendChild(e);
 	}
 	
@@ -852,6 +934,14 @@ function exapi() {
 			api.renderCaseElem(val, cache.types[4][i], u);
 		}
 		
+		u.appendChild(InfernoAddElem('br',{},[]));
+		u.appendChild(InfernoAddElem('br',{},[]));
+		
+		for (i=-1; i<project.elements.length; i++) {
+			if ((project.elements[i] == undefined || isOnBond(i)) && i!=-1) continue;
+			api.renderCaseElemState(val, i, u);
+		}
+		
 		document.getElementById('cs_name').value = (val >= 0?project.cases[val].name : (val == -1 ? 'Все включено' : 'Все отключено'));
 		document.getElementById('cs_name').disabled = !(val>=0);
 		if (val >= 0) {
@@ -889,13 +979,23 @@ function exapi() {
 				project.cases[c] = {};
 				project.cases[c].name = 'Новый кейс '+c;
 				project.cases[c].enabled = [];
+				project.cases[c].states = [];
 				if (api.selectedCase >=0) {
 					for (j=0; j<cache.types[3].length; j++) project.cases[c].enabled[cache.types[3][j]] = project.cases[api.selectedCase].enabled[cache.types[3][j]];
 					for (j=0; j<cache.types[4].length; j++) project.cases[c].enabled[cache.types[4][j]] = project.cases[api.selectedCase].enabled[cache.types[3][j]];
+					for (j=0; j<project.elements.length; j++) {
+						if (project.elements[j] == undefined || isOnBond(j)) continue;
+						project.cases[c].enabled[j] = project.cases[api.selectedCase].enabled[j];
+						project.cases[c].states[j] = project.cases[api.selectedCase].states[j];
+					}
 				}
 				else {
 					for (j=0; j<cache.types[3].length; j++) project.cases[c].enabled[cache.types[3][j]] = api.selectedCase == -1;
 					for (j=0; j<cache.types[4].length; j++) project.cases[c].enabled[cache.types[4][j]] = api.selectedCase == -1;
+					for (j=0; j<project.elements.length; j++) {
+						if (project.elements[j] == undefined || isOnBond(j)) continue;
+						project.cases[c].enabled[j] = false;
+					}
 				}
 				api.renderCase(c);
 				api.drawCases();
@@ -1811,49 +1911,36 @@ function exapi() {
 				else api.includeElements(e.getElementsByClassName("elist")[0].getElementsByTagName("table")[0], id);
 			}
 		}
-		for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
+		let updateElem = function(el, suff, pre) {
+			if (pre == undefined) pre = '';
 			if (api.selectedTerm != -3 && project.settings.term == -3) {
-				if (project.elements[i].val != undefined) 
-					project.elements[i].tval = getTermInterval(project.settings.grayMap?(project.elements[i].val2-project.elements[i].val)/2+project.elements[i].val:project.elements[i].val, api.selectedTerm);
-				if (project.elements[i].fval != undefined) 
-					project.elements[i].ftval = getTermInterval(project.settings.grayMap?(project.elements[i].fval2-project.elements[i].fval)/2+project.elements[i].fval:project.elements[i].fval, api.selectedTerm);
+				if (el[pre+suff] != undefined) 
+					el[pre+'t'+suff] = getTermInterval(project.settings.grayMap?(el[pre+suff+'2']-el[pre+suff])/2+el[pre+suff]:el[pre+suff], api.selectedTerm);
 			}
 			else if (api.selectedTerm == -3 && project.settings.term != -3) {
-				if (project.elements[i].tval != undefined) {
-					project.elements[i].val = project.settings.grayMap?getDownValueOfTerm(project.elements[i].tval):getValueOfTerm(project.elements[i].tval);
-					project.elements[i].val2 = project.settings.grayMap?getUpValueOfTerm(project.elements[i].tval):getValueOfTerm(project.elements[i].tval);
-				}
-				if (project.elements[i].ftval != undefined) {
-					project.elements[i].fval = project.settings.grayMap?getDownValueOfTerm(project.elements[i].ftval):getValueOfTerm(project.elements[i].ftval);
-					project.elements[i].fval2 = project.settings.grayMap?getUpValueOfTerm(project.elements[i].ftval):getValueOfTerm(project.elements[i].ftval);
+				if (el[pre+'t'+suff] != undefined) {
+					el[pre+suff] = project.settings.grayMap?getDownValueOfTerm(el[pre+'t'+suff]):getValueOfTerm(el[pre+'t'+suff]);
+					el[pre+suff+'2'] = project.settings.grayMap?getUpValueOfTerm(el[pre+'t'+suff]):getValueOfTerm(el[pre+'t'+suff]);
 				}
 			}
 			else if (api.selectedTerm != -3 && project.settings.term != -3) {
-				if (project.elements[i].tval != undefined) 
-					project.elements[i].tval = project.elements[i].tval>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.elements[i].tval;
-				if (project.elements[i].ftval != undefined) 
-					project.elements[i].ftval = project.elements[i].ftval>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.elements[i].ftval;
+				if (el[pre+'t'+suff] != undefined) 
+					el[pre+'t'+suff] = el[pre+'t'+suff]>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:el[pre+'t'+suff];
 			}
 			else if (api.selectedTerm == -3 && project.settings.term == -3) {
-				if (project.settings.grayMap && project.elements[i].val != undefined && project.elements[i].val2 == undefined) {
-					project.elements[i].val2 = project.elements[i].val;
-					project.elements[i].fval2 = project.elements[i].fval;
-				}
-				if (project.settings.grayMap && (project.elements[i].val2 < project.elements[i].val)) project.elements[i].val2 = project.elements[i].val;
-				if (project.settings.grayMap && (project.elements[i].fval2 < project.elements[i].fval)) project.elements[i].fval2 = project.elements[i].fval;
+				if (project.settings.grayMap && el[pre+suff] != undefined && el[pre+suff+'2'] == undefined)
+					el[pre+suff+'2'] = el[pre+suff];
 			}
+		};
+		for (var i=0; i<project.elements.length; i++) if (project.elements[i] != undefined) {
+			updateElem(project.elements[i], 'val');
+			updateElem(project.elements[i], 'val', 'f');
+			updateElem(project.elements[i], 'state');
+			for (let j=0; j<project.cases.length; j++) if (project.cases[j] != undefined && project.cases[j].states != undefined && project.cases[j].states[i] != undefined) 
+				updateElem(project.cases[j].states[i], 'state');
 		}
 		for (var i=0; i<project.bonds.length; i++) if (project.bonds[i] != undefined) {
-			if (api.selectedTerm != -3 && project.settings.term == -3) project.bonds[i].tval = getTermInterval(project.settings.grayMap?(project.bonds[i].val2-project.bonds[i].val)/2+project.bonds[i].val:project.bonds[i].val, api.selectedTerm);
-			else if (api.selectedTerm == -3 && project.settings.term != -3) {
-				project.bonds[i].val = project.settings.grayMap?getDownValueOfTerm(project.bonds[i].tval):getValueOfTerm(project.bonds[i].tval);
-				project.bonds[i].val2 = project.settings.grayMap?getUpValueOfTerm(project.bonds[i].tval):getValueOfTerm(project.bonds[i].tval);
-			}
-			else if (api.selectedTerm != -3 && project.settings.term != -3) project.bonds[i].tval = project.bonds[i].tval>=api.getTermsPattern(api.selectedTerm).terms.length?api.getTermsPattern(api.selectedTerm).terms.length-1:project.bonds[i].tval;
-			else if (api.selectedTerm == -3 && project.settings.term == -3) {
-				if (project.settings.grayMap && project.bonds[i].val2 == undefined)
-					project.bonds[i].val2 = project.bonds[i].val;
-			}
+			updateElem(project.bonds[i], 'val');
 		}
 		project.settings.term = api.selectedTerm;
 		update();
@@ -1864,7 +1951,13 @@ function exapi() {
 		if (this.windows[id] == undefined) return;
 		document.getElementById(id).classList.toggle("d");
 		if (id == "settings") document.getElementById("settings_button").classList.remove("sel");
-		else if (id == "project") document.getElementById("project_button").classList.remove("sel");
+		else if (id == "project") {
+			document.getElementById("project_button").classList.remove("sel");
+			Recalculate();
+		}
+		else if (id == 'cases') {
+			Recalculate();
+		}
 		else if (id == "terms") {
 			if (document.getElementById('prj_gray') != undefined && document.getElementById('prj_gray').checked) project.settings.grayMap = true;
 			else project.settings.grayMap = false;
@@ -2530,16 +2623,6 @@ function exapi() {
 				this.fixSettings();
 			}
 			
-			/*var ele = document.getElementsByClassName("ac");
-			for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function(e) {
-				api.switchElemState(e.target);
-			});
-			
-			ele = document.getElementsByClassName("acr");
-			for (var i=0; i<ele.length; i++) ele[i].addEventListener("click", function(e) {
-				api.switchRadioElemState(e.target);
-			});*/
-			
 			ele = document.getElementsByClassName("rtm");
 			for (var i=0; i<ele.length; i++) {
 				ele[i].addEventListener("click", function(e) {
@@ -2577,6 +2660,7 @@ function exapi() {
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:1,buttons:[{red:false,functions:'api.closePopup();',name:'Продолжить'}],windowsize:'sm'};
+		windows.newProject = {header:'Новый проект',content:'Перед непосредственным началом проектирования рекомендуется сразу задать такие настройки, как "Тип когнитивной карты", "Набор лингвистических термов" и "Функция активации". Вы можете изменить эти настройки в дальнейшем, но возможна потеря уже введеных значений.',size:1,buttons:[{red:false,functions:'api.closePopup();',name:'Продолжить'}],windowsize:'sm'};
 		windows.sureDelete = {header:'Внимание!',content:'Вы удалите этот элемент и все, что на нем находится. Вы не сможете все это вернуть!',size:2,buttons:[{red:true,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		
 		windows.sureDeleteSelection = {header:'Внимание!',content:'Вы удалите все выбранные элементы, все относящиеся к ним связи и элементы на этих связях! Вы не сможете все это вернуть!',size:2,buttons:[{red:true,name:'Продолжить',functions:'selection.deleteSelection();api.closePopup();'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};

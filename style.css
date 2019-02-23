@@ -162,9 +162,9 @@ input:disabled.b {
 	vertical-align: middle;
 	text-align:center;
 	width:100%}
-.table .t{display:table-cell;padding:2px 4px; background:#fff}
-.table .t:not(.lit) {background:#fff}
-body.night .table .t:not(.lit) {background:#001}
+.table .t{display:table-cell;padding:2px 4px}
+.table .t2:not(.sel) .t:not(.lit) {background:#fff}
+body.night .table .t2:not(.sel) .t:not(.lit) {background:#001}
 
 .table .t3{display:table;
 	table-layout:auto;

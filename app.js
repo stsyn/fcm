@@ -65,6 +65,8 @@ function resetProject(crash) {
 	project.terms = [];
 	project.settings.term = -3;
 	project.settings.propColor = true;
+	project.settings.calcFunc = 0;
+	project.settings.actFunc = 1;
 	update();
 	api.initRTS();
 	api.initRTSCases();
@@ -774,11 +776,13 @@ function appMain() {
 	if (api.forceRedraw || api.overDraw) {
 		appRedraw();
 	}
+	if (api.enBSel == undefined) api.enBSel = false;
 	if (api.enElSel && (api.elSel != api.showElSel)) {
 		api.showElSel = api.elSel;
 		api.forceRedraw = true;
 	}
-	if (!api.enElSel && (api.showElSel !== null)) {
+	
+	if (!api.enElSel && (api.showElSel != null)) {
 		api.showElSel = null;
 		api.forceRedraw = true;
 	}
@@ -786,7 +790,7 @@ function appMain() {
 		api.showBSel = api.bSel;
 		api.forceRedraw = true;
 	}
-	if (!api.enBSel && (api.showBSel !== null)) {
+	if (!api.enBSel && (api.showBSel != null)) {
 		api.showBSel = null;
 		api.forceRedraw = true;
 	}
@@ -1646,10 +1650,22 @@ function Recompile_Process(subname) {
 		for (let j=-2; j<project.cases.length; j++) {
 			elemCache['stateHistory'+subname][j] = [];
 			if (project.elements[c]['state'+subname] == undefined) project.elements[c]['state'+subname] = 0;
-			if (project.settings.term != -3)
-				elemCache['cstate'+subname][j] = getValueOfTerm(project.elements[c].tstate);
-			else
-				elemCache['cstate'+subname][j] = project.elements[c]['state'+subname];
+			if (project.settings.term != -3) {
+				let d = getValueOfTerm(project.elements[c].tstate);
+				if (j>=0 && project.cases[j].enabled[c] === true) {
+					if (project.cases[j].states[c] != undefined && project.cases[j].states[c].tstate != undefined) d = getValueOfTerm(project.cases[j].states[c].tstate);
+					else d = getValueOfTerm(0);
+				}
+				elemCache['cstate'+subname][j] = d;
+			}
+			else {
+				let d = project.elements[c]['state'+subname];
+				if (j>=0 && project.cases[j].enabled[c] === true) {
+					if (project.cases[j].states[c] != undefined && project.cases[j].states[c].tstate != undefined) d = project.cases[j].states[c]['state'+subname];
+					else d = 0;
+				}
+				elemCache['cstate'+subname][j] = d;
+			}
 		}
 	}
 	
