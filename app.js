@@ -849,7 +849,12 @@ function weightsValidate(input, index) {
 	if (input[index] < -1) input[index] = -1;
 	if (input[index] > 1) input[index] = 1;
 	if (input[index+'2'] > 1) input[index+'2'] = 1;
-	if (input[index+'2'] < input[index]) input[index+'2'] = input[index];
+	if (Math.sign(input[index]) != Math.sign(input[index+'2'])) input[index+'2'] *= -1;
+	if (Math.abs(input[index+'2']) < Math.abs(input[index])) {
+		let t = input[index+'2'];
+		input[index+'2'] = input[index];
+		input[index] = t;
+	}
 }
 
 function createAndAddElement(el, isNew) { //createElement already defined >:c

@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.6", s:"RC3", b:86};
+	this.version = {g:"0.9.6", s:"RC3", b:88};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -1475,11 +1475,11 @@ function exapi() {
 				ut.className = 't';
 				if ((j != -1) && ((project.elements[j].type == 4) || (project.elements[j].type == 5))) ut.classList.add('hd');
 				if ((i == -1) && (j!= -1)) {
-					ut.innerHTML = getCode(j);
+					ut.innerHTML = getName(j);
 					ut.title = getName(j);
 				}
 				else if ((i != -1) && (j == -1)) {
-					ut.innerHTML = getCode(i);
+					ut.innerHTML = getName(i);
 					ut.title = getName(i);
 				}
 				else ut.innerHTML = '—';
@@ -1501,11 +1501,14 @@ function exapi() {
 	
 	this.matrixRefreshHighLight = function() {
 		for (var i=0; i<=project.elements.length; i++) {
-			document.getElementById('matrixpad').getElementsByClassName('t2')[0].getElementsByClassName('t')[i].classList.remove('lit');
-			document.getElementById('matrixpad').getElementsByClassName('t2')[i].getElementsByClassName('t')[0].classList.remove('lit');
+			for (var j=0; j<=project.elements.length; j++) {
+				document.getElementById('matrixpad').getElementsByClassName('t2')[i].getElementsByClassName('t')[j].classList.remove('lit');
+			}
 		}
-		document.getElementById('matrixpad').getElementsByClassName('t2')[0].getElementsByClassName('t')[this.column+1].classList.add('lit');
-		document.getElementById('matrixpad').getElementsByClassName('t2')[this.row+1].getElementsByClassName('t')[0].classList.add('lit');
+		for (var i=0; i<=project.elements.length; i++) {
+			document.getElementById('matrixpad').getElementsByClassName('t2')[i].getElementsByClassName('t')[this.column+1].classList.add('lit');
+			document.getElementById('matrixpad').getElementsByClassName('t2')[this.row+1].getElementsByClassName('t')[i].classList.add('lit');
+		}
 	}
 	
 	this.drawMatrix = function() {
@@ -1558,8 +1561,11 @@ function exapi() {
 				if ((j != -1) && (i == -1)) {
 					ut.innerHTML = j;
 				}
+				else if ((j == -1) && (i == -1)) {
+					ut.innerHTML = '&nbsp;';
+				}
 				else if (j == -1) {
-					ut.innerHTML = getCode(i);
+					ut.innerHTML = getName(i);
 					ut.title = getName(i);
 				}
 				else {
@@ -1575,7 +1581,6 @@ function exapi() {
 						}
 					}
 				}
-				ut.style = "white-space: pre;";
 				ut.row = i;
 				ut.column = j;
 				ut.addEventListener('mouseover',api.statesRefreshHighLight);
@@ -1586,14 +1591,17 @@ function exapi() {
 	}
 	
 	this.statesRefreshHighLight = function() {
+		for (var i=0; i<=project.elements.length; i++) {
+			for (var j=0; j<=cache.maxEpochs; j++) {
+				document.getElementById('statepad').getElementsByClassName('t2')[i].getElementsByClassName('t')[j].classList.remove('lit');
+			}
+		}
 		for (var i=0; i<=cache.maxEpochs; i++) {
-			document.getElementById('statepad').getElementsByClassName('t2')[0].getElementsByClassName('t')[i].classList.remove('lit');
+			document.getElementById('statepad').getElementsByClassName('t2')[this.row+1].getElementsByClassName('t')[i].classList.add('lit');
 		}
 		for (var i=0; i<=project.elements.length; i++) {
-			document.getElementById('statepad').getElementsByClassName('t2')[i].getElementsByClassName('t')[0].classList.remove('lit');
+			document.getElementById('statepad').getElementsByClassName('t2')[i].getElementsByClassName('t')[this.column+1].classList.add('lit');
 		}
-		document.getElementById('statepad').getElementsByClassName('t2')[0].getElementsByClassName('t')[this.column+1].classList.add('lit');
-		document.getElementById('statepad').getElementsByClassName('t2')[this.row+1].getElementsByClassName('t')[0].classList.add('lit');
 	}
 	
 	this.drawStates = function() {
@@ -2743,6 +2751,10 @@ function exapi() {
 	this.handleChangeEvents = function (e) {
 		api.parseEvent(e.target, 'change');
 	}
+	
+	this.handleChangeEvents = function (e) {
+		api.parseEvent(e.target, 'scroll');
+	}
 }
 
 var api = new exapi();
@@ -2751,6 +2763,7 @@ window.onload = function () {
 	if (document.getElementById("loadstring") != undefined) document.getElementById("loadstring").innerHTML = returnRandomLoadingLine();
 	setTimeout(function() {api.init(true)},200);
 	document.body.addEventListener('click', api.handleClickEvents);
+	document.body.addEventListener('scroll', api.handleScrollEvents);
 	document.body.addEventListener('change', api.handleChangeEvents);
 }
 

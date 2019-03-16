@@ -162,7 +162,8 @@ input:disabled.b {
 	vertical-align: middle;
 	text-align:center;
 	width:100%}
-.table .t{display:table-cell;padding:2px 4px}
+.table .t{display:table-cell;}
+.table:not(.ps)  .t{padding:2px 4px}
 .table .t2:not(.sel) .t:not(.lit) {background:#fff}
 body.night .table .t2:not(.sel) .t:not(.lit) {background:#001}
 
@@ -455,7 +456,8 @@ body.night #messages > span.red{
 	color: #f00;}
 #windows .controls .close:hover {
 	background: #b22;}
-.lit {background: #ccc} 
+.t.lit:first-child, .t2:first-child .t.lit {background: #ccc} 
+.lit {background: #e1e1e1} 
 	
 body.night #windows .w.ifr iframe {
 	filter:invert(100%);
@@ -502,7 +504,8 @@ body.night input:checked + label, body.night input:checked + label .b{background
 body.night input:disabled.b {
 	background: #222 !important;
 	color: #888}
-body.night .lit {background: #144} 
+body.night .t.lit:first-child, body.night .t2:first-child .t.lit {background: #144} 
+body.night .lit {background: #0a3333} 
 
 .sizes {text-align:center}
 
@@ -538,6 +541,6 @@ body.noMultitool .one_new_guy_who_wanna_remove_them_all {display:none !important
 .huge .fa.fa-window-maximize {display:none}
 .huge .fa.fa-window-restore {display:inline}
 
-#matrixpad .t3 .t2:first-child, #statepad .t3 .t2:first-child {font-weight:600}
-#matrixpad .t3 .t2 .t:first-child, #statepad .t3 .t2 .t:first-child {position:absolute;width:4em;font-weight:600}
-#matrixpad .t3 .t2 .t:nth-child(2), #statepad .t3 .t2 .t:nth-child(2) {padding-left:5em}
+.xpad .t3 .t2 .t {white-space: pre;}
+.xpad .t3 .t2:first-child .t {max-width:9em;text-overflow: ellipsis;overflow: hidden;position:sticky;font-weight:600;top:-3px}
+.xpad .t3 .t2 .t:first-child {position:sticky;left:-3px;max-width:9em;font-weight:600;text-overflow: ellipsis;overflow: hidden;text-align:left}
