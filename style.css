@@ -392,6 +392,11 @@ body.night #messages > span.red{
 	left:10vw;
 	height:40vh;
 	top:30vh}
+#windows .w.tall {
+	width:45vw;
+	left:27.5vw;
+	height:70vh;
+	top:15vh}
 #windows .w.huge {
 	width:100vw;
 	left:0vw;
@@ -402,11 +407,6 @@ body.night #messages > span.red{
 	left:calc(50vw - 11em);
 	height:50vh;
 	top:25vh}
-#windows .w.tall {
-	width:45vw;
-	left:27.5vw;
-	height:70vh;
-	top:15vh}
 #windows .cc{
 	height:calc(100% - 2.8em - 8px);
 	margin:.5em;
@@ -537,6 +537,10 @@ body.noMultitool .one_new_guy_who_wanna_remove_them_all {display:none !important
 .palette .b.i.color {display:inline}
 .palette .b.i.color2 {display:none}
 
+.fa {
+	width: 1em;
+    text-align: center;
+}
 .fa.fa-window-restore {display:none}
 .huge .fa.fa-window-maximize {display:none}
 .huge .fa.fa-window-restore {display:inline}

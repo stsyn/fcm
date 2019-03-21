@@ -1517,6 +1517,14 @@ function getElemState(el, caseid, subname) {
 }
 
 
+function calcLog(value, caseId, subname) {
+	cache['logs'+subname][caseId] += value + '\n';
+}
+
+function calcLogAll(value, subname) {
+	for (let c=-2; c<project.cases.length; c++) calcLog(value, c, subname);
+}
+
 function iteration(i, cur, val, roadmap, options) {
 	let subname = options.subname;
 	
@@ -1533,7 +1541,8 @@ function iteration(i, cur, val, roadmap, options) {
 	var c;
 	if (project.elements[cur].type == 3) {
 		roadmap.push(cur);
-		if (api.settings.debug) console.log('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.');
+		calcLogAll('---------------------------------------', subname)
+		calcLogAll('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.', c, subname);
 		if (cache.elements[cur]['calcChance'+subname][roadmap[0]] == undefined) {
 			cache.elements[cur]['calcChance'+subname][roadmap[0]] = [];
 			for (var j=0; j<val.length; j++) cache.elements[cur]['calcChance'+subname][roadmap[0]][j] = val[j];
@@ -1553,12 +1562,12 @@ function iteration(i, cur, val, roadmap, options) {
 		// return; пытаемся продолжать вычисления
 	}
 	for (var u=0; u<roadmap.length; u++) if (roadmap[u] == cur) {
-		if (api.settings.debug) console.log('Вошли в цикл на итерации '+i+'. Текущий элемент №'+cur+', путь '+roadmap+'.');
+		if (api.settings.debug) calcLogAll('Вошли в цикл на итерации '+i+'. Текущий элемент №'+cur+', путь '+roadmap+'.', subname);
 		return;	//не зацикливаемся
 	}
 		
 	for (c=0; c<cache.elements[cur].outbonds.length; c++) {
-		if (api.settings.debug) console.log('Находимся на итерации '+i+'. Текущий элемент №'+cur+', пока что '+val+'.');
+		if (api.settings.debug) calcLogAll('Находимся на итерации '+i+'. Текущий элемент №'+cur+', пока что '+val+'.', subname);
 		
 		var axval = [];
 		for (let ix = 0; ix<val.length; ix++) axval.push(val[i]);
@@ -1590,6 +1599,8 @@ function Recompile_States(options) {
 	];
 	
 	for (let x=0; x<cache.maxEpochs; x++) {
+		calcLogAll(' ', subname);
+		calcLogAll('-----===== Эпоха '+x+'=====-----', subname);
 		for (let c=0; c<project.elements.length; c++) {
 			temp[c] = [];
 			if (isOnBond(c)) continue;
@@ -1602,9 +1613,11 @@ function Recompile_States(options) {
 					continue;
 				}
 				let val = elemCache['cstate'+subname][j];
+				calcLog('# '+getName(c)+' состояние '+val, j, subname);
 				for (let x=0; x<elemCache.inbonds.length; x++) {
 					let pelem = project.bonds[elemCache.inbonds[x]].first;
 					val += (getBondVal(elemCache.inbonds[x], j, subname))*getElemState(pelem, j, subname);
+					calcLog('+ '+(getBondVal(elemCache.inbonds[x], j, subname))+' * '+getElemState(pelem, j, subname)+' = '+val, j, subname);
 				}
 				temp[c][j] = actFunctions[options.actFunction](val);
 			}
@@ -1618,11 +1631,15 @@ function Recompile_States(options) {
 function Recompile_Process(subname) {
 	let inital = [999, 1];
 	if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
+	if (project.settings.actFunc != -1) project.settings.calcFunc = -1;
 	let uv = [];
-	if (project.cases == undefined) project.cases = [];
+	if (project.cases == undefined) project['cases'+subname] = [];
 	let c = project.cases.length+2;
 	while (c--) uv.push(inital[project.settings.calcFunc]);
 	//инициализация
+	cache['logs'+subname] = [];
+	for (c=-2; c<project.cases.length; c++) 
+		cache['logs'+subname][c] = '';
 	for (c=0; c<cache.types[2].length; c++) {
 		let elemCache = cache.elements[cache.types[2][c]];
 		elemCache['calcChance'+subname] = [];
@@ -1675,14 +1692,14 @@ function Recompile_Process(subname) {
 	}
 	
 	//поиск путей
-	for (c=0; c<cache.types[0].length; c++)
+	if (project.settings.calcFunc > -1) for (c=0; c<cache.types[0].length; c++)
 		iteration(0, cache.types[0][c], uv, [], {subname:subname, calcFunction:project.settings.calcFunc});
 		
 	//пересчет состояний
-	Recompile_States({subname:subname, actFunction:project.settings.actFunc});
+	if (project.settings.actFunc > -1) Recompile_States({subname:subname, actFunction:project.settings.actFunc});
 	
 	//выбор путей
-	for (c=0; c<cache.types[2].length; c++) {
+	if (project.settings.calcFunc > -1) for (c=0; c<cache.types[2].length; c++) {
 		let elemCache = cache.elements[cache.types[2][c]];
 		if (elemCache['calcChance'+subname].length > 0) {
 			elemCache['finCalcChance'+subname] = [];
@@ -1700,9 +1717,15 @@ function Recompile_Process(subname) {
 	}
 	
 	//собираем стоимость
-	for (c=0; c<cache.types[2].length; c++) {
+	if (project.settings.calcFunc > -1) for (c=0; c<cache.types[2].length; c++) {
 		for (let j=-2; j<project.cases.length; j++) {
 			cache.elements[cache.types[2][c]]['costs'+subname][j+2] = cache.elements[cache.types[2][c]]['finCalcChance'+subname][j+2]*project.elements[cache.types[2][c]].cost;
+		}
+	}
+	
+	if (project.settings.actFunc > -1) for (c=0; c<cache.types[2].length; c++) {
+		for (let j=-2; j<project.cases.length; j++) {
+			cache.elements[cache.types[2][c]]['costs'+subname][j+2] = cache.elements[cache.types[2][c]]['cstate'+subname][j]*project.elements[cache.types[2][c]].cost;
 		}
 	}
 }

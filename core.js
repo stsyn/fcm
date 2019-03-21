@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.6", s:"RC3", b:88};
+	this.version = {g:"0.9.6", s:"RC3", b:89};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -578,6 +578,7 @@ function exapi() {
 		for (var i=0; i<project.cases.length; i++) if (project.cases[i] != undefined && project.cases[i].states == undefined) {
 			project.cases[i].states = {};
 		}
+		api.updateUniqMenus();
 		selection.tryAllowStuff();
 	}
 	
@@ -1631,6 +1632,48 @@ function exapi() {
 		api.renderStates(-2);
 	}
 	
+	this.drawLogs = function() {
+		if (cache.logs == undefined) cache.logs = [];
+		if (cache.logs2 == undefined) cache.logs2 = [];
+		if (api.logsDisplay == undefined) api.logsDisplay = -2;
+		if (project.settings.grayMap) {
+			document.querySelector('#logs pre').style.width = '48%';
+			document.querySelectorAll('#logs pre')[1].style.width = '48%';
+			document.querySelectorAll('#logs pre')[0].innerHTML = 'Нижняя граница\n\n'+cache.logs[api.logsDisplay];
+			document.querySelectorAll('#logs pre')[1].innerHTML = 'Верхняя граница\n\n'+cache.logs2[api.logsDisplay];
+		}
+		else {
+			document.querySelector('#logs pre').style.width = '98%';
+			document.querySelectorAll('#logs pre')[1].style.width = '0';
+			document.querySelectorAll('#logs pre')[0].innerHTML = cache.logs[api.logsDisplay];
+			
+		}
+		document.getElementById('logscases').innerHTML = '<div class="table r"><div class="t3"><div class="t2"></div></div></div>';
+		document.getElementById('logscases').getElementsByClassName('t2')[0].innerHTML = '';
+		if (project.cases == undefined) project.cases = [];
+		for (var i = -2; i<project.cases.length; i++) {
+			var s = '';
+			if (i == -2) s = 'Все отключено';
+			else if (i == -1) s = 'Все включено';
+			else s = project.cases[i].name;
+			
+			var el2 = document.createElement('span');
+			el2.className = 't';
+			
+			var el = document.createElement('span');
+			el.className = 'b fs';
+			el.innerHTML = s;
+			el.value = i;
+			if (i == api.logsDisplay) el.classList.add('sel');
+			el.addEventListener("click",function() {
+				api.logsDisplay = this.value;
+				api.drawLogs();
+			});
+			el2.appendChild(el);
+			document.getElementById('logscases').getElementsByClassName('t2')[0].appendChild(el2);
+		}
+	}
+	
 	this.callWindow = function(id,arg1,arg2,arg3) {
 		t = false;
 		tx = 0;
@@ -1664,6 +1707,10 @@ function exapi() {
 		else if (id == "cases") {
 			this.drawCases();
 			document.getElementById("cases").classList.toggle("d");
+		}
+		else if (id == "logs") {
+			this.drawLogs();
+			document.getElementById("logs").classList.toggle("d");
 		}
 		else if (id == "terms") {
 			this.drawTerms();
@@ -2152,6 +2199,21 @@ function exapi() {
 		//update();
 	}
 	
+	this.updateUniqMenus = function() {
+		if (project.settings.calcFunc == -1) 
+			for (let i=0; i<document.getElementsByClassName('only_ways').length; i++)
+				document.getElementsByClassName('only_ways')[i].classList.add('hd');
+		else
+			for (let i=0; i<document.getElementsByClassName('only_ways').length; i++)
+				document.getElementsByClassName('only_ways')[i].classList.remove('hd');
+		if (project.settings.actFunc == -1) 
+			for (let i=0; i<document.getElementsByClassName('only_states').length; i++)
+				document.getElementsByClassName('only_states')[i].classList.add('hd');
+		else
+			for (let i=0; i<document.getElementsByClassName('only_states').length; i++)
+				document.getElementsByClassName('only_states')[i].classList.remove('hd');
+	}
+	
 	this.putMetas = function() {
 		document.getElementById('m_id').value = project.id;
 		if (project.meta != undefined) {
@@ -2174,7 +2236,7 @@ function exapi() {
 		
 		var ec = document.getElementById('m_calcfunc');
 		for (var i=0; i<ec.querySelectorAll('.acr').length; i++) {
-			if (i == project.settings.calcFunc) {
+			if (parseInt(ec.querySelectorAll('.acr input')[i].value) == project.settings.calcFunc) {
 				ec.querySelectorAll('.acr input')[i].checked = true;
 				api.switchRadioElemState(ec.querySelectorAll('.acr')[i]);
 			}
@@ -2185,7 +2247,7 @@ function exapi() {
 		
 		ec = document.getElementById('m_actfunc');
 		for (var i=0; i<ec.querySelectorAll('.acr').length; i++) {
-			if (i == project.settings.actFunc) {
+			if (parseInt(ec.querySelectorAll('.acr input')[i].value) == project.settings.actFunc) {
 				ec.querySelectorAll('.acr input')[i].checked = true;
 				api.switchRadioElemState(ec.querySelectorAll('.acr')[i]);
 			}
@@ -2230,7 +2292,7 @@ function exapi() {
 		var ec = document.getElementById('m_calcfunc'), t=0;
 		for (var i=0; i<ec.querySelectorAll('.acr').length; i++) {
 			if (ec.querySelectorAll('.acr input')[i].checked) {
-				t=i;
+				t=parseInt(ec.querySelectorAll('.acr input')[i].value);
 				break;
 			}
 		}
@@ -2239,11 +2301,15 @@ function exapi() {
 		ec = document.getElementById('m_actfunc'), t=0;
 		for (var i=0; i<ec.querySelectorAll('.acr').length; i++) {
 			if (ec.querySelectorAll('.acr input')[i].checked) {
-				t=i;
+				t=parseInt(ec.querySelectorAll('.acr input')[i].value);
 				break;
 			}
 		}
+		
 		project.settings.actFunc = t;
+		
+		api.updateUniqMenus();
+		
 		api.compiled = false;
 		api.initRTS();
 		this.closeWindow('project');
