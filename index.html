@@ -87,7 +87,7 @@
 			<div class="back" onclick="api.closePopup()"></div>
 			<div class="w sm" style="z-index:9999">
 				<div class="cc" style="text-align:center">
-					<div class="header" style="font-weight:700;font-size:200%;margin-bottom:20px">Загружается...</div>
+					<div class="header" style="font-weight:700;font-size:200%;margin-bottom:10px">Загружается...</div>
 					<div class="content" style="padding-bottom:16px"><div id="squaresWaveG" style="margin-bottom:24px"><div id="squaresWaveG_1" class="squaresWaveG"></div><div id="squaresWaveG_2" class="squaresWaveG"></div><div id="squaresWaveG_3" class="squaresWaveG"></div><div id="squaresWaveG_4" class="squaresWaveG"></div><div id="squaresWaveG_5" class="squaresWaveG"></div><div id="squaresWaveG_6" class="squaresWaveG"></div><div id="squaresWaveG_7" class="squaresWaveG"></div><div id="squaresWaveG_8" class="squaresWaveG"></div></div><div id="loadstring" style="font-size:150%"></div></div>
 				</div>
 				<div class="bt"><div class="table r"><div class="t3"><div class="t2">
@@ -182,12 +182,15 @@
 				<div class="cc btns" style="text-align:center">
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Информация</div>
-						<div class="bt"><div class="table r"><div class="t3"><div class="t2">
+						<div class="bt"><div class="table r debug"><div class="t3"><div class="t2">
 							<span class="t"><span class="debug">ID: <input type="text" class="b i" id="m_id" style="width:8em" disabled></span></span>
 							<span class="t"><span class="debug">Создан: <input type="text" class="b i" id="m_ts_created" style="width:8em" disabled></span></span>
 							<span class="t"><span class="debug">Сохранен: <input type="text" class="b i" id="m_ts_saved" style="width:8em" disabled></span></span>
 						</div></div></div></div>
 						<div class="line de">Описание: <textarea class="b i" id="m_descript" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
+					</div>
+					<div class="pad" style="display:block;border:none">
+						Одновременно можно выбрать только один вариант.
 					</div>
 					<div class="pad" style="width:calc(50% - 10px);display:inline-block;text-align:left" id="m_calcfunc">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Способ расчета путей</div>

@@ -10,6 +10,7 @@ var ctx, tcx, zoomprop, linePattern, frame=0;
 var doMoving = {};
 var currentBrush = {};
 var cache = {};
+let fixed_point = 4;
 
 var AuxBonds, AuxBonds2, dAuxBonds;
 var AuxMove, tElemX, tElemY, tBond, tElem;
@@ -1503,7 +1504,7 @@ function getBondVal(el, caseid, subname) {
 	if (project.settings.term != -3) {
 		c = getValueOfTerm(c);
 	}
-	return +c.toFixed(4);
+	return +c.toFixed(fixed_point);
 }
 
 function getElemState(el, caseid, subname) {
@@ -1513,11 +1514,13 @@ function getElemState(el, caseid, subname) {
 	if (el == undefined) return 0;
 	if (typeof el == 'object') el = el.id;
 	c = cache.elements[el]['cstate'+subname][caseid];
-	return +c.toFixed(4);
+	return +c.toFixed(fixed_point);
 }
 
 
 function calcLog(value, caseId, subname) {
+	if (cache['logs'+subname] == undefined) cache['logs'+subname] = [];
+	if (cache['logs'+subname][caseId] == undefined) cache['logs'+subname][caseId] = '';
 	cache['logs'+subname][caseId] += value + '\n';
 }
 
@@ -1540,9 +1543,9 @@ function iteration(i, cur, val, roadmap, options) {
 	
 	var c;
 	if (project.elements[cur].type == 3) {
-		roadmap.push(cur);
-		calcLogAll('---------------------------------------', subname)
-		calcLogAll('Закончили вычисления на итерации '+i+'. Последний элемент №'+cur+', получилось '+val+'. Путь: '+roadmap.concat(cur)+'.', c, subname);
+		//roadmap.push(cur);
+		calcLogAll('! Итер. '+i+': '+cur+' — '+val+' @ '+roadmap.concat(cur), subname);
+		calcLogAll('---------------------------------------', subname);
 		if (cache.elements[cur]['calcChance'+subname][roadmap[0]] == undefined) {
 			cache.elements[cur]['calcChance'+subname][roadmap[0]] = [];
 			for (var j=0; j<val.length; j++) cache.elements[cur]['calcChance'+subname][roadmap[0]][j] = val[j];
@@ -1561,20 +1564,21 @@ function iteration(i, cur, val, roadmap, options) {
 			}
 		// return; пытаемся продолжать вычисления
 	}
-	for (var u=0; u<roadmap.length; u++) if (roadmap[u] == cur) {
-		if (api.settings.debug) calcLogAll('Вошли в цикл на итерации '+i+'. Текущий элемент №'+cur+', путь '+roadmap+'.', subname);
+	else for (var u=0; u<roadmap.length; u++) if (roadmap[u] == cur) {
+		calcLogAll('# Цикл. '+i+': '+cur+' @ '+roadmap, subname);
+		calcLogAll('---------------------------------------', subname);
 		return;	//не зацикливаемся
 	}
 		
 	for (c=0; c<cache.elements[cur].outbonds.length; c++) {
-		if (api.settings.debug) calcLogAll('Находимся на итерации '+i+'. Текущий элемент №'+cur+', пока что '+val+'.', subname);
+		calcLogAll('. Итер. '+i+': '+cur+' — '+val, subname);
 		
 		var axval = [];
-		for (let ix = 0; ix<val.length; ix++) axval.push(val[i]);
+		for (let ix = 0; ix<val.length; ix++) axval.push(val[ix]);
 		
 		var j=0;
 		for (j = -2; j<project.cases.length; j++) {
-			axval[j+2] = calcFunctions[options.calcFunction](axval[j+2], getBondVal(cache.elements[cur].outbonds[c], j, subname));
+			axval[j+2] = calcFunctions[options.calcFunction](axval[j+2], getBondVal(cache.elements[cur].outbonds[c], j, subname)).toFixed(fixed_point);
 		}
 		
 		iteration(i+1, 
@@ -1587,7 +1591,16 @@ function iteration(i, cur, val, roadmap, options) {
 function Recompile_States(options) {
 	let temp = [];
 	let subname = options.subname;
-	cache.maxEpochs = 20;
+	let j;
+	cache.limitEpochs = 15;
+	if (subname != '2') {
+		cache.maxEpochs = 10;
+		cache.epochsPerCase = [];
+		for (j = -2; j<project.cases.length; j++) 
+			cache.epochsPerCase[j] = 10;
+	}
+	
+	
 	let actFunctions = [
 		function(x) {
 			if (Math.abs(x) <= 1) return x;
@@ -1600,31 +1613,54 @@ function Recompile_States(options) {
 	
 	for (let x=0; x<cache.maxEpochs; x++) {
 		calcLogAll(' ', subname);
-		calcLogAll('-----===== Эпоха '+x+'=====-----', subname);
+		calcLogAll('-----===== Эпоха '+x+' =====-----', subname);
 		for (let c=0; c<project.elements.length; c++) {
 			temp[c] = [];
 			if (isOnBond(c)) continue;
 			let elemCache = cache.elements[c];
 			
 			for (j = -2; j<project.cases.length; j++) {
+				if (x >= cache.epochsPerCase[j]) continue;
 				elemCache['stateHistory'+subname][j].push(getElemState(c, j, subname));
 				if (elemCache.inbonds.length == 0) {
 					temp[c][j] = getElemState(c, j, subname);
 					continue;
 				}
 				let val = elemCache['cstate'+subname][j];
-				calcLog('# '+getName(c)+' состояние '+val, j, subname);
+				calcLog('', j, subname);
+				calcLog('# '+getName(c)+' — '+val.toFixed(fixed_point), j, subname);
 				for (let x=0; x<elemCache.inbonds.length; x++) {
 					let pelem = project.bonds[elemCache.inbonds[x]].first;
 					val += (getBondVal(elemCache.inbonds[x], j, subname))*getElemState(pelem, j, subname);
-					calcLog('+ '+(getBondVal(elemCache.inbonds[x], j, subname))+' * '+getElemState(pelem, j, subname)+' = '+val, j, subname);
+					calcLog('+ от '+getName(pelem).substring(0,10)+' '+(getBondVal(elemCache.inbonds[x], j, subname))+' * '+getElemState(pelem, j, subname)+' = '+val.toFixed(fixed_point), j, subname);
 				}
 				temp[c][j] = actFunctions[options.actFunction](val);
 			}
 		}
-		for (let c=0; c<project.elements.length; c++) 
-			for (j = -2; j<project.cases.length; j++) 
+		let upped = false;
+		let delta = [];
+		for (j = -2; j<project.cases.length; j++) 
+			delta[j] = 0;
+		for (let c=0; c<project.elements.length; c++) {
+			for (j = -2; j<project.cases.length; j++) {
+				//if (x+1 > cache.epochsPerCase[j]) continue;
+				if (subname != '2') delta[j] += Math.abs(cache.elements[c]['cstate'+subname][j]-temp[c][j]);
 				cache.elements[c]['cstate'+subname][j] = temp[c][j];
+			}
+		}
+		if (x+1 == cache.maxEpochs && subname != '2') for (j = -2; j<project.cases.length; j++) {
+			if (delta[j] > (cache.types[2].length+cache.types[1].length+cache.types[0].length+cache.types[5].length)/500) {
+				if (x == cache.limitEpochs) {
+					api.stateLimitReached = true;
+					break;
+				}
+				if (!upped) {
+					upped = true;
+					cache.maxEpochs++;
+				}
+				cache.epochsPerCase[j]++;
+			}
+		}
 	}
 }
 
@@ -1636,9 +1672,10 @@ function Recompile_Process(subname) {
 	if (project.cases == undefined) project['cases'+subname] = [];
 	let c = project.cases.length+2;
 	while (c--) uv.push(inital[project.settings.calcFunc]);
+	
 	//инициализация
 	cache['logs'+subname] = [];
-	for (c=-2; c<project.cases.length; c++) 
+	for (c=-2; c<project.cases.length; c++);
 		cache['logs'+subname][c] = '';
 	for (c=0; c<cache.types[2].length; c++) {
 		let elemCache = cache.elements[cache.types[2][c]];
@@ -1740,6 +1777,10 @@ function Recompile() {
 	if (project.settings.grayMap) Recompile_Process('2');
 	api.compiled = true;
 	api.closePopup();
+	if (api.stateLimitReached) {
+		api.callPopup2(windows.limitReached);
+		api.stateLimitReached = false;
+	}
 }
 	
 function Recalculate() {

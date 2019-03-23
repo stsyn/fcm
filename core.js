@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.6", s:"RC3", b:89};
+	this.version = {g:"0.9.6", s:"RC3", b:90};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -1555,7 +1555,7 @@ function exapi() {
 			var ut2 = document.createElement('div');
 			ut2.className = 't2';
 			if ((i != -1) && ((project.elements[i].type == 4) || (project.elements[i].type == 5))) ut2.classList.add('hd');
-			for (var j=-1; j<cache.maxEpochs; j++) {
+			for (var j=-1; j<cache.epochsPerCase[val]; j++) {
 				if ((i != -1) && ((project.elements[i].type == 4) || (project.elements[i].type == 5))) continue;
 				var ut = document.createElement('div');
 				ut.className = 't';
@@ -1593,11 +1593,11 @@ function exapi() {
 	
 	this.statesRefreshHighLight = function() {
 		for (var i=0; i<=project.elements.length; i++) {
-			for (var j=0; j<=cache.maxEpochs; j++) {
+			for (var j=0; j<document.getElementById('statepad').getElementsByClassName('t2')[i].getElementsByClassName('t').length; j++) {
 				document.getElementById('statepad').getElementsByClassName('t2')[i].getElementsByClassName('t')[j].classList.remove('lit');
 			}
 		}
-		for (var i=0; i<=cache.maxEpochs; i++) {
+		for (var i=0; i<document.getElementById('statepad').getElementsByClassName('t2')[this.row+1].getElementsByClassName('t').length; i++) {
 			document.getElementById('statepad').getElementsByClassName('t2')[this.row+1].getElementsByClassName('t')[i].classList.add('lit');
 		}
 		for (var i=0; i<=project.elements.length; i++) {
@@ -2312,8 +2312,8 @@ function exapi() {
 		
 		api.compiled = false;
 		api.initRTS();
+		Recalculate();
 		this.closeWindow('project');
-		
 	}
 	
 	this.resetData = function() {
@@ -2732,6 +2732,7 @@ function exapi() {
 		windows.about = {header:'Cognitive Map Constructor',content:'<div class="b fs" onclick="api.callPopup2(windows.legal)">Дипломная работа Бельского С.М.</div><div class="b fs" onclick="api.callPopup2(windows.changelog)">Версия: '+this.version.g+'['+this.version.b+'] '+this.version.s+' ('+this.locationName+')</div>',size:2,buttons:[{functions:'api.closePopup();',red:false,name:'Закрыть'},{functions:'location.reload(true)',red:true,name:'Принудительный перезапуск'}],windowsize:'sm'};
 		windows.warning = {header:'Внимание!',content:'Все несохраненные изменения будут утеряны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.error = {header:'Ошибка!',size:0,windowsize:'sm'};
+		windows.limitReached = {header:'Достигнут предел!',content:'Достигнут предел эпох для симуляции! Вероятно, у системы нет устойчивого состояния.',size:1,buttons:[{red:false,functions:'api.closePopup();',name:'Ок'}],windowsize:'sm'};
 		windows.sureSave = {header:'Внимание!',content:'Предыдущие данные будут перезаписаны!',size:2,buttons:[{red:false,name:'Продолжить'},{functions:'api.closePopup();',red:false,name:'Отмена'}],windowsize:'sm'};
 		windows.saveDone = {header:'Успех!',content:'Успешно сохранено!',size:1,buttons:[{red:false,functions:'api.closePopup();',name:'Продолжить'}],windowsize:'sm'};
 		windows.newProject = {header:'Новый проект',content:'Перед непосредственным началом проектирования рекомендуется сразу задать такие настройки, как "Тип когнитивной карты", "Набор лингвистических термов" и "Функция активации". Вы можете изменить эти настройки в дальнейшем, но возможна потеря уже введеных значений.',size:1,buttons:[{red:false,functions:'api.closePopup();',name:'Продолжить'}],windowsize:'sm'};
