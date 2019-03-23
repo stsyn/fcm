@@ -1592,7 +1592,7 @@ function Recompile_States(options) {
 	let temp = [];
 	let subname = options.subname;
 	let j;
-	cache.limitEpochs = 15;
+	cache.limitEpochs = 100;
 	if (subname != '2') {
 		cache.maxEpochs = 10;
 		cache.epochsPerCase = [];
