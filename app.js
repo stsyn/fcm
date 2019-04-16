@@ -64,6 +64,7 @@ function resetProject(crash) {
 	project.meta.description = '';
 	project.cases = [];
 	project.terms = [];
+	project.unusedCases = [];
 	project.settings.term = -3;
 	project.settings.propColor = true;
 	project.settings.calcFunc = 0;
@@ -118,19 +119,19 @@ function translateCoordsReverseNZY(i) {
 
 //на связи -> холст
 function translateOnBondCoordsX(b, ac) {
-	var x = project.elements[project.bonds[b].first].X;
+	var x = parseFloat(project.elements[project.bonds[b].first].X);
 	if (cache.bonds[b].pair != undefined) {
-		x += (project.elements[project.bonds[b].second].X - project.elements[project.bonds[b].first].X) / 2;
+		x += (parseFloat(project.elements[project.bonds[b].second].X) - parseFloat(project.elements[project.bonds[b].first].X)) / 2;
 	}
-	return x+((project.elements[project.bonds[b].second].X-x)*ac);
+	return x+((parseFloat(project.elements[project.bonds[b].second].X)-x)*ac);
 }
 
 function translateOnBondCoordsY(b, ac) {
-	var y = project.elements[project.bonds[b].first].Y;
+	var y = parseFloat(project.elements[project.bonds[b].first].Y);
 	if (cache.bonds[b].pair != undefined) {
-		y += (project.elements[project.bonds[b].second].Y - project.elements[project.bonds[b].first].Y) / 2;
+		y += (parseFloat(project.elements[project.bonds[b].second].Y) - parseFloat(project.elements[project.bonds[b].first].Y)) / 2;
 	}
-	return y+((project.elements[project.bonds[b].second].Y-y)*ac);
+	return y+((parseFloat(project.elements[project.bonds[b].second].Y)-y)*ac);
 }
 
 function getColor(a) {
@@ -313,10 +314,6 @@ function appDrawElements(el) {
 		
 		//получаем коорды
 		var x = el[i].X, y = el[i].Y;
-		if ((el[i].type == 4) || (el[i].type == 5)) {
-			x = translateOnBondCoordsX(el[i].X, el[i].Y);
-			y = translateOnBondCoordsY(el[i].X, el[i].Y);
-		}
 		
 		//выбран ли?
 		var isSelected = (cache.elements[i].active != 0 || selection.elements[i]);
@@ -351,11 +348,15 @@ function appDrawElements(el) {
 		if ((el[i].type == 4) || (el[i].type == 5)) {
 			var b = project.bonds;
 			
+			x = translateOnBondCoordsX(el[i].X, el[i].Y);
+			y = translateOnBondCoordsY(el[i].X, el[i].Y);
+			
 			var x1 = el[b[el[i].X].first].X;
 			var y1 = el[b[el[i].X].first].Y;
 			var x2 = el[b[el[i].X].second].X;
 			var y2 = el[b[el[i].X].second].Y;
 			var a = 3.14-Math.atan2(x1-x2, y1-y2);
+			console.log(translateCoordsX(x), translateCoordsY(y), x, y);
 			var tcanvas = document.createElement('canvas');
 			tcanvas.width = size*el[i].z*3;
 			tcanvas.height = size*el[i].z*3;
@@ -602,15 +603,15 @@ function appMain() {
 			if (doMoving.moveElem) {
 				AuxMove = doMoving.elem;
 				doMoving.selectionMove = selection.elements[AuxMove];
-				tElemX = project.elements[AuxMove].X;
-				tElemY = project.elements[AuxMove].Y;
+				tElemX = parseFloat(project.elements[AuxMove].X);
+				tElemY = parseFloat(project.elements[AuxMove].Y);
 				
 				if (doMoving.selectionMove) {
 					for (var i=0; i<project.elements.length; i++) {
 						if (project.elements == undefined || isOnBond(i) || !selection.elements[i] || i == AuxMove) continue;
 						
-						cache.elements[i].oldX = project.elements[i].X;
-						cache.elements[i].oldY = project.elements[i].Y;
+						cache.elements[i].oldX = parseFloat(project.elements[i].X);
+						cache.elements[i].oldY = parseFloat(project.elements[i].Y);
 					}
 				}
 				
@@ -1643,13 +1644,13 @@ function Recompile_States(options) {
 			delta[j] = 0;
 		for (let c=0; c<project.elements.length; c++) {
 			for (j = -2; j<project.cases.length; j++) {
-				//if (x+1 > cache.epochsPerCase[j]) continue;
+				if (x+1 > cache.epochsPerCase[j]) continue;
 				if (subname != '2') delta[j] += Math.abs(cache.elements[c]['cstate'+subname][j]-temp[c][j]);
 				cache.elements[c]['cstate'+subname][j] = temp[c][j];
 			}
 		}
 		if (x+1 == cache.maxEpochs && subname != '2') for (j = -2; j<project.cases.length; j++) {
-			if (delta[j] > (cache.types[2].length+cache.types[1].length+cache.types[0].length+cache.types[5].length)/500) {
+			if (delta[j] > (cache.types[2].length+cache.types[1].length+cache.types[0].length+cache.types[5].length)/1000) {
 				if (x == cache.limitEpochs) {
 					api.stateLimitReached = true;
 					break;

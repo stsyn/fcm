@@ -447,6 +447,7 @@
 					<div id="caseinfo" class="pad" style="display:block;float:left;width:20em;height:calc(100% - 8px);white-space:pre-wrap;word-wrap:break-word">
 						<div class="line">Имя: <input type="text" class="b i" id="cs_name" style="width:10em"></div>
 						<div class="line">Суммарная стоимость: <input type="text" class="b i" id="cs_cost" style="width:6em" disabled></div>
+						<div class="line"><label class="b ilb stillsel ac fs" style="font-weight:normal"><input type="checkbox" id="cs_dont_use" onchange="api.setCaseEnabled(this.checked)"> Не использовать</label></div>
 						<div class="line"><div class="b red" id="cs_del">Удалить</div></div>
 					</div>
 				</div>
@@ -579,8 +580,8 @@
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:17%">ID: <input type="text" class="b i na" data-no-edit data-val="id" style="width:calc(100% - 3em)" disabled></div>
-							<div class="t de" style="width:58%">Имя: <input type="text" class="b i" data-val="name" data-parse="string"  style="width:calc(100% - 4em)"></div>
+							<div class="t de" style="width:17%">ID: <input type="text" class="b i na" data-no-edit data-parse="int" data-val="id" style="width:calc(100% - 3em)" disabled></div>
+							<div class="t de" style="width:58%">Имя: <input type="text" class="b i" data-val="name" data-parse="string" style="width:calc(100% - 4em)"></div>
 							<div class="t de" style="width:25%">Код: <input type="text" class="b i na" data-no-edit data-special-input="getCode(el.id)" data-val="code" data-write-only="true" style="width:calc(100% - 4em)" disabled></div>
 						</div></div></div>
 						<div class="line de">Детальное описание: <textarea type="text" class="b i" data-val="desc" data-parse="string" style="width:calc(100% - 8px - 0.5em); max-width:calc(100% - 8px - 0.5em);max-height:4em"></textarea></div>
@@ -597,20 +598,12 @@
 					</div>
 					<div class="pad" data-display-types="[1, 2, 3, 6]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Состояние: 
+							<div class="t de" style="width:100%">Состояние: 
 								<input type="text" class="b i" data-val="state" data-default="0.0" data-parse="float" style="width:4em">
 								<select size="1" data-val="tstate" data-parse="int" class="b ilb termsrender"></select>
 								<span data-gray="true">
 									-
 									<input type="text" class="b i" data-val="state2" data-default="0.0" data-parse="float" style="width:4em">
-								</span>
-							</div>
-							<div class="t de" style="width:50%">Текущее: 
-								<input type="text" class="b i na" disabled data-val="cstate" data-no-edit data-default="0.0" data-parse="float" style="width:4em">
-								<select size="1" data-val="tcstate" disabled data-no-edit data-parse="int" class="b ilb termsrender"></select>
-								<span data-gray="true">
-									-
-									<input type="text" class="b i na" disabled data-no-edit data-default="0.0" data-val="cstate2" data-parse="float" style="width:4em">
 								</span>
 							</div>
 						</div></div></div>
@@ -649,8 +642,8 @@
 					</div>
 					<div class="pad debug">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:38%">X: <input type="text" class="b i" data-val="X" style="width:4em"></div>
-							<div class="t de" style="width:38%">Y: <input type="text" class="b i" data-val="Y" style="width:4em"></div>
+							<div class="t de" style="width:38%">X: <input type="text" class="b i" data-val="X" data-parse="float" style="width:4em"></div>
+							<div class="t de" style="width:38%">Y: <input type="text" class="b i" data-val="Y" data-parse="float" style="width:4em"></div>
 							<div class="t de" style="width:24%">Тип: <input type="text" class="b i na" data-no-edit data-val="type" data-parse="int" style="width:2em" disabled></div>
 						</div></div></div>
 					</div>
@@ -762,7 +755,7 @@
 					<div class="pad" style="display:block">
 						<div class="line" style="font-weight:700;font-size:120%;margin-bottom:8px">Концепт</div>
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:17%">ID: <input type="text" class="b i na cc_id" data-val="id" data-no-edit style="width:calc(100% - 3em)" disabled></div>
+							<div class="t de" style="width:17%">ID: <input type="text" class="b i na cc_id" data-parse="int" data-val="id" data-no-edit style="width:calc(100% - 3em)" disabled></div>
 							<div class="t de" style="width:58%">Имя: <input type="text" class="b i" data-val="name" data-parse="string"  style="width:calc(100% - 4em)"></div>
 							<div class="t de" style="width:25%">Код: <input type="text" class="b i na" data-val="code" data-special-input="getCode(el.id)" data-no-edit data-write-only="true" style="width:calc(100% - 4em)" disabled></div>
 						</div></div></div>
@@ -780,20 +773,12 @@
 					</div>
 					<div class="pad" data-display-types="[1, 2, 3, 6]">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:50%">Состояние: 
+							<div class="t de" style="width:100%">Состояние: 
 								<input type="text" class="b i" data-val="state" data-default="0.0" data-parse="float" style="width:4em">
 								<select size="1" data-val="tstate" data-parse="int" class="b ilb termsrender"></select>
 								<span data-gray="true">
 									-
 									<input type="text" class="b i" data-val="state2" data-default="0.0" data-parse="float" style="width:4em">
-								</span>
-							</div>
-							<div class="t de" style="width:50%">Текущее: 
-								<input type="text" class="b i na" data-val="cstate" data-no-edit data-default="0.0" data-parse="float" style="width:4em" disabled>
-								<select size="1" data-val="tcstate" data-no-edit data-parse="int" class="b na ilb termsrender" disabled></select>
-								<span data-gray="true">
-									-
-									<input type="text" class="b i na" data-no-edit data-default="0.0" data-val="cstate2" data-parse="float" style="width:4em" disabled>
 								</span>
 							</div>
 						</div></div></div>
@@ -835,8 +820,8 @@
 					</div>
 					<div class="pad debug">
 						<div class="table r"><div class="t3"><div class="t2">
-							<div class="t de" style="width:38%">X: <input type="text" class="b i" data-val="X" style="width:4em"></div>
-							<div class="t de" style="width:38%">Y: <input type="text" class="b i" data-val="Y" style="width:4em"></div>
+							<div class="t de" style="width:38%">X: <input type="text" class="b i" data-val="X" data-parse="float" style="width:4em"></div>
+							<div class="t de" style="width:38%">Y: <input type="text" class="b i" data-val="Y" data-parse="float" style="width:4em"></div>
 							<div class="t de" style="width:24%">Тип: <input type="text" class="b i na" data-no-edit data-val="type" data-parse="int" style="width:2em" disabled></div>
 						</div></div></div>
 					</div>

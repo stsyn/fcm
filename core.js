@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.6", s:"RC3", b:90};
+	this.version = {g:"0.9.6", s:"RC3", b:91};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -561,6 +561,7 @@ function exapi() {
 		if (project.settings.currentCase == undefined) project.settings.currentCase = -2;
 		if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
 		if (project.settings.actFunc == undefined) project.settings.actFunc = 0;
+		if (project.unusedCases == undefined) project.unusedCases = [];
 		if (project.terms != undefined) {
 			for (var i=0; i<project.terms.length; i++) {
 				project.terms.autoTerms = true;
@@ -884,7 +885,8 @@ function exapi() {
 	}
 	
 	this.requestDeletionCase = function() {
-		windows.deleteCase.buttons[0].functions = 'project.cases.splice('+api.selectedCase+',1);api.closePopup();api.drawCases()';
+		windows.deleteCase.buttons[0].functions = 'project.cases.splice('+api.selectedCase+',1);api.setCaseEnabled(false);api.closePopup();api.drawCases()';
+		api.selectedCase--;
 		api.callPopup2(windows.deleteCase);
 	}
 	
@@ -915,6 +917,19 @@ function exapi() {
 	
 	this.calcTSum = function(val, subname) {
 		return this.calcSum(val) + this.calcCSum(val, subname);
+	}
+	
+	this.setCaseEnabled = function (v, x) {
+		if (x == undefined) x = api.selectedCase;
+		if (v) project.unusedCases.push(api.selectedCase);
+		else {
+			if (project.unusedCases.indexOf(api.selectedCase) >-1) 
+				project.unusedCases.splice(project.unusedCases.indexOf(api.selectedCase), 1);
+		}
+	}
+	
+	this.isCaseEnabled = function (v) {
+		return project.unusedCases.indexOf(v) == -1;
 	}
 	
 	this.renderCase = function(val) {
@@ -956,6 +971,9 @@ function exapi() {
 			document.getElementById('cs_del').removeEventListener('click', api.requestDeletionCase);
 		}
 		document.getElementById('cs_cost').value = api.calcSum(val);
+		document.getElementById('cs_dont_use').checked = project.unusedCases.indexOf(val) >-1;
+		api.switchElemState(document.getElementById('cs_dont_use'));
+		api.initRTS();
 	}
 	
 	this.drawCases = function(norefocus) {
@@ -1008,7 +1026,6 @@ function exapi() {
 		api.initRTSCases();
 		api.initRTS();
 	}
-	
 	
 	this.getTermsPattern = function(val) {
 		if (val < 0) return this.defTerms[val+3];
@@ -1385,6 +1402,7 @@ function exapi() {
 		
 		el2.appendChild(InfernoAddElem('div',{className:'line ax',innerHTML:'&nbsp'},[]));
 		for (var i = -2; i<project.cases.length; i++) {
+			if (!api.isCaseEnabled(i)) continue;
 			var s = '';
 			if (i == -2) s = 'Все отключено';
 			else if (i == -1) s = 'Все включено';
@@ -1407,6 +1425,7 @@ function exapi() {
 			el4.appendChild(InfernoAddElem('div',{innerHTML:parseInt(maxsum*i/4),style:{right:(4-i)*25+'%'}},[]));
 		}
 		for (i = -2; i<project.cases.length; i++) {
+			if (!api.isCaseEnabled(i)) continue;
 			for (let ix=(project.settings.grayMap?1:0); ix>=0; ix--) {
 				let sname = (ix == 0?'':'2');
 				
@@ -1433,6 +1452,7 @@ function exapi() {
 			
 			el2.appendChild(InfernoAddElem('div',{innerHTML:'&nbsp',className:'line ax'},[]));
 			for (var i = -2; i<project.cases.length; i++) {
+				if (!api.isCaseEnabled(i)) continue;
 				var s = '';
 				if (i == -2) s = 'Все отключено';
 				else if (i == -1) s = 'Все включено';
@@ -1457,8 +1477,9 @@ function exapi() {
 	
 	this.renderMatrix= function(val) {
 		var i;
-		for (i=-2; i<project.cases.length; i++)
-			document.getElementById('matrixbutt').getElementsByClassName('b')[i+2].classList.remove('sel');
+		for (i=0; i<document.getElementById('matrixbutt').getElementsByClassName('b').length; i++) {
+			document.getElementById('matrixbutt').getElementsByClassName('b')[i].classList.remove('sel');
+		}
 		document.getElementById('matrixbutt').getElementsByClassName('b')[val+2].classList.add('sel');
 		
 		var u = document.getElementById('matrixpad');
@@ -1526,6 +1547,7 @@ function exapi() {
 			
 			var el2 = document.createElement('span');
 			el2.className = 't';
+			if (!api.isCaseEnabled(i)) el2.className += ' hd';
 			
 			var el = document.createElement('span');
 			el.className = 'b fs';
@@ -1541,8 +1563,9 @@ function exapi() {
 	
 	this.renderStates= function(val) {
 		var i;
-		for (i=-2; i<project.cases.length; i++)
-			document.getElementById('statebutt').getElementsByClassName('b')[i+2].classList.remove('sel');
+		for (i=0; i<document.getElementById('statebutt').getElementsByClassName('b').length; i++) {
+			document.getElementById('statebutt').getElementsByClassName('b')[i].classList.remove('sel');
+		}
 		document.getElementById('statebutt').getElementsByClassName('b')[val+2].classList.add('sel');
 		
 		var u = document.getElementById('statepad');
@@ -1619,6 +1642,7 @@ function exapi() {
 			
 			var el2 = document.createElement('span');
 			el2.className = 't';
+			if (!api.isCaseEnabled(i)) el2.className += ' hd';
 			
 			var el = document.createElement('span');
 			el.className = 'b fs';
@@ -1652,6 +1676,7 @@ function exapi() {
 		document.getElementById('logscases').getElementsByClassName('t2')[0].innerHTML = '';
 		if (project.cases == undefined) project.cases = [];
 		for (var i = -2; i<project.cases.length; i++) {
+			if (!api.isCaseEnabled(i)) continue;
 			var s = '';
 			if (i == -2) s = 'Все отключено';
 			else if (i == -1) s = 'Все включено';
@@ -2515,6 +2540,7 @@ function exapi() {
 		var c = document.getElementById('RTS_cases');
 		c.innerHTML = '';
 		for (var i=-2; i<project.cases.length; i++) {
+			if (!api.isCaseEnabled(i)) continue;
 			var n;
 			if (i==-2) n = 'Все отключено';
 			else if (i==-1) n = 'Все включено';
@@ -2793,18 +2819,18 @@ function exapi() {
 					}
 					elem.classList.add('sel');
 				}
-				if (elem.classList.contains('ac')) {
-					api.switchElemState(elem);
-				}
-				if (elem.classList.contains('acr')) {
-					api.switchRadioElemState(elem);
-				}
 			}
 			else if (cat == 'change') {
 				if (elem.dataset.mark != undefined) {
 					for (var i=0; i<elem.parentNode.querySelectorAll(elem.dataset.mark).length; i++) {
 						elem.parentNode.querySelectorAll(elem.dataset.mark)[i].checked = true;
 					}
+				}
+				if (elem.classList.contains('ac')) {
+					api.switchElemState(elem);
+				}
+				if (elem.classList.contains('acr')) {
+					api.switchRadioElemState(elem);
 				}
 			}
 		}
@@ -2817,10 +2843,6 @@ function exapi() {
 	
 	this.handleChangeEvents = function (e) {
 		api.parseEvent(e.target, 'change');
-	}
-	
-	this.handleChangeEvents = function (e) {
-		api.parseEvent(e.target, 'scroll');
 	}
 }
 
