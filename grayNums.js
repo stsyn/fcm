@@ -1,5 +1,5 @@
 const grayMath = {};
-grayMath.normalize = (x) => {
+grayMath.normalize = x => {
 	//выносим знак
 	let minus;
 	if (x[0] < 0) minus = true;
@@ -9,20 +9,30 @@ grayMath.normalize = (x) => {
 	let a = x.map(v => {return Math.abs(parseFloat(v))});
 	a.minus = minus;
 	
-	//копирование и выравнивание
+	//выравнивание
 	if (a.length == 1) return a;
 	if (a[0] > a[1]) [a[0], a[1]] = [a[1], a[0]];
 	return a;
 }
 
-grayMath.denormalize = (x) => {
+grayMath.denormalize = x => {
 	//избавляемся от .minus
 	let a = x.slice();
 	if (x.minus) {
 		if (a.length == 2)  [a[0], a[1]] = [-a[1], -a[0]];
 		else a[0] = -a[0];
 	}
+	if (a.length > 1 && a[0] > a[1]) [a[0], a[1]] = [a[1], a[0]];
 	return a;
+}
+
+grayMath.getWhiteNumber = x => {
+	return x.reduce((a, b) => {return a + parseFloat(b)})/x.length;
+}
+
+grayMath.getGrayness = x => {
+	let mid = grayMath.getWhiteNumber(x);
+	return Math.abs(mid - parseFloat(x[0]));
 }
 
 grayMath.add = (a, b) => {
