@@ -82,3 +82,13 @@ grayMath.multiply = (a, b) => {
 	
 	return z;
 }
+
+grayMath.addStack = function() {
+	let args = Array.prototype.slice.call(arguments);
+	return args.reduce((current, val) => {return grayMath.add(current, val)});
+}
+
+grayMath.multiplyStack = function() {
+	let args = Array.prototype.slice.call(arguments);
+	return args.reduce((current, val) => {return grayMath.multiply(current, val)});
+}
