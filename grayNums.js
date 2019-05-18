@@ -2,7 +2,7 @@ const grayMath = {};
 grayMath.normalize = x => {
 	//выносим знак
 	let minus;
-	if (x[0] < 0) minus = true;
+	if ((x[0] < 0) || x.minus) minus = true;
 	else minus = false;
 	
 	//копирование и выравнивание
@@ -54,7 +54,7 @@ grayMath.add = (a, b) => {
 	y.forEach((e, i) => {
 		let index = (inverted ? z.length-i-1 : i);
 		z[index] += e * (inverted?-1:1)
-		if (z[index] < 0) z[index] = 0;
+		//if (z[index] < 0) z[index] = 0;
 	});
 	
 	return grayMath.denormalize(z);
