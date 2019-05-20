@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.6", s:"RC3", b:91};
+	this.version = {g:"0.9.6", s:"RC3", b:92};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -81,10 +81,15 @@ function exapi() {
 		[3,2,1,1,0],
 		[4,3,2,1,0],
 		]}];
+	this.defCases = {
+		'-2':{name:'Без контрмер', disabledAll:true, noStates:true},
+		'-1':{name:'Все контрмеры', enabledAll:true, noStates:true}
+	};
+	this.casesCache = [];
 	this.structData = {
 		elements:{
-			fieldsName:['ID','Тип','Код','Имя'/*,'Состояние','Предельное'*/,'Стоимость','Значимость'],
-			fields:['id','type','code','name'/*,'state','lim'*/,'cost','val'],
+			fieldsName:['ID','Тип','Код','Имя','Стоимость','Значимость'],
+			fields:['id','type','code','name','cost','val'],
 			types:['','Угроза','Ресурс','Цель','Контрмера','Дестабилизатор','Посредник'],
 			typesName:[]
 		},
@@ -184,6 +189,13 @@ function exapi() {
 			}
 		}
 	}
+	
+	this.updateCases = function() {
+		api.casesCache = [];
+		api.casesCache[-2] = api.defCases[-2];
+		api.casesCache[-1] = api.defCases[-1];
+		project.cases.forEach((v, i) => api.casesCache[i] = v);
+	};
 	
 	this.getSaves = function () {
 		var ote = localStorage["fcm2.saves"];
@@ -2168,6 +2180,7 @@ function exapi() {
 		document.getElementById("st_elemLabels").checked = this.settings.elemLabels;
 		document.getElementById("st_actualNames").checked = this.settings.actualNames;
 		document.getElementById("st_noMultitool").checked = this.settings.noMultitool;
+		document.getElementById("st_night").checked = this.settings.nightMode;
 		
 		document.getElementById("st_debugInterval").value = this.settings.chInterval;
 		document.getElementById("st_debugCanvasSize").value = this.settings.canvasSize;
@@ -2191,6 +2204,7 @@ function exapi() {
 		this.settings.elemLabels = document.getElementById("st_elemLabels").checked;
 		this.settings.actualNames = document.getElementById("st_actualNames").checked;
 		this.settings.noMultitool = document.getElementById("st_noMultitool").checked;
+		this.settings.nightMode = document.getElementById("st_night").checked;
 		
 		this.settings.chInterval = parseInt(document.getElementById("st_debugInterval").value);
 		this.settings.canvasSize = parseInt(document.getElementById("st_debugCanvasSize").value);
@@ -2215,6 +2229,7 @@ function exapi() {
 		this.styleSwitch('transparentActive','transparency',false,false,false);
 		this.styleSwitch('customCursor','cursor',false,false,false);
 		this.styleSwitch('noMultitool','noMultitool',false,false,false);
+		this.styleSwitch('night','nightMode',false,false,false);
 		if (api.brush<0) this.selectBrush(api.settings.noMultitool?-1:-4);
 		this.topFontSize();
 		this.glFontSize();

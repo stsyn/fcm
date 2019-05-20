@@ -356,7 +356,6 @@ function appDrawElements(el) {
 			var x2 = el[b[el[i].X].second].X;
 			var y2 = el[b[el[i].X].second].Y;
 			var a = 3.14-Math.atan2(x1-x2, y1-y2);
-			console.log(translateCoordsX(x), translateCoordsY(y), x, y);
 			var tcanvas = document.createElement('canvas');
 			tcanvas.width = size*el[i].z*3;
 			tcanvas.height = size*el[i].z*3;
@@ -1589,7 +1588,7 @@ function iteration(i, cur, val, roadmap, options) {
 	}
 }
 
-function Recompile_States(options) {
+function _old_Recompile_States(options) {
 	let temp = [];
 	let subname = options.subname;
 	let j;
@@ -1665,15 +1664,110 @@ function Recompile_States(options) {
 	}
 }
 
-function Recompile_Process(subname) {
-	let inital = [999, 1];
-	if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
-	if (project.settings.actFunc != -1) project.settings.calcFunc = -1;
-	let uv = [];
-	if (project.cases == undefined) project['cases'+subname] = [];
-	let c = project.cases.length+2;
-	while (c--) uv.push(inital[project.settings.calcFunc]);
+function Recompile_States(options) {
+	let temp = [];
+	const subname = '';
+	let subnames = ['', '2'];
+	if (!project.settings.grayMap) subnames = [''];
+	let j;
+	cache.limitEpochs = 100;
+	cache.maxEpochs = 10;
+	cache.epochsPerCase = [];
+	for (j = -2; j<project.cases.length; j++) 
+		cache.epochsPerCase[j] = 10;
 	
+	let getValue = (p, s, j) => {
+		let v = [];
+		v.push(p[s+subnames[0]][j]);
+		if (project.settings.grayMap) v.push(p[s+subnames[1]][j]);
+		return v;
+	};
+	
+	let writeValue = (p, s, j, v) => {
+		p[s+subnames[0]][j] = v[0];
+		if (project.settings.grayMap) p[s+subnames[1]][j] = v[1];
+	}
+	
+	let stringify = v => {
+		return v.map(vx => {return vx.toFixed(fixed_point)}).toString()
+	}
+	
+	let actFunctions = [
+		function(x) {
+			if (Math.abs(x) <= 1) return x;
+			return Math.sign(x);
+		},
+		function (x) {
+			return Math.tanh(x/2);
+		}
+	];
+	
+	for (let x=0; x<cache.maxEpochs; x++) {
+		calcLogAll(' ', subname);
+		calcLogAll('-----===== Эпоха '+x+' =====-----', subname);
+		for (let c=0; c<project.elements.length; c++) {
+			temp[c] = [];
+			if (isOnBond(c)) continue;
+			let elemCache = cache.elements[c];
+			
+			for (j = -2; j<project.cases.length; j++) {
+				temp[c][j] = [];
+				if (x >= cache.epochsPerCase[j]) continue;
+				//сохраняем состояния
+				subnames.forEach(s => { elemCache['stateHistory'+s][j].push(getElemState(c, j, s)); });
+				//входов нет, дропаем
+				if (elemCache.inbonds.length == 0) {
+					subnames.forEach(s => { temp[c][j].push(getElemState(c, j, s)) });
+					continue;
+				}
+				
+				//получаем состояние
+				let val = getValue(elemCache, 'cstate', j);
+				calcLog('', j, subname);
+				calcLog('# '+getName(c)+' — ['+stringify(val)+']');
+				for (let x=0; x<elemCache.inbonds.length; x++) {
+					let pelem = project.bonds[elemCache.inbonds[x]].first;
+					let bondVal = subnames.map(s => {return getBondVal(elemCache.inbonds[x], j, s)});
+					let elemVal = subnames.map(s => {return getElemState(pelem, j, s)});
+					
+					val = grayMath.add(val, grayMath.multiply(bondVal, elemVal));
+					
+					calcLog('+ от '+getName(pelem).substring(0,10)+' ['+stringify(bondVal)+'] * '+stringify(elemVal)+' = '+stringify(val));
+				}
+				//накидываем функцию активации
+				val.forEach((v, i) => { temp[c][j][i] = actFunctions[options.actFunction](v)});
+			}
+		}
+		let upped = false;
+		let delta = [];
+		for (j = -2; j<project.cases.length; j++) 
+			delta[j] = 0;
+		for (let c=0; c<project.elements.length; c++) {
+			for (j = -2; j<project.cases.length; j++) {
+				if (x+1 > cache.epochsPerCase[j]) continue;
+				delta[j] += Math.abs(cache.elements[c]['cstate'+subname][j]-temp[c][j][0]);
+				writeValue(cache.elements[c], 'cstate', j, temp[c][j]);
+				
+			}
+		}
+		if (x+1 == cache.maxEpochs) for (j = -2; j<project.cases.length; j++) {
+			if (delta[j] > (cache.types[2].length+cache.types[1].length+cache.types[0].length+cache.types[5].length)/1000) {
+				if (x == cache.limitEpochs) {
+					api.stateLimitReached = true;
+					break;
+				}
+				if (!upped) {
+					upped = true;
+					cache.maxEpochs++;
+				}
+				cache.epochsPerCase[j]++;
+			}
+		}
+	}
+}
+
+function Recompile_Preparing(subname) {
+	let c;
 	//инициализация
 	cache['logs'+subname] = [];
 	for (c=-2; c<project.cases.length; c++);
@@ -1728,14 +1822,9 @@ function Recompile_Process(subname) {
 			}
 		}
 	}
-	
-	//поиск путей
-	if (project.settings.calcFunc > -1) for (c=0; c<cache.types[0].length; c++)
-		iteration(0, cache.types[0][c], uv, [], {subname:subname, calcFunction:project.settings.calcFunc});
-		
-	//пересчет состояний
-	if (project.settings.actFunc > -1) Recompile_States({subname:subname, actFunction:project.settings.actFunc});
-	
+}
+
+function Recompile_Finish(subname) {
 	//выбор путей
 	if (project.settings.calcFunc > -1) for (c=0; c<cache.types[2].length; c++) {
 		let elemCache = cache.elements[cache.types[2][c]];
@@ -1765,6 +1854,33 @@ function Recompile_Process(subname) {
 		for (let j=-2; j<project.cases.length; j++) {
 			cache.elements[cache.types[2][c]]['costs'+subname][j+2] = cache.elements[cache.types[2][c]]['cstate'+subname][j]*project.elements[cache.types[2][c]].cost;
 		}
+	}
+}
+
+function Recompile_Process(subname) {
+	let inital = [999, 1];
+	if (project.settings.calcFunc == undefined) project.settings.calcFunc = 0;
+	if (project.settings.actFunc != -1) project.settings.calcFunc = -1;
+	let uv = [];
+	if (project.cases == undefined) project.cases = [];
+	let c = project.cases.length+2;
+	while (c--) uv.push(inital[project.settings.calcFunc]);
+	
+	Recompile_Preparing(subname);
+	
+	//поиск путей
+	if (project.settings.calcFunc > -1) for (c=0; c<cache.types[0].length; c++)
+		iteration(0, cache.types[0][c], uv, [], {subname:subname, calcFunction:project.settings.calcFunc});
+		
+	//пересчет состояний
+	if (project.settings.actFunc > -1) {
+		if (subname == '2' || !project.settings.grayMap)
+			Recompile_States({actFunction:project.settings.actFunc});
+	}
+	
+	if (project.settings.calcFunc > -1 || !project.settings.grayMap || subname == '2') {
+		if (project.settings.grayMap) Recompile_Finish('');
+		Recompile_Finish(subname);
 	}
 }
 
