@@ -1533,7 +1533,7 @@ function iteration(i, cur, val, roadmap, options) {
 	
 	let calcFunctions = [
 		function(a, b) {
-			if (a>b) return a;
+			if (a<b) return a;
 			else return b;
 		},
 		function (a, b) {
@@ -1561,6 +1561,8 @@ function iteration(i, cur, val, roadmap, options) {
 					cache.elements[cur]['calcRoadMap'+subname][roadmap[0]][j][k] = roadmap[k];
 					cache.elements[roadmap[0]]['calcRoadMap'+subname][cur][j][k] = roadmap[k];
 				}
+				cache.elements[cur]['calcRoadMap'+subname][roadmap[0]][j].push(cur);
+				cache.elements[roadmap[0]]['calcRoadMap'+subname][cur][j].push(cur);
 			}
 		// return; пытаемся продолжать вычисления
 	}
@@ -1578,89 +1580,13 @@ function iteration(i, cur, val, roadmap, options) {
 		
 		var j=0;
 		for (j = -2; j<project.cases.length; j++) {
-			axval[j+2] = calcFunctions[options.calcFunction](axval[j+2], getBondVal(cache.elements[cur].outbonds[c], j, subname)).toFixed(fixed_point);
+			axval[j+2] = +calcFunctions[options.calcFunction](axval[j+2], getBondVal(cache.elements[cur].outbonds[c], j, subname)).toFixed(fixed_point);
 		}
 		
 		iteration(i+1, 
 			project.bonds[cache.elements[cur].outbonds[c]].second, 				//следующий элемент
 			axval,	//меньшую силу передаем
 			roadmap.concat(cur), options);
-	}
-}
-
-function _old_Recompile_States(options) {
-	let temp = [];
-	let subname = options.subname;
-	let j;
-	cache.limitEpochs = 100;
-	if (subname != '2') {
-		cache.maxEpochs = 10;
-		cache.epochsPerCase = [];
-		for (j = -2; j<project.cases.length; j++) 
-			cache.epochsPerCase[j] = 10;
-	}
-	
-	
-	let actFunctions = [
-		function(x) {
-			if (Math.abs(x) <= 1) return x;
-			return Math.sign(x);
-		},
-		function (x) {
-			return Math.tanh(x/2);
-		}
-	];
-	
-	for (let x=0; x<cache.maxEpochs; x++) {
-		calcLogAll(' ', subname);
-		calcLogAll('-----===== Эпоха '+x+' =====-----', subname);
-		for (let c=0; c<project.elements.length; c++) {
-			temp[c] = [];
-			if (isOnBond(c)) continue;
-			let elemCache = cache.elements[c];
-			
-			for (j = -2; j<project.cases.length; j++) {
-				if (x >= cache.epochsPerCase[j]) continue;
-				elemCache['stateHistory'+subname][j].push(getElemState(c, j, subname));
-				if (elemCache.inbonds.length == 0) {
-					temp[c][j] = getElemState(c, j, subname);
-					continue;
-				}
-				let val = elemCache['cstate'+subname][j];
-				calcLog('', j, subname);
-				calcLog('# '+getName(c)+' — '+val.toFixed(fixed_point), j, subname);
-				for (let x=0; x<elemCache.inbonds.length; x++) {
-					let pelem = project.bonds[elemCache.inbonds[x]].first;
-					val += (getBondVal(elemCache.inbonds[x], j, subname))*getElemState(pelem, j, subname);
-					calcLog('+ от '+getName(pelem).substring(0,10)+' '+(getBondVal(elemCache.inbonds[x], j, subname))+' * '+getElemState(pelem, j, subname)+' = '+val.toFixed(fixed_point), j, subname);
-				}
-				temp[c][j] = actFunctions[options.actFunction](val);
-			}
-		}
-		let upped = false;
-		let delta = [];
-		for (j = -2; j<project.cases.length; j++) 
-			delta[j] = 0;
-		for (let c=0; c<project.elements.length; c++) {
-			for (j = -2; j<project.cases.length; j++) {
-				if (x+1 > cache.epochsPerCase[j]) continue;
-				if (subname != '2') delta[j] += Math.abs(cache.elements[c]['cstate'+subname][j]-temp[c][j]);
-				cache.elements[c]['cstate'+subname][j] = temp[c][j];
-			}
-		}
-		if (x+1 == cache.maxEpochs && subname != '2') for (j = -2; j<project.cases.length; j++) {
-			if (delta[j] > (cache.types[2].length+cache.types[1].length+cache.types[0].length+cache.types[5].length)/1000) {
-				if (x == cache.limitEpochs) {
-					api.stateLimitReached = true;
-					break;
-				}
-				if (!upped) {
-					upped = true;
-					cache.maxEpochs++;
-				}
-				cache.epochsPerCase[j]++;
-			}
-		}
 	}
 }
 
@@ -1797,6 +1723,7 @@ function Recompile_Preparing(subname) {
 	}
 	
 	for (c=0; c<cache.elements.length; c++) {
+		if (!project.elements[c]) continue;
 		if (isOnBond(c)) continue;
 		let elemCache = cache.elements[c];
 		elemCache['stateHistory'+subname] = [];
