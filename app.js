@@ -1669,6 +1669,7 @@ function Recompile_States(options) {
 		for (j = -2; j<project.cases.length; j++) 
 			delta[j] = 0;
 		for (let c=0; c<project.elements.length; c++) {
+			if (isOnBond(c)) continue;
 			for (j = -2; j<project.cases.length; j++) {
 				if (x+1 > cache.epochsPerCase[j]) continue;
 				delta[j] += Math.abs(cache.elements[c]['cstate'+subname][j]-temp[c][j][0]);
