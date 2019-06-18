@@ -66,7 +66,7 @@ function exapi() {
 	this.windows = {};
 	this.mouse = {};
 	this.mouse.onclick = [];
-	this.version = {g:"0.9.6", s:"RC3", b:93};
+	this.version = {g:"0.9.6", s:"RC3", b:94};
 	this.defTerms = [
 		{name:"<i>Без термов</i>",terms:[]},
 		{name:"Краткий",autoTerms:true,terms:[{term:'Слабо',lim:0.33},{term:'Средне',lim:0.67},{term:'Сильно',lim:1}], rules:[
@@ -1446,9 +1446,9 @@ function exapi() {
 					els.push(InfernoAddElem('div',{innerHTML:'&nbsp',style:{right:(4-j)*25+'%'}},[]));
 				}
 							
-				els.push(InfernoAddElem('span',{className:'c_b',innerHTML:api.calcCSum(i, sname),style:{width:100*(api.calcCSum(i, sname)/maxsum)+'%'}},[]));
+				els.push(InfernoAddElem('span',{className:'c_b',title:api.calcCSum(i, sname),innerHTML:api.calcCSum(i, sname),style:{width:100*(api.calcCSum(i, sname)/maxsum)+'%'}},[]));
 				
-				els.push(InfernoAddElem('span',{className:'c_c',innerHTML:api.calcTSum(i),style:{width:100*(api.calcSum(i)/maxsum)+'%'}},[]));
+				els.push(InfernoAddElem('span',{className:'c_c',title:api.calcCSum(i, sname)+'+'+api.calcSum(i)+'='+api.calcTSum(i, sname),innerHTML:api.calcTSum(i, sname),style:{width:100*(api.calcSum(i)/maxsum)+'%'}},[]));
 				
 				gel.appendChild(InfernoAddElem('div',{className:'line scale'},els));
 			}
